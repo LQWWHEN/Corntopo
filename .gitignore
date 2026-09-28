@@ -1,0 +1,6 @@
+results/
+checkpoints/
+wandb/
+runs/
+test_results/
+__pycache__/
