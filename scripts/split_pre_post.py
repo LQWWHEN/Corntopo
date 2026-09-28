@@ -34,6 +34,9 @@ from datetime import datetime
 from pathlib import Path
 
 
+DEFAULT_IGNORE_PREFIX = "IGNORE_"
+
+
 @dataclass(frozen=True)
 class FileRecord:
     path: Path
@@ -91,6 +94,13 @@ def parse_filename(path: Path) -> FileRecord | None:
     )
 
 
+def has_ignore_prefix(path: str | Path, ignore_prefix: str = DEFAULT_IGNORE_PREFIX) -> bool:
+    """判断文件名是否以软删除前缀开头，比较时不区分大小写。"""
+    if not ignore_prefix:
+        return False
+    return Path(path).name.lower().startswith(ignore_prefix.lower())
+
+
 def discover_files(input_dir: Path) -> list[Path]:
     if not input_dir.exists():
         raise FileNotFoundError(f"输入目录不存在: {input_dir}")
@@ -110,7 +120,12 @@ def copy_or_move(source: Path, destination: Path, operation: str) -> None:
         shutil.move(str(source), str(destination))
 
 
-def process(input_dir: str | Path, output_dir: str | Path, operation: str = "copy") -> dict[str, int]:
+def process(
+    input_dir: str | Path,
+    output_dir: str | Path,
+    operation: str = "copy",
+    ignore_prefix: str = DEFAULT_IGNORE_PREFIX,
+) -> dict[str, int]:
     input_dir = Path(input_dir).resolve()
     output_dir = Path(output_dir).resolve()
     files = discover_files(input_dir)
@@ -120,6 +135,21 @@ def process(input_dir: str | Path, output_dir: str | Path, operation: str = "cop
     parsed: list[FileRecord] = []
     report_rows: list[dict[str, str]] = []
     for path in files:
+        if has_ignore_prefix(path, ignore_prefix):
+            report_rows.append({
+                "source_file": str(path),
+                "patient_eye_key": "",
+                "surname": "",
+                "given_name": "",
+                "eye": "",
+                "date": "",
+                "time": "",
+                "timestamp": "",
+                "role": "soft_deleted",
+                "status": "ignored",
+                "note": f"文件名以软删除前缀 {ignore_prefix!r} 开头",
+            })
+            continue
         record = parse_filename(path)
         if record is None:
             report_rows.append({
@@ -145,6 +175,7 @@ def process(input_dir: str | Path, output_dir: str | Path, operation: str = "cop
     paired_rows: list[dict[str, str]] = []
     counts = {
         "input_files": len(files),
+        "soft_deleted_files": sum(has_ignore_prefix(p, ignore_prefix) for p in files),
         "parsed_files": len(parsed),
         "paired_groups": 0,
         "pre_files": 0,
@@ -248,9 +279,19 @@ def main() -> None:
     parser.add_argument("--input-dir", required=True, help="未分离 CUR 文件目录")
     parser.add_argument("--output-dir", required=True, help="输出目录")
     parser.add_argument("--operation", choices=["copy", "move"], default="copy", help="默认复制，使用 move 会移动原始文件")
+    parser.add_argument(
+        "--ignore-prefix",
+        default=DEFAULT_IGNORE_PREFIX,
+        help=f"软删除前缀，默认 {DEFAULT_IGNORE_PREFIX!r}；设为空字符串可关闭",
+    )
     args = parser.parse_args()
 
-    counts = process(args.input_dir, args.output_dir, args.operation)
+    counts = process(
+        args.input_dir,
+        args.output_dir,
+        args.operation,
+        args.ignore_prefix,
+    )
     print("分离完成")
     for key, value in counts.items():
         print(f"{key}: {value}")
