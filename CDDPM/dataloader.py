@@ -27,9 +27,12 @@ def center_crop(arr, crop_size=128):
     ]
 class CornealTopoDataset(Dataset):
     def __init__(self,opt, excel_path, data_root, input_maps=None, output_maps=None,
-                 data_type="raw", image_size=None, normalize=True,transforms:DataTransform=None,seed=42,indices=None):
+                 data_type="raw", image_size=None, normalize=True,transforms:DataTransform=None,
+                 seed=42,indices=None,labels=None,dataframe=None):
+        if indices is not None and labels is not None:
+            raise ValueError("indices 和 labels 不能同时指定")
         self.opt = opt
-        self.df = pd.read_excel(excel_path)
+        self.df = dataframe if dataframe is not None else pd.read_excel(excel_path)
         self.data_root = Path(data_root)
         self.data_type = data_type.lower()
         self.image_size = image_size
@@ -39,13 +42,17 @@ class CornealTopoDataset(Dataset):
         self.labels = sorted(self.df["label_index"].tolist())
         self.transforms = transforms
         self.seed = seed
-        self.conditions = opt.conditions
-        self.targets = opt.targets
+        self.conditions = getattr(opt, "conditions", [])
+        self.targets = getattr(opt, "targets", [])
         all_labels = sorted(
             self.df["label_index"].tolist()
         )
 
-        if indices is not None:
+        if labels is not None:
+            if len(labels) != len(set(labels)) or not set(labels).issubset(set(all_labels)):
+                raise ValueError("labels 中含重复或不属于当前 Excel 的 label_index")
+            self.labels = list(labels)
+        elif indices is not None:
             self.labels = [all_labels[i] for i in indices]
         else:
             self.labels = all_labels
@@ -167,8 +174,8 @@ class CornealTopoDataset(Dataset):
 
 
 def build_dataloader(excel_path, data_root, input_maps, output_maps, data_type="raw",
-                     batch_size=4, shuffle=True, num_workers=4, image_size=None):
-    dataset = CornealTopoDataset(excel_path=excel_path, data_root=data_root,
+                     batch_size=4, shuffle=True, num_workers=4, image_size=None, opt=None):
+    dataset = CornealTopoDataset(opt=opt, excel_path=excel_path, data_root=data_root,
                                  input_maps=input_maps, output_maps=output_maps,
                                  data_type=data_type, image_size=image_size,normalize=False)
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
