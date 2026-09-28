@@ -65,7 +65,7 @@ def get_args():
         choices=["none", "concat", "add", "self_attention", "cross_attention", "film"],
         help="临床参数与图像特征的融合方式",
     )
-    parser.add_argument("--clinical_embed_dim", type=int, default=128)
+    parser.add_argument("--clinical_embed_dim", type=int, default=32)
 
 
     parser.add_argument(
