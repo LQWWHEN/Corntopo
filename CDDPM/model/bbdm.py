@@ -106,7 +106,7 @@ class BBDM(nn.Module):
     # training
     # =====================================================
 
-    def forward(self,pre_op, post_op):
+    def forward(self,pre_op, post_op,clinical=None):
 
 
         B=post_op.shape[0]
@@ -123,7 +123,7 @@ class BBDM(nn.Module):
 
         # condition encoder
         cond_feature=self.condition_encoder(pre_op)
-        pred=self.unet(xt,t,cond_feature)
+        pred=self.unet(xt,t,cond_feature,clinical=clinical)
         loss=F.mse_loss(
             pred,
             target
@@ -143,7 +143,7 @@ class BBDM(nn.Module):
     # =====================================================
 
     @torch.no_grad()
-    def p_sample(self,xt,y,cond,t,t_next):
+    def p_sample(self,xt,y,cond,t,t_next,clinical=None):
 
 
         B=xt.shape[0]
@@ -156,7 +156,8 @@ class BBDM(nn.Module):
         pred=self.unet(
             xt,
             tt,
-            cond
+            cond,
+            clinical=clinical,
         )
         x0=self.predict_x0(
             xt,
@@ -251,6 +252,7 @@ class BBDM(nn.Module):
     def sample(
         self,
         pre_op,
+        clinical=None,
     ):
         device=pre_op.device
         B=pre_op.shape[0]
@@ -274,11 +276,11 @@ class BBDM(nn.Module):
             else:
                 t_next=times[i+1]
 
-            x=self.p_sample(x,pre_op,cond,t,t_next)
+            x=self.p_sample(x,pre_op,cond,t,t_next,clinical=clinical)
 
 
 
         return x
     
-    def inference(self,x): 
-        return self.sample(x)
+    def inference(self,x,clinical=None):
+        return self.sample(x,clinical=clinical)

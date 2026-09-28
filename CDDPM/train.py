@@ -60,6 +60,12 @@ def get_args():
     parser.add_argument("--objective",type=str , default="grad")
     parser.add_argument("--conditions", nargs="+", default=[])
     parser.add_argument("--targets", nargs="+", default=[])
+    parser.add_argument(
+        "--fusion_method", default="none",
+        choices=["none", "concat", "add", "self_attention", "cross_attention", "film"],
+        help="临床参数与图像特征的融合方式",
+    )
+    parser.add_argument("--clinical_embed_dim", type=int, default=128)
 
 
     parser.add_argument(
@@ -100,6 +106,18 @@ def get_args():
     return parser.parse_args()
 
 
+def forward_batch(model, pre, post, clinical):
+    if hasattr(model, "sample"):
+        return model(pre, post, clinical=clinical)
+    return model(pre, post)
+
+
+def sample_batch(model, pre, clinical):
+    if hasattr(model, "sample"):
+        return model.sample(pre, clinical=clinical)
+    return model(pre)["pred"]
+
+
 def train_one_epoch(model,loader,optimizer,device,ema=None):
     model.train()
     total_loss = 0
@@ -107,10 +125,8 @@ def train_one_epoch(model,loader,optimizer,device,ema=None):
     for batch in pbar:
         pre = batch["input"].to(device)
         post = batch["target"].to(device)
-        # ------------------
-        # CDDPM forward
-        # --------------------
-        output = model(pre,post)
+        clinical = batch["condition"].to(device)
+        output = forward_batch(model,pre,post,clinical)
         loss = output["loss"]
         optimizer.zero_grad()
         loss.backward()
@@ -142,16 +158,11 @@ def validate(model,loader,device):
     for batch in tqdm(loader,desc="Val"):
         pre=batch["input"].to(device)
         post=batch["target"].to(device)
-        # diffusion loss
-        output=model(pre,post)
+        clinical=batch["condition"].to(device)
+        output=forward_batch(model,pre,post,clinical)
         total_loss += output["loss"].item()
 
-        if hasattr(model,"sample"):
-            # diffusion / BBDM / FM
-            pred=model.sample(pre)
-        else:
-            # Neural Operator / FNO
-            pred=model(pre)["pred"]
+        pred=sample_batch(model,pre,clinical)
         # =====================
         # Sampling prediction
         # =====================
@@ -189,13 +200,9 @@ def test(model,loader,device,save_dir):
     for idx, batch in tqdm(enumerate(loader),desc="Test"):
         pre = batch["input"].to(device)
         target = batch["target"].to(device)
+        clinical = batch["condition"].to(device)
 
-        if hasattr(model,"sample"):
-            # diffusion / BBDM / FM
-            pred=model.sample(pre)
-        else:
-            # Neural Operator / FNO
-            pred=model(pre)["pred"]
+        pred=sample_batch(model,pre,clinical)
 
         metrics = calculate_metrics(pred,target)
         for k in total_metrics:
@@ -227,16 +234,9 @@ def visualize_result(
     batch = next(iter(loader))
     pre = batch["input"].to(device)
     post = batch["target"].to(device)
+    clinical = batch["condition"].to(device)
 
-    if hasattr(model,"sample"):
-        generated=model.sample(
-            pre[:1]
-        )
-
-    else:
-        generated=model(
-            pre[:1]
-        )["pred"]
+    generated=sample_batch(model,pre[:1],clinical[:1])
     # ==========================
     # remove batch dimension
     # ==========================
@@ -315,7 +315,12 @@ def build_model(args):
         )
 
     encoder = ConditionEncoder()
-    unet = ConditionalUNet(discrete=args.model != "fm")
+    unet = ConditionalUNet(
+        discrete=args.model != "fm",
+        clinical_dim=len(args.conditions),
+        clinical_embed_dim=args.clinical_embed_dim,
+        fusion_method=args.fusion_method,
+    )
     if args.model == "bbdm":
         return BBDM(
             encoder, unet, timesteps=args.time_steps,
@@ -329,6 +334,23 @@ def build_model(args):
     )
 
 
+def get_clinical_stats(dataframe, train_labels, columns):
+    if not columns:
+        return None
+    missing = set(columns) - set(dataframe.columns)
+    if missing:
+        raise ValueError(f"Excel 缺少临床参数列: {sorted(missing)}")
+    numeric = dataframe.loc[:, columns].apply(pd.to_numeric, errors="raise")
+    if not np.isfinite(numeric.to_numpy(dtype=np.float64)).all():
+        raise ValueError("临床参数列包含缺失或无穷值，请先处理再训练")
+    train_mask = dataframe["label_index"].isin(train_labels)
+    values = numeric.loc[train_mask].to_numpy(dtype=np.float64)
+    mean = values.mean(axis=0)
+    std = values.std(axis=0)
+    std[std < 1e-8] = 1.0
+    return {"columns": list(columns), "mean": mean.tolist(), "std": std.tolist()}
+
+
 def run_fold(args, dataframe, fold, device):
     fold_number = fold["fold"]
     fold_dir = Path(args.save_dir) / f"fold_{fold_number:02d}"
@@ -338,11 +360,22 @@ def run_fold(args, dataframe, fold, device):
         f"train={len(fold['train'])}, val={len(fold['val'])}, test={len(fold['test'])}"
     )
 
+    clinical_stats = get_clinical_stats(
+        dataframe, fold["train"], args.conditions if args.fusion_method != "none" else [],
+    )
+    if clinical_stats is not None:
+        with (fold_dir / "clinical_stats.json").open("w", encoding="utf-8") as f:
+            json.dump(clinical_stats, f, ensure_ascii=False, indent=2)
+
     augmentation = DataTransform(hflip_prob=0.5, vflip_prob=0.5, rotation=True)
     dataset_args = dict(
         opt=args, excel_path=args.excel_path, data_root=args.data_root,
         image_size=args.image_size, dataframe=dataframe,
     )
+    if clinical_stats is not None:
+        dataset_args.update(
+            clinical_mean=clinical_stats["mean"], clinical_std=clinical_stats["std"],
+        )
     train_set = CornealTopoDataset(
         **dataset_args, labels=fold["train"], transforms=augmentation,
     )
@@ -394,22 +427,33 @@ def run_fold(args, dataframe, fold, device):
                     "epoch": epoch, "model": model.state_dict(),
                     "ema": ema.ema_model.state_dict() if ema is not None else None,
                     "optimizer": optimizer.state_dict(), "loss": best_loss,
+                    "model_type": args.model, "fusion_method": args.fusion_method,
+                    "clinical_embed_dim": args.clinical_embed_dim,
+                    "clinical_stats": clinical_stats,
                 }, fold_dir / "best.pth")
 
         torch.save({
             "epoch": args.epochs - 1, "model": model.state_dict(),
             "ema": ema.ema_model.state_dict() if ema is not None else None,
             "optimizer": optimizer.state_dict(), "loss": best_loss,
+            "model_type": args.model, "fusion_method": args.fusion_method,
+            "clinical_embed_dim": args.clinical_embed_dim,
+            "clinical_stats": clinical_stats,
         }, fold_dir / "final.pth")
     finally:
         writer.close()
 
     results = {}
     for checkpoint_name in ("best", "final"):
+        # These checkpoints were just written by this training run. Neural operator
+        # state dictionaries can carry callable metadata (such as GELU), which
+        # PyTorch's restricted weights-only unpickler cannot deserialize.
         checkpoint = torch.load(
-            fold_dir / f"{checkpoint_name}.pth", map_location=device, weights_only=True,
+            fold_dir / f"{checkpoint_name}.pth", map_location=device, weights_only=False,
         )
         weights = checkpoint["ema"] if args.use_ema else checkpoint["model"]
+        # Some neuralop versions also store non-parameter metadata as a key.
+        weights.pop("_metadata", None)
         model.load_state_dict(weights)
         metrics = test(model, test_loader, device, str(fold_dir / "test_results" / checkpoint_name))
         results[checkpoint_name] = metrics
@@ -435,6 +479,8 @@ def write_summary(results, path, args, split_file):
         }
     summary = {
         "model": args.model, "split_file": str(split_file),
+        "fusion_method": args.fusion_method, "clinical_features": list(args.conditions),
+        "clinical_embed_dim": args.clinical_embed_dim,
         "requested_folds": args.k_folds, "completed_folds": len(results),
         "fold_results": results, "aggregate": aggregate,
     }
@@ -445,6 +491,17 @@ def write_summary(results, path, args, split_file):
 
 def main():
     args = get_args()
+    if args.fusion_method != "none":
+        if args.model in {"fno", "uno"}:
+            raise ValueError("临床参数融合仅支持 cddpm、bbdm 和 fm")
+        if not args.conditions:
+            raise ValueError("启用临床参数融合时必须通过 --conditions 指定术前临床参数列")
+        if any(name == "label_index" or name.startswith("post_") for name in args.conditions):
+            raise ValueError("--conditions 只能使用术前可获得的参数，不能包含 label_index 或 post_ 列")
+        if len(set(args.conditions)) != len(args.conditions):
+            raise ValueError("--conditions 不应包含重复列")
+        if args.clinical_embed_dim < 1:
+            raise ValueError("--clinical_embed_dim 必须大于零")
     if not 1 <= args.k_folds <= 10:
         raise ValueError("--k_folds 必须介于 1 和 10 之间")
     if args.epochs < 1:

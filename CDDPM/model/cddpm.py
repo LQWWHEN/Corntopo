@@ -75,7 +75,7 @@ class CDDPM(nn.Module):
     # Training forward
     # ----------------------------------
 
-    def forward(self,pre_op,post_op):
+    def forward(self,pre_op,post_op,clinical=None):
 
         """
         pre_op:
@@ -105,7 +105,7 @@ class CDDPM(nn.Module):
 
         # predict noise
 
-        noise_pred = self.unet(x_t,t,cond_feature)
+        noise_pred = self.unet(x_t,t,cond_feature,clinical=clinical)
 
         # DDPM loss
 
@@ -119,170 +119,9 @@ class CDDPM(nn.Module):
     def sample(
         self,
         pre_op,
+        clinical=None,
     
     ):
 
         if self.sampler == "ddpm":
-            return self.ddpm_sample(pre_op)
-
-        elif self.sampler == "ddim":
-            return self.ddim_sample(
-                pre_op,
-                steps=self.sample_steps
-            )
-
-        else:
-            raise ValueError
-    # ----------------------------------
-    # Reverse diffusion sampling
-    # ----------------------------------
-
-    @torch.no_grad()
-    def ddpm_sample(self,pre_op):
-
-        """
-        Generate post-op image
-
-        input:
-            pre-op
-
-        output:
-            generated post-op
-        """
-
-
-        device = pre_op.device
-        B = pre_op.shape[0]
-
-        # condition
-
-        cond_feature = self.condition_encoder(pre_op)
-        # start from gaussian noise
-        x = torch.randn_like(pre_op)
-        betas = self.scheduler.betas.to(device)
-        alphas = self.scheduler.alphas.to(device)
-        alpha_bars = self.scheduler.alpha_bars.to(device)
-
-
-
-        for t in reversed(range(self.timesteps)):
-            timestep = torch.full((B,), t,device=device,dtype=torch.long)
-
-
-
-            # predict noise
-            noise_pred = self.unet(x,timestep,cond_feature)
-            alpha = alphas[t]
-            alpha_bar = alpha_bars[t]
-            beta = betas[t]
-
-            if t > 0:
-                z = torch.randn_like(x)
-            else:
-                z = torch.zeros_like(x)
-
-
-            # DDPM reverse step
-
-            x = (1 / torch.sqrt(alpha)) * (x-((1-alpha)/ torch.sqrt(1-alpha_bar))*noise_pred) + torch.sqrt(beta)*z
-
-
-
-        return x
-    
-
-    @torch.no_grad()
-    def ddim_sample(
-        self,
-        pre_op,
-        steps=50,
-        eta=0.0
-    ):
-        """
-        DDIM Sampling
-
-        Args:
-            pre_op : [B,1,H,W]
-            steps  : sampling steps
-            eta    : 0 -> deterministic DDIM
-                    1 -> close to DDPM
-        """
-
-        device = pre_op.device
-        B = pre_op.shape[0]
-
-        cond_feature = self.condition_encoder(pre_op)
-
-        x = torch.randn_like(pre_op)
-
-        alpha_bars = self.scheduler.alpha_bars.to(device)
-
-        # timestep sequence
-        seq = torch.linspace(
-            self.timesteps - 1,
-            0,
-            steps,
-            dtype=torch.long,
-            device=device
-        )
-
-        for i in range(len(seq) - 1):
-
-            t = seq[i]
-            t_next = seq[i + 1]
-
-            timestep = torch.full(
-                (B,),
-                t,
-                device=device,
-                dtype=torch.long
-            )
-
-            noise_pred = self.unet(
-                x,
-                timestep,
-                cond_feature
-            )
-
-            alpha_bar = alpha_bars[t]
-            alpha_bar_next = alpha_bars[t_next]
-
-            # -----------------------------
-            # predict x0
-            # -----------------------------
-            x0 = (
-                x -
-                torch.sqrt(1 - alpha_bar) * noise_pred
-            ) / torch.sqrt(alpha_bar)
-
-            # optional clipping
-            x0 = x0.clamp(0, 1)
-
-            # -----------------------------
-            # sigma
-            # -----------------------------
-            sigma = (
-                eta *
-                torch.sqrt(
-                    (1 - alpha_bar_next)
-                    / (1 - alpha_bar)
-                    * (1 - alpha_bar / alpha_bar_next)
-                )
-            )
-
-            if eta > 0:
-                noise = torch.randn_like(x)
-            else:
-                noise = 0
-
-            direction = torch.sqrt(
-                1 - alpha_bar_next - sigma**2
-            ) * noise_pred
-
-            x = (
-                torch.sqrt(alpha_bar_next) * x0
-                + direction
-                + sigma * noise
-            )
-
-        return x
+            return self.ddpm_sample(pre_op, clinical=clinical)

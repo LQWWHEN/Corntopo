@@ -4,6 +4,87 @@ import torch.nn as nn
 import math
 from model.resblock import ResBlock,UpSample,DownSample
 from model.attention import AttentionBlock
+
+
+class ClinicalConditionEncoder(nn.Module):
+    """Encode standardized scalar measurements as a vector and feature tokens."""
+
+    def __init__(self, num_features, embed_dim=128):
+        super().__init__()
+        if num_features < 1:
+            raise ValueError("Clinical conditioning requires at least one feature")
+        self.num_features = num_features
+        self.global_encoder = nn.Sequential(
+            nn.Linear(num_features, embed_dim),
+            nn.SiLU(),
+            nn.Linear(embed_dim, embed_dim),
+        )
+        self.scalar_projection = nn.Linear(1, embed_dim)
+        self.feature_embedding = nn.Parameter(torch.randn(num_features, embed_dim) * 0.02)
+        self.token_norm = nn.LayerNorm(embed_dim)
+
+    def forward(self, clinical):
+        if clinical is None or clinical.ndim != 2 or clinical.shape[1] != self.num_features:
+            raise ValueError(f"clinical must have shape [batch, {self.num_features}]")
+        global_embedding = self.global_encoder(clinical)
+        feature_tokens = self.token_norm(
+            self.scalar_projection(clinical.unsqueeze(-1))
+            + self.feature_embedding.unsqueeze(0)
+        )
+        return global_embedding, feature_tokens
+
+
+class ClinicalFusion(nn.Module):
+    """Fuse tabular condition with a low-resolution image feature map."""
+
+    METHODS = ("concat", "add", "self_attention", "cross_attention", "film")
+
+    def __init__(self, channels, embed_dim, method, num_heads=4):
+        super().__init__()
+        if method not in self.METHODS:
+            raise ValueError(f"Unknown clinical fusion method: {method}")
+        self.method = method
+        if method == "concat":
+            self.projection = nn.Conv2d(channels + embed_dim, channels, 1)
+        elif method == "add":
+            self.projection = nn.Linear(embed_dim, channels)
+        elif method == "film":
+            self.affine = nn.Linear(embed_dim, channels * 2)
+            nn.init.zeros_(self.affine.weight)
+            nn.init.zeros_(self.affine.bias)
+        else:
+            if channels % num_heads:
+                raise ValueError("Attention channels must be divisible by num_heads")
+            self.image_norm = nn.LayerNorm(channels)
+            self.clinical_norm = nn.LayerNorm(channels)
+            self.clinical_projection = nn.Linear(embed_dim, channels)
+            self.attention = nn.MultiheadAttention(channels, num_heads, batch_first=True)
+
+    def forward(self, image, global_embedding, feature_tokens):
+        batch, channels, height, width = image.shape
+        if self.method == "concat":
+            broadcast = global_embedding[:, :, None, None].expand(-1, -1, height, width)
+            return image + self.projection(torch.cat((image, broadcast), dim=1))
+        if self.method == "add":
+            return image + self.projection(global_embedding)[:, :, None, None]
+        if self.method == "film":
+            gamma, beta = self.affine(global_embedding).chunk(2, dim=1)
+            return image * (1 + gamma[:, :, None, None]) + beta[:, :, None, None]
+
+        spatial = image.flatten(2).transpose(1, 2)
+        query = self.image_norm(spatial)
+        # The global token also gives cross attention two tokens with one scalar input.
+        tokens = torch.cat((global_embedding.unsqueeze(1), feature_tokens), dim=1)
+        tokens = self.clinical_norm(self.clinical_projection(tokens))
+        if self.method == "self_attention":
+            sequence = torch.cat((query, tokens), dim=1)
+            update, _ = self.attention(sequence, sequence, sequence, need_weights=False)
+            update = update[:, :height * width]
+        else:
+            update, _ = self.attention(query, tokens, tokens, need_weights=False)
+        return image + update.transpose(1, 2).reshape(batch, channels, height, width)
+
+
 class TimeEmbedding(nn.Module):
 
     def __init__(self,discrete,dim=128):
@@ -35,13 +116,22 @@ class TimeEmbedding(nn.Module):
 class ConditionalUNet(nn.Module):
 
 
-    def __init__(self,time_dim=512,discrete=True):
+    def __init__(self,time_dim=512,discrete=True,clinical_dim=0,
+                 fusion_method="none",clinical_embed_dim=128):
 
         super().__init__()
 
 
         self.time_dim = time_dim
         self.time_emb = TimeEmbedding(discrete=discrete)
+        if fusion_method != "none" and clinical_dim < 1:
+            raise ValueError("Specify clinical_dim > 0 when clinical fusion is enabled")
+        if fusion_method == "none":
+            self.clinical_encoder = None
+            self.clinical_fusion = None
+        else:
+            self.clinical_encoder = ClinicalConditionEncoder(clinical_dim, clinical_embed_dim)
+            self.clinical_fusion = ClinicalFusion(512, clinical_embed_dim, fusion_method)
         # input
 
         self.in_conv = nn.Conv2d(1, 64, 3,  padding=1)
@@ -84,7 +174,7 @@ class ConditionalUNet(nn.Module):
 
 
 
-    def forward(self,x,t,cond):
+    def forward(self,x,t,cond,clinical=None):
 
         f1,f2,f3,f4 = cond
         t = self.time_emb(t)
@@ -113,6 +203,11 @@ class ConditionalUNet(nn.Module):
         x4 = self.attn_m(x4)
 
         x4 = x4 + f4
+        if self.clinical_fusion is not None:
+            if clinical is None or clinical.shape[0] != x4.shape[0]:
+                raise ValueError("Clinical batch is missing or has a different batch size")
+            embedding, tokens = self.clinical_encoder(clinical)
+            x4 = self.clinical_fusion(x4, embedding, tokens)
 
         # decoder
 

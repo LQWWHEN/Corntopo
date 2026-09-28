@@ -21,7 +21,7 @@ class FlowMatching(nn.Module):
         self.path = AffineProbPath(scheduler=scheduler)
         self.method=method
 
-    def forward(self,pre,post):
+    def forward(self,pre,post,clinical=None):
 
         B = pre.shape[0]
         device = pre.device
@@ -38,7 +38,7 @@ class FlowMatching(nn.Module):
         cond = self.condition_encoder(pre)
 
         # predict velocity
-        velocity_pred = self.unet(xt, t,cond)
+        velocity_pred = self.unet(xt, t,cond,clinical=clinical)
         loss = F.mse_loss(velocity_pred,velocity)
 
         return {
@@ -52,7 +52,7 @@ class FlowMatching(nn.Module):
 
 
     @torch.no_grad()
-    def sample(self,pre,steps=50,method=None):
+    def sample(self,pre,steps=50,method=None,clinical=None):
         cond = self.condition_encoder(pre)
         device=pre.device
 
@@ -65,7 +65,7 @@ class FlowMatching(nn.Module):
                 t=torch.tensor(t, device=x.device)
             if t.ndim==0:
                 t=t.repeat(B)
-            v=self.unet(x, t,cond)
+            v=self.unet(x, t,cond,clinical=clinical)
             return v
 
         class WrappedModel(ModelWrapper):
@@ -112,5 +112,5 @@ class FlowMatching(nn.Module):
 
         return result
 
-    def inference(self,x): 
-        return self.sample(x)
+    def inference(self,x,clinical=None):
+        return self.sample(x,clinical=clinical)
