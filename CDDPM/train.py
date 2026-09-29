@@ -47,6 +47,9 @@ def get_args():
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--sampler", type=str, default="ddpm")
     parser.add_argument("--ode_solver", type=str, default="euler")
+    parser.add_argument("--input_maps", nargs="+", default=[])
+    parser.add_argument("--output_maps", nargs="+", default=[])
+
 
     parser.add_argument("--sample_steps", type=int, default=50)
     parser.add_argument("--k_folds", type=int, default=10,
@@ -370,7 +373,7 @@ def run_fold(args, dataframe, fold, device):
     augmentation = DataTransform(hflip_prob=0.5, vflip_prob=0.5, rotation=True)
     dataset_args = dict(
         opt=args, excel_path=args.excel_path, data_root=args.data_root,
-        image_size=args.image_size, dataframe=dataframe,
+        image_size=args.image_size, dataframe=dataframe, input_maps = args.input_maps,output_maps = args.output_maps
     )
     if clinical_stats is not None:
         dataset_args.update(

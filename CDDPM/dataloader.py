@@ -1,14 +1,17 @@
+"""Dataset API compatible with train.py clinical_mean/clinical_std arguments."""
+
 from pathlib import Path
 import cv2
 import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset, DataLoader
-import torchvision.transforms as transforms
-from PIL import Image
 from transforms import DataTransform
 
-import matplotlib.pyplot as plt
+
+DATASET_API_VERSION = "clinical_stats_v1"
+
+
 def center_crop(arr, crop_size=128):
 
     h, w = arr.shape
@@ -28,7 +31,8 @@ def center_crop(arr, crop_size=128):
 class CornealTopoDataset(Dataset):
     def __init__(self,opt, excel_path, data_root, input_maps=None, output_maps=None,
                  data_type="raw", image_size=None, normalize=True,transforms:DataTransform=None,
-                 seed=42,indices=None,labels=None,dataframe=None):
+                 seed=42,indices=None,labels=None,dataframe=None,
+                 clinical_mean=None,clinical_std=None):
         if indices is not None and labels is not None:
             raise ValueError("indices 和 labels 不能同时指定")
         self.opt = opt
@@ -44,6 +48,17 @@ class CornealTopoDataset(Dataset):
         self.seed = seed
         self.conditions = getattr(opt, "conditions", [])
         self.targets = getattr(opt, "targets", [])
+        if (clinical_mean is None) != (clinical_std is None):
+            raise ValueError("clinical_mean 和 clinical_std 必须同时提供")
+        self.clinical_mean = None if clinical_mean is None else np.asarray(clinical_mean, dtype=np.float32)
+        self.clinical_std = None if clinical_std is None else np.asarray(clinical_std, dtype=np.float32)
+        if self.clinical_mean is not None:
+            if (self.clinical_mean.shape != (len(self.conditions),)
+                    or self.clinical_std.shape != (len(self.conditions),)
+                    or not np.isfinite(self.clinical_mean).all()
+                    or not np.isfinite(self.clinical_std).all()
+                    or np.any(self.clinical_std <= 0)):
+                raise ValueError("临床参数的均值、标准差必须与 conditions 对齐且为有效数值")
         all_labels = sorted(
             self.df["label_index"].tolist()
         )
@@ -78,7 +93,12 @@ class CornealTopoDataset(Dataset):
         for f in self.conditions:
             feats.append(float(row[f]))
 
-        return np.array(feats, dtype=np.float32)
+        features = np.array(feats, dtype=np.float32)
+        if not np.isfinite(features).all():
+            raise ValueError(f"label_index={label} 的临床参数包含缺失或无穷值")
+        if self.clinical_mean is not None:
+            features = (features - self.clinical_mean) / self.clinical_std
+        return features
     
     def load_excel_targets(self, label):
         row = self.df[self.df["label_index"] == label]
@@ -126,6 +146,7 @@ class CornealTopoDataset(Dataset):
             return img
 
     def load_input(self, label):
+        
         channels = [self.load_map(map_name, label, phase="pre") for map_name in self.input_maps]
         return np.stack(channels, axis=0)
 

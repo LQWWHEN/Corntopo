@@ -2,7 +2,8 @@
 """CornTopo CUR 数据集处理工具。
 
 功能：解析 Pentacam CUR 文件、批量生成元数据、严格配对术前/术后样本，
-并导出原始矩阵、曲率矩阵、灰度图和统一/局部色标热力图。
+计算前表面角膜 SIA 和术前/术后年龄，并导出原始矩阵、曲率矩阵、灰度图
+以及统一/局部色标热力图。
 """
 
 from __future__ import annotations
@@ -51,6 +52,199 @@ def _norm_text(value: Any) -> str:
     if value is None or (isinstance(value, float) and np.isnan(value)):
         return ""
     return re.sub(r"\s+", " ", str(value).strip()).lower()
+
+
+def _parse_date_value(value: Any) -> pd.Timestamp | pd.NaT:
+    """解析常见的 Pentacam/Excel 日期格式。"""
+    if value is None or pd.isna(value):
+        return pd.NaT
+    if isinstance(value, pd.Timestamp):
+        return value.normalize()
+    if isinstance(value, (int, float, np.integer, np.floating)):
+        number = float(value)
+        if np.isfinite(number) and 1 <= number <= 60000 and number < 100000:
+            return pd.Timestamp("1899-12-30") + pd.to_timedelta(number, unit="D")
+        text = str(int(number)) if np.isfinite(number) and number.is_integer() else str(value).strip()
+    else:
+        text = str(value).strip()
+    if not text:
+        return pd.NaT
+    if text.isdigit():
+        text = text.zfill(8)
+        if len(text) == 8:
+            if 1900 <= int(text[:4]) <= 2100:
+                parsed = pd.to_datetime(text, format="%Y%m%d", errors="coerce")
+                if not pd.isna(parsed):
+                    return parsed
+            return pd.to_datetime(text, format="%d%m%Y", errors="coerce")
+    return pd.to_datetime(text, dayfirst=True, errors="coerce")
+
+
+def _first_nonempty(row: pd.Series, columns: Iterable[str]) -> Any:
+    for column in columns:
+        if column not in row.index:
+            continue
+        value = row[column]
+        if value is None or pd.isna(value) or str(value).strip() == "":
+            continue
+        return value
+    return None
+
+
+def _age_in_years(birth_date: Any, examination_date: Any) -> float:
+    birth = _parse_date_value(birth_date)
+    examination = _parse_date_value(examination_date)
+    if pd.isna(birth) or pd.isna(examination) or examination < birth:
+        return float("nan")
+    return float(
+        examination.year
+        - birth.year
+        - ((examination.month, examination.day) < (birth.month, birth.day))
+    )
+
+
+def _calculate_front_sia_and_age(
+    merged: pd.DataFrame,
+    *,
+    axis_convention: str = "flat",
+) -> pd.DataFrame:
+    """添加前表面 SIA、质量标记和术前/术后周岁。"""
+    required = [
+        "pre_GENERAL DATA_Cornea Front Astig",
+        "pre_GENERAL DATA_Cornea Front Axis",
+        "post_GENERAL DATA_Cornea Front Astig",
+        "post_GENERAL DATA_Cornea Front Axis",
+    ]
+    missing = [column for column in required if column not in merged.columns]
+    if missing:
+        raise KeyError("配对表缺少 SIA 必需字段: " + ", ".join(missing))
+    if axis_convention not in {"flat", "steep"}:
+        raise ValueError(f"未知轴位约定: {axis_convention}")
+
+    output = merged.copy()
+    pre_c = pd.to_numeric(output[required[0]], errors="coerce")
+    pre_axis = pd.to_numeric(output[required[1]], errors="coerce")
+    post_c = pd.to_numeric(output[required[2]], errors="coerce")
+    post_axis = pd.to_numeric(output[required[3]], errors="coerce")
+    if axis_convention == "steep":
+        pre_axis = (pre_axis + 90.0) % 180.0
+        post_axis = (post_axis + 90.0) % 180.0
+
+    pre_theta = np.deg2rad(pre_axis)
+    post_theta = np.deg2rad(post_axis)
+    pre_j0 = pre_c * np.cos(2.0 * pre_theta) / 2.0
+    pre_j45 = pre_c * np.sin(2.0 * pre_theta) / 2.0
+    post_j0 = post_c * np.cos(2.0 * post_theta) / 2.0
+    post_j45 = post_c * np.sin(2.0 * post_theta) / 2.0
+    delta_j0 = post_j0 - pre_j0
+    delta_j45 = post_j45 - pre_j45
+
+    # J0/J45 是半柱镜尺度，X/Y 是完整柱镜尺度。
+    output["pre_front_J0"] = pre_j0
+    output["pre_front_J45"] = pre_j45
+    output["post_front_J0"] = post_j0
+    output["post_front_J45"] = post_j45
+    output["delta_front_J0"] = delta_j0
+    output["delta_front_J45"] = delta_j45
+    output["pre_front_X"] = 2.0 * pre_j0
+    output["pre_front_Y"] = 2.0 * pre_j45
+    output["post_front_X"] = 2.0 * post_j0
+    output["post_front_Y"] = 2.0 * post_j45
+    output["delta_front_X"] = 2.0 * delta_j0
+    output["delta_front_Y"] = 2.0 * delta_j45
+    output["front_SIA_J_norm"] = np.hypot(delta_j0, delta_j45)
+    output["front_SIA_D"] = 2.0 * output["front_SIA_J_norm"]
+    output["front_SIA_axis_deg"] = (
+        np.rad2deg(np.arctan2(delta_j45, delta_j0)) / 2.0
+    ) % 180.0
+    output["SIA"] = output["front_SIA_D"]
+    output["Pre J0"] = pre_j0
+    output["Pre 45"] = pre_j45
+    output["Post J0"] = post_j0
+    output["Post 45"] = post_j45
+
+    pre_exam = output.apply(
+        lambda row: _parse_date_value(_first_nonempty(
+            row, ["pre_EXAMINATION_Date", "pre_检查日期"]
+        )), axis=1,
+    )
+    post_exam = output.apply(
+        lambda row: _parse_date_value(_first_nonempty(
+            row, ["post_EXAMINATION_Date", "post_检查日期"]
+        )), axis=1,
+    )
+    pre_birth = output.apply(
+        lambda row: _parse_date_value(_first_nonempty(
+            row, ["pre_PATIENT_DateOfBirth", "post_PATIENT_DateOfBirth"]
+        )), axis=1,
+    )
+    post_birth = output.apply(
+        lambda row: _parse_date_value(_first_nonempty(
+            row, ["post_PATIENT_DateOfBirth", "pre_PATIENT_DateOfBirth"]
+        )), axis=1,
+    )
+    output["pre_exam_date_used"] = pre_exam
+    output["post_exam_date_used"] = post_exam
+    output["pre_birth_date_used"] = pre_birth
+    output["post_birth_date_used"] = post_birth
+    output["pre_age_years"] = [
+        _age_in_years(birth, exam) for birth, exam in zip(pre_birth, pre_exam)
+    ]
+    output["post_age_years"] = [
+        _age_in_years(birth, exam) for birth, exam in zip(post_birth, post_exam)
+    ]
+    birth_both_known = pre_birth.notna() & post_birth.notna()
+    birth_consistent = pd.Series(pd.NA, index=output.index, dtype="boolean")
+    birth_consistent.loc[birth_both_known] = (
+        pre_birth.loc[birth_both_known] == post_birth.loc[birth_both_known]
+    )
+    output["birth_date_consistent"] = birth_consistent
+
+    chronology_known = pre_exam.notna() & post_exam.notna()
+    chronology_valid = pd.Series(pd.NA, index=output.index, dtype="boolean")
+    chronology_valid.loc[chronology_known] = (
+        post_exam.loc[chronology_known] > pre_exam.loc[chronology_known]
+    )
+    output["chronology_valid"] = chronology_valid
+
+    numeric_valid = (
+        pre_c.notna() & post_c.notna() & pre_axis.notna() & post_axis.notna()
+        & pre_c.ge(0) & post_c.ge(0)
+        & pre_axis.ge(0) & post_axis.ge(0)
+        & pre_axis.lt(180) & post_axis.lt(180)
+    )
+    pre_qs = output.get("pre_GENERAL DATA_QS Status")
+    post_qs = output.get("post_GENERAL DATA_QS Status")
+    qs_available = pre_qs is not None and post_qs is not None
+    if qs_available:
+        pre_qs_ok = pre_qs.astype("string").str.strip().eq("OK").fillna(False)
+        post_qs_ok = post_qs.astype("string").str.strip().eq("OK").fillna(False)
+    else:
+        pre_qs_ok = pd.Series(True, index=output.index, dtype="boolean")
+        post_qs_ok = pd.Series(True, index=output.index, dtype="boolean")
+    output["pre_qs_ok"] = pre_qs_ok
+    output["post_qs_ok"] = post_qs_ok
+    output["sia_valid"] = (
+        numeric_valid & chronology_valid.fillna(False)
+        & (pre_qs_ok & post_qs_ok if qs_available else True)
+    ).astype("boolean")
+
+    reasons: list[str] = []
+    for index in output.index:
+        row_reasons: list[str] = []
+        if not bool(numeric_valid.loc[index]):
+            row_reasons.append("散光度数或轴位缺失/越界")
+        if pd.isna(chronology_valid.loc[index]):
+            row_reasons.append("缺少可解析的术前/术后检查日期")
+        elif not bool(chronology_valid.loc[index]):
+            row_reasons.append("术后检查日期不晚于术前检查日期")
+        if qs_available and not bool(pre_qs_ok.loc[index]):
+            row_reasons.append("术前QS非OK")
+        if qs_available and not bool(post_qs_ok.loc[index]):
+            row_reasons.append("术后QS非OK")
+        reasons.append("; ".join(row_reasons))
+    output["sia_invalid_reason"] = reasons
+    return output
 
 
 def parse_filename(path: str | Path) -> dict[str, str]:
@@ -262,6 +456,7 @@ def merge_pre_post(
     encoding: str = "latin1",
     duplicate_policy: str = "error",
     ignore_prefix: str = DEFAULT_IGNORE_PREFIX,
+    axis_convention: str = "flat",
 ) -> pd.DataFrame:
     """按患者+眼别配对；默认遇到重复键直接报错，避免静默丢样本。"""
     pre = build_metadata_table(pre_dir, encoding, ignore_prefix)
@@ -313,6 +508,10 @@ def merge_pre_post(
     )
     merged.insert(0, "label_index", np.arange(1, len(merged) + 1))
     merged.drop(columns=["merge_key"], inplace=True)
+    merged = _calculate_front_sia_and_age(
+        merged,
+        axis_convention=axis_convention,
+    )
     output_file = Path(output_file)
     output_file.parent.mkdir(parents=True, exist_ok=True)
     merged.to_excel(output_file, index=False)
@@ -510,6 +709,7 @@ def run_all(args: argparse.Namespace) -> None:
         encoding=args.encoding,
         duplicate_policy=args.duplicate_policy,
         ignore_prefix=args.ignore_prefix,
+        axis_convention=args.axis_convention,
     )
     generate_arrays_and_images(
         total_table, args.pre_dir, args.post_dir, output_dir,
@@ -536,6 +736,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_merge.add_argument("--encoding", default="latin1")
     p_merge.add_argument("--duplicate-policy", choices=["error", "first"], default="error")
     p_merge.add_argument("--ignore-prefix", default=DEFAULT_IGNORE_PREFIX)
+    p_merge.add_argument(
+        "--axis-convention", choices=["flat", "steep"], default="flat",
+        help="Cornea Front Axis 的含义，默认按平坦子午线解释",
+    )
 
     p_generate = sub.add_parser("generate", help="根据配对表导出数组和图像")
     p_generate.add_argument("--paired-excel", required=True)
@@ -554,6 +758,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_all.add_argument("--encoding", default="latin1")
     p_all.add_argument("--duplicate-policy", choices=["error", "first"], default="error")
     p_all.add_argument("--ignore-prefix", default=DEFAULT_IGNORE_PREFIX)
+    p_all.add_argument(
+        "--axis-convention", choices=["flat", "steep"], default="flat",
+        help="Cornea Front Axis 的含义，默认按平坦子午线解释",
+    )
     return parser
 
 
@@ -571,6 +779,7 @@ def main() -> None:
             encoding=args.encoding,
             duplicate_policy=args.duplicate_policy,
             ignore_prefix=args.ignore_prefix,
+            axis_convention=args.axis_convention,
         )
     elif args.command == "generate":
         generate_arrays_and_images(
