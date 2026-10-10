@@ -1,0 +1,29 @@
+{
+  "scope": "Synthetic-data/software validation only; no clinical performance claim",
+  "unit_tests": {
+    "passed": 11,
+    "command": "python -m pytest tests -q"
+  },
+  "integration": [
+    "1 fold, 1 epoch, 20 synthetic paired maps, clinical cross_attention, EMA, checkpoint/test output",
+    "Independent re-evaluation with batch size 1 vs 4 agrees within 1e-5",
+    "Pre-only checkpoint inference matches saved test output",
+    "128x128 joint sampling shape and finite output",
+    "Image-only FM, CDDPM-DDIM and BBDM forward/sample compatibility",
+    "2-epoch interrupted/resumed run matches uninterrupted parameters exactly on CPU with D4"
+  ],
+  "not_tested": [
+    "real dataset",
+    "GPU/CUDA",
+    "Windows multi-worker",
+    "FNO/UNO optional dependency"
+  ],
+  "versions": {
+    "python": "3.12.14",
+    "torch": "2.14.1+cpu",
+    "numpy": "2.3.5",
+    "pandas": "2.2.3",
+    "sklearn": "1.8.0",
+    "skimage": "0.26.0"
+  }
+}

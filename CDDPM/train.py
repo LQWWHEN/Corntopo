@@ -13,8 +13,7 @@ from model.unet import ConditionalUNet
 from model.cddpm import CDDPM
 from model.ema import EMA
 from model.bbdm import BBDM
-from model.fm import FlowMatching
-from model.no import FourierNeuralOperator,UnetNeuralOperator
+
 from pathlib import Path
 import pandas as pd
 from patient_cv import load_or_create_cv_splits
@@ -303,6 +302,8 @@ def seed_everything(seed):
 
 def build_model(args):
     if args.model == "fno":
+        from model.fm import FlowMatching
+        from model.no import FourierNeuralOperator,UnetNeuralOperator
         return FourierNeuralOperator(
             in_channels=args.fno_in_channels,
             out_channels=args.fno_out_channels,
@@ -311,6 +312,8 @@ def build_model(args):
             modes=args.fno_modes,
         )
     if args.model == "uno":
+        from model.fm import FlowMatching
+        from model.no import FourierNeuralOperator,UnetNeuralOperator
         return UnetNeuralOperator(
             in_channels=args.fno_in_channels,
             out_channels=args.fno_out_channels,
