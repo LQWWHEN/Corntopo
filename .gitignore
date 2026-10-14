@@ -3,7 +3,7 @@ checkpoints/
 wandb/
 runs/
 test_results/
-data/
+/data/
 
 
 # Byte-compiled / optimized / DLL files
