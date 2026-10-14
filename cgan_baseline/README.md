@@ -8,11 +8,11 @@
 
 `--model mCPTP` 现在默认解析为 `--sia_mode scalar`；`--sia_mode vector` 保留为显式消融；CPTP 默认仍为 off。三个模式共用相同 U-Net、FiLM、多尺度池化/attention 主体及数据协议，SIA 头最后一层输出维数分别为 1、2 或不存在。
 
-| 实验 | 参数 | 输出与监督 |
-|---|---|---|
-| 直接 SIA 标量回归（主实验） | --sia_mode scalar | 一个非负物理幅值；默认 L1 监督 |
-| ΔX/ΔY 向量回归（消融） | --sia_mode vector | 两个标准化分量；向量 MSE + 同一幅值损失 |
-| 无 SIA 辅助任务 | --sia_mode off | 仅预测图像，无 SIA 指标 |
+| 实验                        | 参数              | 输出与监督                              |
+| --------------------------- | ----------------- | --------------------------------------- |
+| 直接 SIA 标量回归（主实验） | --sia_mode scalar | 一个非负物理幅值；默认 L1 监督          |
+| ΔX/ΔY 向量回归（消融）    | --sia_mode vector | 两个标准化分量；向量 MSE + 同一幅值损失 |
+| 无 SIA 辅助任务             | --sia_mode off    | 仅预测图像，无 SIA 指标                 |
 
 标量默认 `SIA_pred = sia_ref * Softplus(head(features))`。没有向量预测、没有向量损失、没有 SIA z-score 标准化。`--scalar_activation identity` 可恢复不施加非负约束的线性回归输出；sia_ref=1 时和原代码的数值单位相同。
 
@@ -24,21 +24,21 @@
 
 ## 原代码的问题与修改
 
-| 原实现 | 影响 | 本版处理 |
-|---|---|---|
-| train_test_split 按样本做一次 8/1/1 划分，并保存位置索引 | 双眼可能跨集合；与 FM_SIA 固定划分不同 | 只读既有 10 折 JSON，默认依次运行第 1、2、3 折；用 label_index 对应样本 |
-| 术前、术后各自做单图 min/max | 目标尺度不同，无法公平评价数值变化 | 复用 FM 训练折 global 归一化；local 模式仅取该样本术前范围并共享给术后/预测 |
-| mask = normalized_image > 0 | 真实最小值被误判为缺失 | 从 raw 的 finite 状态生成 mask；仅显式 --invalid_zero 才把原始 0 当缺失 |
-| clinical 直接读取未标准化 | 尺度不一致 | 仅训练折拟合 mean/std，保存并复用于验证/测试 |
-| mCPTP 在 forward 中创建 proj_layers；optimizer_G 只有 netG.parameters | 回归头、attention 和投影未被 optimizer 更新；梯度仍可通过随机头流到 G | 所有 SIA 模块在初始化时注册，纳入 G 优化器、EMA 和 state_dict |
-| model_names 只有 G/D | SIA 模块不保存、不随 eval 切换 | BaseModel 改为 nn.Module，整个模型统一保存、切换模式 |
-| 定义 lambda_reg 但没有乘到回归损失 | 参数不生效 | 改为生效的 lambda_sia；向量模式另有 lambda_vector |
-| CPTP 把 netG 返回的 (image, feats) 当作单个 Tensor | forward 失败 | 统一解包；mCPTP 继续使用多尺度特征与 attention 回归 |
-| 最深 1×1 特征仍做 BatchNorm/InstanceNorm | batch=1 等场景报错 | 最内层 downnorm 改为 Identity，验证了单样本训练 |
-| 训练循环验证后未明确恢复 train 模式 | BN/Dropout 行为可能错误 | 每个训练 epoch 显式 model.train()，评估显式 eval() |
-| 默认 Tanh，而目标为 [0,1]；global/local 也可能产生范围外目标 | 输出范围与任务不合 | 默认 identity，无推理裁剪；sigmoid/tanh 仅保留显式实验选项 |
-| metrics 只算 full，按逐图/批次平均；多通道 SSIM 不完整 | 与 FM 的 pooled MSE 口径不一致 | metrics.py 直接复用 FM 当前版本；单图指标另存 CSV |
-| test.py 缺 opt、把 *_all 列表写入只有标量键的字典；可视化文件反复覆盖 | 测试报错或丢图 | 新独立测试入口从 checkpoint 读取配置和统计量；逐样本唯一文件名 |
+| 原实现                                                                | 影响                                                                  | 本版处理                                                                    |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| train_test_split 按样本做一次 8/1/1 划分，并保存位置索引              | 双眼可能跨集合；与 FM_SIA 固定划分不同                                | 只读既有 10 折 JSON，默认依次运行第 1、2、3 折；用 label_index 对应样本     |
+| 术前、术后各自做单图 min/max                                          | 目标尺度不同，无法公平评价数值变化                                    | 复用 FM 训练折 global 归一化；local 模式仅取该样本术前范围并共享给术后/预测 |
+| mask = normalized_image > 0                                           | 真实最小值被误判为缺失                                                | 从 raw 的 finite 状态生成 mask；仅显式 --invalid_zero 才把原始 0 当缺失     |
+| clinical 直接读取未标准化                                             | 尺度不一致                                                            | 仅训练折拟合 mean/std，保存并复用于验证/测试                                |
+| mCPTP 在 forward 中创建 proj_layers；optimizer_G 只有 netG.parameters | 回归头、attention 和投影未被 optimizer 更新；梯度仍可通过随机头流到 G | 所有 SIA 模块在初始化时注册，纳入 G 优化器、EMA 和 state_dict               |
+| model_names 只有 G/D                                                  | SIA 模块不保存、不随 eval 切换                                        | BaseModel 改为 nn.Module，整个模型统一保存、切换模式                        |
+| 定义 lambda_reg 但没有乘到回归损失                                    | 参数不生效                                                            | 改为生效的 lambda_sia；向量模式另有 lambda_vector                           |
+| CPTP 把 netG 返回的 (image, feats) 当作单个 Tensor                    | forward 失败                                                          | 统一解包；mCPTP 继续使用多尺度特征与 attention 回归                         |
+| 最深 1×1 特征仍做 BatchNorm/InstanceNorm                             | batch=1 等场景报错                                                    | 最内层 downnorm 改为 Identity，验证了单样本训练                             |
+| 训练循环验证后未明确恢复 train 模式                                   | BN/Dropout 行为可能错误                                               | 每个训练 epoch 显式 model.train()，评估显式 eval()                          |
+| 默认 Tanh，而目标为 [0,1]；global/local 也可能产生范围外目标          | 输出范围与任务不合                                                    | 默认 identity，无推理裁剪；sigmoid/tanh 仅保留显式实验选项                  |
+| metrics 只算 full，按逐图/批次平均；多通道 SSIM 不完整                | 与 FM 的 pooled MSE 口径不一致                                        | metrics.py 直接复用 FM 当前版本；单图指标另存 CSV                           |
+| test.py 缺 opt、把 *_all 列表写入只有标量键的字典；可视化文件反复覆盖 | 测试报错或丢图                                                        | 新独立测试入口从 checkpoint 读取配置和统计量；逐样本唯一文件名              |
 
 原 mCPTP 的 weighted L1（背景 1、交集 2）和梯度除以全图像素，不等于仅在交集监督。本版默认 `--reconstruction_domain valid`，L1 在交集上按每张图有效像素归一化，gradient 仅使用两个端点都有效的相邻像素；判别器 real/fake 的候选术后图也乘同一训练 mask。**这是明确的训练损失修改，不是原论文模型的逐字复现。** `full` 可用于全图损失消融，但也不是恢复原 mCPTP 的 1/2 权重。
 
@@ -51,10 +51,10 @@
 随包附上项目已有 `paired_dataset_10fold_splits.json`。该文件包含 275 个样本，前三折为：
 
 | Fold | train | val | test |
-|---|---:|---:|---:|
-| 1 | 220 | 27 | 28 |
-| 2 | 219 | 28 | 28 |
-| 3 | 219 | 28 | 28 |
+| ---- | ----: | --: | ---: |
+| 1    |   220 |  27 |   28 |
+| 2    |   219 |  28 |   28 |
+| 3    |   219 |  28 |   28 |
 
 必须使用 FM 实际实验使用的文件；附带文件若与当前表不匹配，程序会拒绝运行。`--k_folds 3` 是运行上述 10 折中的前三折，不是重新做三折交叉验证。样本比例允许因患者双眼分组轻微偏离 8/1/1。
 
@@ -90,14 +90,14 @@ G/D 均用 AdamW + cosine，默认 lr=1e-4、weight_decay=1e-4、betas=(0.9,0.99
 
 推理 API 为 `model.sample(pre, clinical)`，不接收 post、mask_post 或真实 SIA。输出为确定性结果；SIA_sample_std=0 仅为兼容结果列，不代表校准后的不确定性；不会伪造多次随机采样。
 
-| 设置 | 默认 SIA | 使用含义 |
-|---|---|---|
-| --model CPTP | off | 纯图像 cGAN 基线，SIA 指标不输出，不能记为 0 |
-| --model mCPTP | scalar | 图像 + 直接幅值回归主实验 |
-| --model mCPTP --sia_mode vector | vector | 图像 + 向量回归消融 |
-| --model CPTP --sia_mode scalar | scalar | 显式加入相同标量头 |
-| --model CPTP --sia_mode vector | vector | 显式加入同一回归头的 CPTP+SIA |
-| --model mCPTP --sia_mode off | off | 去掉辅助任务的消融 |
+| 设置                            | 默认 SIA | 使用含义                                     |
+| ------------------------------- | -------- | -------------------------------------------- |
+| --model CPTP                    | off      | 纯图像 cGAN 基线，SIA 指标不输出，不能记为 0 |
+| --model mCPTP                   | scalar   | 图像 + 直接幅值回归主实验                    |
+| --model mCPTP --sia_mode vector | vector   | 图像 + 向量回归消融                          |
+| --model CPTP --sia_mode scalar  | scalar   | 显式加入相同标量头                           |
+| --model CPTP --sia_mode vector  | vector   | 显式加入同一回归头的 CPTP+SIA                |
+| --model mCPTP --sia_mode off    | off      | 去掉辅助任务的消融                           |
 
 clinical 均需显式启用。**两个名称在相同 sia_mode、fusion 和其余参数下使用同一套实现，没有额外隐藏的结构差别；不要把相同配置当作两个独立方法。** 若要比较同等临床输入和辅助监督下的模型能力，使用 mCPTP + SIA + 同一 clinical 列集对比 FM_SIA；纯 CPTP 作为缺少辅助任务的基线单列报告。
 
@@ -105,15 +105,15 @@ clinical 均需显式启用。**两个名称在相同 sia_mode、fusion 和其�
 
 `metrics.py` 与读取到的 FM 参考代码逐字节相同；新增 `sia_metrics.py` 适配标量分支，其图像和向量模式结果与原 MetricAccumulator 一致。所有图像指标先将模型输出反归一化为物理值，再重编码到该训练折 global 范围；不按测试图的 GT min/max 重新拉伸、不裁剪预测。
 
-| 指标 | 定义 |
-|---|---|
-| MAE_full / RMSE_full / PSNR_full / SSIM_full | 全图，含 GT 归一化后补 0 的无效区域 |
-| MAE_valid / RMSE_valid / PSNR_valid / SSIM_valid | mask_pre ∩ mask_post；不是先乘 mask 再对整图平均 |
-| 无后缀 MAE / RMSE / PSNR / SSIM | 保留 FM 的 valid 别名，best_metric=MAE 据此选择 |
+| 指标                                                          | 定义                                                 |
+| ------------------------------------------------------------- | ---------------------------------------------------- |
+| MAE_full / RMSE_full / PSNR_full / SSIM_full                  | 全图，含 GT 归一化后补 0 的无效区域                  |
+| MAE_valid / RMSE_valid / PSNR_valid / SSIM_valid              | mask_pre ∩ mask_post；不是先乘 mask 再对整图平均    |
+| 无后缀 MAE / RMSE / PSNR / SSIM                               | 保留 FM 的 valid 别名，best_metric=MAE 据此选择      |
 | MAE_raw_full / RMSE_raw_full / MAE_raw_valid / RMSE_raw_valid | 对应像素域，转换为原始 map 单位（FRONT 为 D 时即 D） |
-| SIA_MAE / SIA_RMSE / SIA_Bias | 物理 SIA 幅值误差，单位 D |
-| Vector_MAE / Vector_RMSE | 二维向量误差的 L2 范数均值 / 均方根，单位 D |
-| DeltaX_MAE / DeltaY_MAE | 分量物理误差 |
+| SIA_MAE / SIA_RMSE / SIA_Bias                                 | 物理 SIA 幅值误差，单位 D                            |
+| Vector_MAE / Vector_RMSE                                      | 二维向量误差的 L2 范数均值 / 均方根，单位 D          |
+| DeltaX_MAE / DeltaY_MAE                                       | 分量物理误差                                         |
 
 PSNR 用整个评估集合该像素域 pooled MSE，data_range=1，MSE 下限 1e-12；不是平均每张图 PSNR。SSIM 用最大 7×7 的奇数窗口；valid SSIM 只取完全落在有效区的窗口中心；无合格窗口则为 null。折间 aggregate 是三折指标的算术 mean / population std（ddof=0），不是把三折测试像素再合并计算，也不代表完整 10 折结果。
 
