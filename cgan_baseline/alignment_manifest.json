@@ -1,0 +1,56 @@
+{
+  "pipeline_version": "cgan_fm_sia_comparison_v2",
+  "reference": "Current project FM_SIA files read 2026-10-14",
+  "references": {
+    "metrics.py": {
+      "reference_sha256": "eedff068fe5d5143d07eedb975ed714ad4d1823e720c75cc75c90b30e14aaa70",
+      "delivered_sha256": "eedff068fe5d5143d07eedb975ed714ad4d1823e720c75cc75c90b30e14aaa70",
+      "byte_identical": true
+    },
+    "transforms.py": {
+      "reference_sha256": "f18e5a65c07b46b3d733edac0279bcd041dabb0ce5cee1e78ee1e6770017a2f9",
+      "delivered_sha256": "f18e5a65c07b46b3d733edac0279bcd041dabb0ce5cee1e78ee1e6770017a2f9",
+      "byte_identical": true
+    },
+    "visualization.py": {
+      "reference_sha256": "57cc75e84c7fc6573d2d8786ed1ff2df4c9542c4f5baa01e32cb81da92403a02",
+      "delivered_sha256": "57cc75e84c7fc6573d2d8786ed1ff2df4c9542c4f5baa01e32cb81da92403a02",
+      "byte_identical": true
+    }
+  },
+  "reused_functions": {
+    "metric_reference_images": {
+      "ast_identical": true
+    },
+    "sample_image_stats": {
+      "ast_identical": true
+    },
+    "save_batch_visuals": {
+      "ast_identical": true
+    },
+    "make_dataset": {
+      "ast_identical": true
+    },
+    "make_loader": {
+      "ast_identical": true
+    },
+    "seed_everything": {
+      "ast_identical": true
+    }
+  },
+  "validation": {
+    "total_passed": 18,
+    "real_data_training": false,
+    "device": "CPU",
+    "resume_num_workers": 0,
+    "scalar_and_vector_three_fold_integration": true,
+    "scalar_vector_magnitude_metric_parity": true
+  },
+  "default_sia_mode": "scalar (mCPTP); off (CPTP)",
+  "sia_modes": [
+    "off",
+    "scalar",
+    "vector"
+  ],
+  "scalar_metric_extension": "sia_metrics.py; base FM metrics.py is unchanged"
+}
