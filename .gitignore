@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 results/
 checkpoints/
 wandb/
@@ -7,8 +6,6 @@ test_results/
 data/
 
 
-=======
->>>>>>> fc57f8eafdb1793e269b9f573d8028b3372435ed
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
