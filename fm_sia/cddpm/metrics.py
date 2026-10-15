@@ -23,10 +23,10 @@ class MetricAccumulator:
         self.full_ssim_sum = 0.0
         self.full_ssim_count = 0
         self.samples = 0
-        self.q_true, self.q_pred, self.s_pred = [], [], []
+        self.q_true, self.q_pred, self.s_pred, self.s_true = [], [], [], []
 
     @torch.no_grad()
-    def update(self, pred, target, mask=None, q_pred=None, q_true=None, s_pred=None):
+    def update(self, pred, target, mask=None, q_pred=None, q_true=None, s_pred=None, s_true=None):
         p, y = pred.detach().cpu().numpy(), target.detach().cpu().numpy()
         m = np.ones_like(y, bool) if mask is None else mask.detach().cpu().numpy().astype(bool)
         if p.ndim != 4 or p.shape != y.shape or m.shape != y.shape:
@@ -60,12 +60,27 @@ class MetricAccumulator:
                     self.ssim_sum += float(smap[centers].mean())
                     self.ssim_count += 1
         if q_pred is not None:
+            if q_true is None:
+                raise ValueError('Vector predictions require vector targets')
             qp = q_pred.detach().cpu().numpy().astype(np.float64)
             qt = q_true.detach().cpu().numpy().astype(np.float64)
+            if qp.shape != (len(p), 2) or qt.shape != qp.shape:
+                raise ValueError('Expected matching SIA vectors [B,2]')
             sp = np.linalg.norm(qp, axis=1) if s_pred is None else s_pred.detach().cpu().numpy().astype(np.float64)
-            if not np.isfinite(qp).all() or not np.isfinite(qt).all() or not np.isfinite(sp).all():
+            st = np.linalg.norm(qt, axis=1)
+            if not np.isfinite(qp).all() or not np.isfinite(qt).all():
                 raise ValueError('Non-finite SIA prediction/target')
-            self.q_pred.append(qp); self.q_true.append(qt); self.s_pred.append(sp)
+            self.q_pred.append(qp); self.q_true.append(qt)
+        elif s_pred is not None or s_true is not None:
+            if s_pred is None or s_true is None:
+                raise ValueError('Scalar SIA metrics require both prediction and target')
+            sp = s_pred.detach().cpu().numpy().astype(np.float64)
+            st = s_true.detach().cpu().numpy().astype(np.float64)
+        else:
+            return
+        if sp.shape != (len(p),) or st.shape != (len(p),) or not np.isfinite(sp).all() or not np.isfinite(st).all() or (sp < 0).any() or (st < 0).any():
+            raise ValueError('SIA magnitudes must be finite nonnegative [B] values')
+        self.s_pred.append(sp); self.s_true.append(st)
 
     def compute(self):
         if self.pixels == 0:
@@ -86,12 +101,13 @@ class MetricAccumulator:
             SSIM_full=float(self.full_ssim_sum/self.full_ssim_count) if self.full_ssim_count else None,
             MAE_raw_full=float(self.full_absolute/self.full_pixels*self.image_scale),
             RMSE_raw_full=float(np.sqrt(full_mse)*self.image_scale))
-        if self.q_pred:
-            p, y, s = np.concatenate(self.q_pred), np.concatenate(self.q_true), np.concatenate(self.s_pred)
-            err = p-y
-            ds = s-np.linalg.norm(y, axis=1)
+        if self.s_pred:
+            ds = np.concatenate(self.s_pred)-np.concatenate(self.s_true)
             result.update(SIA_MAE=float(np.abs(ds).mean()), SIA_RMSE=float(np.sqrt(np.square(ds).mean())),
-                          SIA_Bias=float(ds.mean()), Vector_MAE=float(np.linalg.norm(err, axis=1).mean()),
+                          SIA_Bias=float(ds.mean()))
+        if self.q_pred:
+            err = np.concatenate(self.q_pred)-np.concatenate(self.q_true)
+            result.update(Vector_MAE=float(np.linalg.norm(err, axis=1).mean()),
                           Vector_RMSE=float(np.sqrt(np.square(err).sum(1).mean())),
                           DeltaX_MAE=float(np.abs(err[:, 0]).mean()), DeltaY_MAE=float(np.abs(err[:, 1]).mean()))
         return result
@@ -102,3 +118,4 @@ def calculate_metrics(pred, target, mask=None, image_scale=1.0):
     accumulator = MetricAccumulator(image_scale)
     accumulator.update(pred, target, mask)
     return accumulator.compute()
+

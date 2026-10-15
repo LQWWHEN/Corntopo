@@ -13,7 +13,7 @@ import torch
 from torch.utils.data import DataLoader, default_collate
 from tqdm import tqdm
 from dataloader import (CornealTopoDataset, feature_stats, fit_image_stats,
-                        validate_table, validate_maps)
+                        validate_table, validate_maps, sia_target_columns)
 from transforms import DataTransform
 from patient_cv import load_or_create_cv_splits
 from metrics import MetricAccumulator
@@ -59,17 +59,21 @@ def get_args(argv=None):
     p.add_argument('--ema_decay', type=float, default=0.995)
     p.add_argument('--objective', default='grad')
     p.add_argument('--conditions', nargs='+', default=[])
-    p.add_argument('--targets', nargs='+', default=[], help='Legacy extra fields; SIA uses --sia_columns')
+    p.add_argument('--targets', nargs='+', default=[], help='Legacy extra fields; SIA uses the selected mode-specific label columns')
     p.add_argument('--fusion_method', choices=['none','concat','add','self_attention','cross_attention','film'], default='none')
     p.add_argument('--clinical_embed_dim', type=int, default=128)
     p.add_argument('--sia_columns', nargs=2, default=['delta_front_X','delta_front_Y'])
+    p.add_argument('--sia_mode', choices=['vector','scalar'], default='vector',
+                   help='FM-SIA target: vector=DeltaX/DeltaY; scalar=direct magnitude in D')
     p.add_argument('--sia_magnitude_column', default='front_SIA_D')
     p.add_argument('--sia_label_atol', type=float, default=1e-4)
     p.add_argument('--skip_sia_checks', action='store_true',
-                   help='Skip sia_valid and stored SIA magnitude consistency checks; keep finite X/Y requirements')
+                   help='Skip sia_valid and vector/magnitude consistency checks; retain numeric target validity')
     p.add_argument('--sia_embed_dim', type=int, default=32)
     p.add_argument('--sia_num_heads', type=int, default=4)
     p.add_argument('--lambda_vector', type=float, default=1.0)
+    p.add_argument('--lambda_scalar', type=float, default=1.0,
+                   help='Scalar-mode standardized SIA velocity loss weight')
     p.add_argument('--lambda_sia', type=float, default=0.1)
     p.add_argument('--sia_ref', type=float, default=1.0, help='Physical reference scale in D')
     p.add_argument('--huber_delta', type=float, default=1.0)
@@ -115,7 +119,7 @@ def check_args(a):
         raise ValueError('Duplicate clinical condition names')
     # Prevent the common leakage routes, even when clinical fusion is disabled.
     forbidden = [c for c in a.conditions if c == 'label_index' or c.lower().startswith(('post_', 'delta_'))
-                 or 'sia' in c.lower() or c in a.sia_columns]
+                 or 'sia' in c.lower() or c in a.sia_columns or c == a.sia_magnitude_column]
     if forbidden:
         raise ValueError(f'Outcome/identifier fields cannot be input conditions: {forbidden}')
     if a.fusion_method != 'none' and not a.conditions:
@@ -134,8 +138,11 @@ def check_args(a):
         raise ValueError('Invalid eta or EMA decay')
     if a.model != 'fm_sia' and a.best_metric == 'SIA_MAE':
         raise ValueError('SIA checkpoint selection requires fm_sia')
-    values = [a.lambda_vector, a.lambda_sia, a.sia_ref, a.huber_delta, a.sia_label_atol]
-    if not all(math.isfinite(x) for x in values) or a.lambda_vector <= 0 or a.lambda_sia < 0 or min(a.sia_ref, a.huber_delta, a.sia_label_atol) <= 0:
+    if a.sia_mode != 'vector' and a.model != 'fm_sia':
+        raise ValueError('--sia_mode scalar requires --model fm_sia')
+    active_weight = a.lambda_vector if a.sia_mode == 'vector' else a.lambda_scalar
+    values = [active_weight, a.lambda_sia, a.sia_ref, a.huber_delta, a.sia_label_atol]
+    if not all(math.isfinite(x) for x in values) or active_weight <= 0 or a.lambda_sia < 0 or min(a.sia_ref, a.huber_delta, a.sia_label_atol) <= 0:
         raise ValueError('Invalid SIA loss settings')
     if a.sia_num_heads < 1 or a.sia_embed_dim < 1 or a.sia_embed_dim % a.sia_num_heads:
         raise ValueError('sia_embed_dim must be divisible by sia_num_heads')
@@ -184,13 +191,15 @@ def build_model(args, stats=None):
     unet = ConditionalUNet(discrete=args.model not in ('fm','fm_sia'), clinical_dim=len(args.conditions),
         clinical_embed_dim=args.clinical_embed_dim, fusion_method=args.fusion_method,
         sia_embed_dim=args.sia_embed_dim if args.model == 'fm_sia' else None,
-        sia_num_heads=args.sia_num_heads)
+        sia_num_heads=args.sia_num_heads,
+        sia_state_dim=1 if getattr(args, 'sia_mode', 'vector') == 'scalar' else 2)
     if args.model == 'fm_sia':
         if not stats or not stats.get('sia'):
             raise ValueError('FM-SIA requires saved/fitted training-fold SIA statistics')
         return JointFlowMatching(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
             sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
-            lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta)
+            lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
+            sia_mode=getattr(args, 'sia_mode', 'vector'), lambda_scalar=getattr(args, 'lambda_scalar', 1.0))
     if args.model == 'fm':
         from model.fm import FlowMatching
         return FlowMatching(encoder, unet, method=args.ode_solver, sample_steps=args.sample_steps)
@@ -220,6 +229,8 @@ def saved_config_value(config, key):
     """Recover historical image supervision for checkpoints without this option."""
     if key == 'reconstruction_domain' and key not in config:
         return 'valid' if config.get('model') in ('fm', 'fm_sia') else 'full'
+    if key not in config and key in ('sia_mode', 'lambda_scalar'):
+        return {'sia_mode': 'vector', 'lambda_scalar': 1.0}[key]
     return config.get(key)
 
 
@@ -230,6 +241,9 @@ def forward_batch(model, batch, device, reconstruction_domain='valid'):
     mask = ((batch['mask_pre']*batch['mask_post']).to(device)
             if reconstruction_domain == 'valid' else None)
     if isinstance(model, JointFlowMatching):
+        if model.sia_mode == 'scalar':
+            return model(pre, post, clinical=clinical, mask=mask,
+                         sia_magnitude=batch['sia_magnitude'].to(device))
         return model(pre, post, batch['sia_vector'].to(device), clinical=clinical, mask=mask)
     from model.fm import FlowMatching
     if isinstance(model, FlowMatching):
@@ -262,7 +276,13 @@ def sample_batch(model, batch, args, device):
     pre, clinical = batch['input'].to(device), batch['condition'].to(device)
     if isinstance(model, JointFlowMatching):
         outputs = [model.sample(pre, clinical=clinical, noise=fixed_sia_noise(
-            batch['label'], args.eval_seed, m).to(pre)) for m in range(args.eval_samples)]
+            batch['label'], args.eval_seed, m, model.state_dim).to(pre)) for m in range(args.eval_samples)]
+        if model.sia_mode == 'scalar':
+            s = torch.stack([o['sia'] for o in outputs])
+            raw = torch.stack([o['sia_unclipped'] for o in outputs])
+            return dict(pred=torch.stack([o['pred'] for o in outputs]).mean(0), sia=s.mean(0),
+                        sia_samples=s, sia_sample_std=s.std(0, unbiased=False),
+                        sia_unclipped=raw.mean(0), sia_unclipped_samples=raw)
         # E[||q||] differs from ||E[q]||. Keep both explicitly for M>1.
         q = torch.stack([o['sia_vector'] for o in outputs])
         s = torch.stack([o['sia'] for o in outputs])
@@ -332,18 +352,25 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             out = sample_batch(model, batch, args, device)
             target = batch['target'].to(device)
             mask = (batch['mask_pre']*batch['mask_post']).to(device)
-            q_true = batch['sia_vector'].to(device) if 'sia' in out else None
-            acc.update(out['pred'], target, mask, out.get('sia_vector'), q_true, out.get('sia'))
+            q_true = batch['sia_vector'].to(device) if 'sia_vector' in out else None
+            s_true = (q_true.norm(dim=-1) if q_true is not None else
+                      batch['sia_magnitude'].to(device) if 'sia' in out else None)
+            acc.update(out['pred'], target, mask, out.get('sia_vector'), q_true, out.get('sia'), s_true)
             for j, label in enumerate(labels_list(batch['label'])):
                 row = dict(label_index=label)
                 if 'sia' in out:
-                    qt, qp = q_true[j].cpu().numpy(), out['sia_vector'][j].cpu().numpy()
-                    st, sp = float(np.linalg.norm(qt)), out['sia'][j].item()
-                    row.update(true_delta_X=float(qt[0]), true_delta_Y=float(qt[1]),
-                        pred_delta_X=float(qp[0]), pred_delta_Y=float(qp[1]), true_SIA_D=st,
+                    st, sp = s_true[j].item(), out['sia'][j].item()
+                    row.update(sia_mode=getattr(model, 'sia_mode', 'vector'), true_SIA_D=st,
                         pred_SIA_D=sp, SIA_error_D=sp-st, SIA_absolute_error_D=abs(sp-st),
-                        SIA_from_mean_vector_D=out['sia_from_mean_vector'][j].item(),
                         SIA_sample_std_D=out['sia_sample_std'][j].item(), samples=args.eval_samples)
+                    if q_true is not None:
+                        qt, qp = q_true[j].cpu().numpy(), out['sia_vector'][j].cpu().numpy()
+                        row.update(true_delta_X=float(qt[0]), true_delta_Y=float(qt[1]),
+                            pred_delta_X=float(qp[0]), pred_delta_Y=float(qp[1]),
+                            SIA_from_mean_vector_D=out['sia_from_mean_vector'][j].item())
+                    else:
+                        row.update(pred_SIA_unclipped_D=out['sia_unclipped'][j].item(),
+                            SIA_negative_sample_fraction=float((out['sia_unclipped_samples'][:, j] < 0).float().mean()))
                 stem = f'{count:06d}'
                 row.update(sample_index=count,png_stem='')
                 if output_dir:
@@ -353,8 +380,12 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
                         raw = np.where(batch['mask_pre'][j].numpy().astype(bool), raw, np.nan)
                         np.save(output_dir/f'{stem}_pred_raw.npy', raw[0])
                         if 'sia' in out:
-                            np.savez(output_dir/f'{stem}_sia_samples.npz',
-                                q=out['sia_vector_samples'][:, j].cpu().numpy(), s=out['sia_samples'][:, j].cpu().numpy())
+                            samples = dict(s=out['sia_samples'][:, j].cpu().numpy())
+                            if 'sia_vector_samples' in out:
+                                samples['q'] = out['sia_vector_samples'][:, j].cpu().numpy()
+                            else:
+                                samples['s_unclipped'] = out['sia_unclipped_samples'][:, j].cpu().numpy()
+                            np.savez(output_dir/f'{stem}_sia_samples.npz', **samples)
                     if partition=='test' or count < 5:
                         save_batch_visuals(output_dir,stem,batch,out['pred'],j,args,stats)
                         row['png_stem'] = stem
@@ -378,7 +409,9 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             ssim_aggregation='equal mean over image-channel scores with eligible windows',
             eval_seed=args.eval_seed, eval_samples=args.eval_samples, steps=args.sample_steps,
             solver=args.ode_solver, pixel_domain='common finite pre/post region',
-            image_scale=stats['image'], SIA_point_estimator='mean of per-sample norms',
+            image_scale=stats['image'], sia_mode=getattr(args, 'sia_mode', 'vector'),
+            SIA_point_estimator=('mean of nonnegative projected scalar samples' if getattr(args, 'sia_mode', 'vector') == 'scalar'
+                                 else 'mean of per-sample norms'),
             sample_std_is_calibrated_uncertainty=False))
     return metrics
 
@@ -426,7 +459,7 @@ def run_fold(args, df, fold, device):
             raise FileExistsError(f'{folder} already contains checkpoints; use --resume or a new save_dir')
         stats = dict(image=fit_image_stats(args, fold['train']),
                      clinical=feature_stats(df, fold['train'], args.conditions),
-                     sia=feature_stats(df, fold['train'], args.sia_columns) if args.model == 'fm_sia' else None)
+                     sia=feature_stats(df, fold['train'], sia_target_columns(args)) if args.model == 'fm_sia' else None)
     json_save(folder/'normalization.json', stats)
     datasets = {part: make_dataset(args, df, fold[part], stats, training=part=='train') for part in ('train','val','test')}
     loaders = {part: make_loader(ds, args, device, shuffle=part=='train', generator=generator if part=='train' else None)
@@ -504,6 +537,7 @@ def write_summary(results, path, args, split_file):
             aggregate[name][metric] = dict(mean=float(np.mean(values)) if values else None,
                 std=float(np.std(values)) if values else None, n=len(values))
     summary = dict(pipeline_version=PIPELINE_VERSION, model=args.model, split_file=str(split_file),
+        sia_mode=getattr(args, 'sia_mode', 'vector'),
         reconstruction_domain=saved_config_value(vars(args), 'reconstruction_domain'),
         best_metric=args.best_metric, fusion_method=args.fusion_method, clinical_features=args.conditions,
         clinical_embed_dim=args.clinical_embed_dim, sample_steps=args.sample_steps, sampler=args.sampler,
@@ -552,4 +586,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 

@@ -118,7 +118,7 @@ class ConditionalUNet(nn.Module):
 
     def __init__(self,time_dim=512,discrete=True,clinical_dim=0,
                  fusion_method="none",clinical_embed_dim=128,
-                 sia_embed_dim=None, sia_num_heads=4):
+                 sia_embed_dim=None, sia_num_heads=4, sia_state_dim=2):
 
         super().__init__()
 
@@ -128,7 +128,7 @@ class ConditionalUNet(nn.Module):
         self.sia_interaction = None
         if sia_embed_dim is not None:
             from model.sia_branch import SIAInteraction
-            self.sia_interaction = SIAInteraction(512, time_dim, sia_embed_dim, sia_num_heads)
+            self.sia_interaction = SIAInteraction(512, time_dim, sia_embed_dim, sia_num_heads, sia_state_dim)
         if fusion_method != "none" and clinical_dim < 1:
             raise ValueError("Specify clinical_dim > 0 when clinical fusion is enabled")
         if fusion_method == "none":
@@ -217,7 +217,7 @@ class ConditionalUNet(nn.Module):
         sia_velocity = None
         if self.sia_interaction is not None:
             if sia_state is None:
-                raise ValueError("SIA UNet requires a [B,2] standardized sia_state")
+                raise ValueError("SIA UNet requires a standardized sia_state matching its state dimension")
             x4, sia_velocity = self.sia_interaction(x4, sia_state, t)
 
         # decoder
@@ -240,3 +240,4 @@ class ConditionalUNet(nn.Module):
         if self.sia_interaction is not None:
             return image_velocity, sia_velocity
         return image_velocity
+

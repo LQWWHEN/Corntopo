@@ -1,14 +1,17 @@
-"""Two-dimensional evolving state; high-dimensional features are internal only."""
+"""Vector (2D) or magnitude (1D) state; high-dimensional features are internal."""
 import torch
 from torch import nn
 
 
 class SIAInteraction(nn.Module):
-    def __init__(self, channels=512, time_dim=512, embed_dim=32, num_heads=4):
+    def __init__(self, channels=512, time_dim=512, embed_dim=32, num_heads=4, state_dim=2):
         super().__init__()
         if embed_dim < 1 or num_heads < 1 or embed_dim % num_heads:
             raise ValueError("sia_embed_dim must be positive and divisible by sia_num_heads")
-        self.state_proj = nn.Sequential(nn.Linear(2, embed_dim), nn.SiLU(), nn.Linear(embed_dim, embed_dim))
+        if state_dim not in (1, 2):
+            raise ValueError("SIA state dimension must be 1 or 2")
+        self.state_dim = state_dim
+        self.state_proj = nn.Sequential(nn.Linear(state_dim, embed_dim), nn.SiLU(), nn.Linear(embed_dim, embed_dim))
         self.time_proj = nn.Linear(time_dim, embed_dim)
         self.image_proj = nn.Conv2d(channels, embed_dim, 1)
         self.position_proj = nn.Linear(2, embed_dim, bias=False)
@@ -21,11 +24,11 @@ class SIAInteraction(nn.Module):
         nn.init.zeros_(self.film.weight)
         nn.init.zeros_(self.film.bias)
         self.velocity = nn.Sequential(nn.LayerNorm(embed_dim), nn.Linear(embed_dim, embed_dim),
-                                      nn.SiLU(), nn.Linear(embed_dim, 2))
+                                      nn.SiLU(), nn.Linear(embed_dim, state_dim))
 
     def forward(self, image, state, time_embedding):
-        if state.shape != (image.shape[0], 2):
-            raise ValueError("SIA state must have shape [B,2]")
+        if state.shape != (image.shape[0], self.state_dim):
+            raise ValueError(f"SIA state must have shape [B,{self.state_dim}]")
         h, w = image.shape[-2:]
         yy, xx = torch.meshgrid(torch.linspace(-1, 1, h, device=image.device, dtype=image.dtype),
                                 torch.linspace(-1, 1, w, device=image.device, dtype=image.dtype), indexing="ij")
@@ -40,3 +43,4 @@ class SIAInteraction(nn.Module):
         gamma, beta = self.film(feature).chunk(2, dim=-1)
         image = image * (1 + gamma[:, :, None, None]) + beta[:, :, None, None]
         return image, self.velocity(feature)
+

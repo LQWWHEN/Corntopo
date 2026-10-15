@@ -56,6 +56,12 @@ def feature_stats(df, train_labels, columns):
     return dict(columns=list(columns), mean=mean.tolist(), std=std.tolist(), count=len(values))
 
 
+def sia_target_columns(args):
+    """Scalar mode uses its magnitude label independently of X/Y availability."""
+    return ([args.sia_magnitude_column] if getattr(args, 'sia_mode', 'vector') == 'scalar'
+            else args.sia_columns)
+
+
 def fit_image_stats(args, train_labels):
     minimum, maximum = np.inf, -np.inf
     for label in train_labels:
@@ -78,10 +84,21 @@ def validate_table(df, args):
     numeric_features(df, args.conditions)
     result = dict(rows=len(df), conditions=list(args.conditions))
     if args.model == 'fm_sia':
-        q = numeric_features(df, args.sia_columns)
-        s = np.linalg.norm(q, axis=1)
+        mode = getattr(args, 'sia_mode', 'vector')
         skip_sia_checks = getattr(args, 'skip_sia_checks', False)
-        if skip_sia_checks:
+        if mode == 'scalar':
+            s = numeric_features(df, [args.sia_magnitude_column])[:, 0]
+            if (s < 0).any():
+                raise ValueError('SIA magnitude labels must be nonnegative in D')
+            result['sia_magnitude_check'] = 'finite nonnegative scalar labels; X/Y not required'
+        else:
+            q = numeric_features(df, args.sia_columns)
+            s = np.linalg.norm(q, axis=1)
+        result['sia_mode'] = mode
+        result['sia_label_columns'] = sia_target_columns(args)
+        if mode == 'scalar':
+            pass  # The magnitude column is the supervised target, not derived X/Y.
+        elif skip_sia_checks:
             result['sia_magnitude_check'] = 'skipped (--skip_sia_checks); SIA computed from X/Y'
         elif args.sia_magnitude_column in df:
             given = numeric_features(df, [args.sia_magnitude_column])[:, 0]
@@ -151,6 +168,8 @@ class CornealTopoDataset(Dataset):
         self.conditions = getattr(opt, 'conditions', [])
         self.targets = getattr(opt, 'targets', [])
         self.sia_columns = getattr(opt, 'sia_columns', ['delta_front_X', 'delta_front_Y'])
+        self.sia_mode = getattr(opt, 'sia_mode', 'vector')
+        self.sia_magnitude_column = getattr(opt, 'sia_magnitude_column', 'front_SIA_D')
         self.use_sia = getattr(opt, 'model', '') == 'fm_sia'
         if (clinical_mean is None) != (clinical_std is None):
             raise ValueError('Clinical mean and std must be provided together')
@@ -181,14 +200,16 @@ class CornealTopoDataset(Dataset):
         clinical = np.asarray([float(row[c]) for c in self.conditions], np.float32)
         if self.clinical_mean is not None:
             clinical = (clinical-self.clinical_mean)/self.clinical_std
-        q = torch.tensor([float(row[c]) for c in self.sia_columns]) if self.use_sia else torch.empty(0)
+        vector_mode = self.use_sia and self.sia_mode == 'vector'
+        q = torch.tensor([float(row[c]) for c in self.sia_columns]) if vector_mode else torch.empty(0)
+        s = (q.norm() if vector_mode else torch.tensor(float(row[self.sia_magnitude_column]))) if self.use_sia else torch.empty(0)
         if self.transforms is not None:
             params = self.transforms.get_params()  # worker RNG, not a repeated fixed seed
             pre, post, mask_pre, mask_post = [self.transforms(x, params) for x in (pre, post, mask_pre, mask_post)]
-            if self.use_sia:
+            if vector_mode:
                 q = self.transforms.transform_vector(q, params)
         return dict(input=pre, target=post, mask_pre=mask_pre, mask_post=mask_post,
-                    condition=torch.from_numpy(clinical), sia_vector=q,
+                    condition=torch.from_numpy(clinical), sia_vector=q, sia_magnitude=s,
                     targets=torch.tensor([float(row[c]) for c in self.targets]), label=label)
 
 
@@ -197,3 +218,4 @@ def build_dataloader(excel_path, data_root, input_maps, output_maps, data_type='
     ds = CornealTopoDataset(opt, excel_path, data_root, input_maps, output_maps,
                            data_type, image_size, **kwargs)
     return DataLoader(ds, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+
