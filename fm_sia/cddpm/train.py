@@ -74,6 +74,8 @@ def get_args(argv=None):
     p.add_argument('--sia_ref', type=float, default=1.0, help='Physical reference scale in D')
     p.add_argument('--huber_delta', type=float, default=1.0)
     p.add_argument('--invalid_zero', action='store_true', help='Use only if raw zeros explicitly mean missing pixels')
+    p.add_argument('--reconstruction_domain', choices=['valid','full'], default='valid',
+                   help='Training image loss only: valid=common pre/post mask; full=all pixels including filled background')
     p.add_argument('--augmentation', choices=['none','d4'], default='none')
     p.add_argument('--best_metric', choices=['MAE','SIA_MAE'], default='MAE')
     p.add_argument('--eval_every', type=int, default=10)
@@ -214,21 +216,32 @@ def make_loader(dataset, args, device, shuffle=False, generator=None):
         pin_memory=device.type == 'cuda', worker_init_fn=seed_worker, generator=generator)
 
 
-def forward_batch(model, batch, device):
+def saved_config_value(config, key):
+    """Recover historical image supervision for checkpoints without this option."""
+    if key == 'reconstruction_domain' and key not in config:
+        return 'valid' if config.get('model') in ('fm', 'fm_sia') else 'full'
+    return config.get(key)
+
+
+def forward_batch(model, batch, device, reconstruction_domain='valid'):
+    if reconstruction_domain not in ('valid', 'full'):
+        raise ValueError('reconstruction_domain must be valid or full')
     pre, post, clinical = [batch[k].to(device) for k in ('input','target','condition')]
-    mask = (batch['mask_pre']*batch['mask_post']).to(device)
+    mask = ((batch['mask_pre']*batch['mask_post']).to(device)
+            if reconstruction_domain == 'valid' else None)
     if isinstance(model, JointFlowMatching):
         return model(pre, post, batch['sia_vector'].to(device), clinical=clinical, mask=mask)
     from model.fm import FlowMatching
     if isinstance(model, FlowMatching):
         return model(pre, post, clinical=clinical, mask=mask)
-    return model(pre, post, clinical=clinical) if hasattr(model, 'sample') else model(pre, post)
+    return (model(pre, post, clinical=clinical, mask=mask) if hasattr(model, 'sample')
+            else model(pre, post, mask=mask))
 
 
-def train_one_epoch(model, loader, optimizer, device, ema=None):
+def train_one_epoch(model, loader, optimizer, device, ema=None, reconstruction_domain='valid'):
     model.train(); totals = {}; n = 0
     for batch in tqdm(loader, desc='Train'):
-        output = forward_batch(model, batch, device)
+        output = forward_batch(model, batch, device, reconstruction_domain)
         loss = output['loss']
         if not torch.isfinite(loss):
             raise FloatingPointError('Non-finite training loss')
@@ -357,6 +370,7 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             ssim_full_images=acc.full_ssim_count,
             valid_pixels=acc.pixels, full_pixels=acc.full_pixels,
             metric_reporting_version='full_and_valid_v1',
+            reconstruction_domain=saved_config_value(vars(args), 'reconstruction_domain'),
             pixel_domains=dict(valid='common finite pre/post region',
                 full='all pixels in the supplied image tensor, including normalized zero-filled invalid targets'),
             metric_aliases='unsuffixed image metrics are valid-region aliases; raw denotes original units',
@@ -403,7 +417,7 @@ def run_fold(args, df, fold, device):
         if ckpt['pipeline_version'] != PIPELINE_VERSION or ckpt['fold'] != fold:
             raise ValueError('Checkpoint pipeline/fold does not match')
         allowed = {'resume','device','num_workers','cpu_threads','save_dir','visualize_n','visual_error_max','save_predictions','k_folds','preflight_only','skip_sia_checks'}
-        changed = [k for k,v in vars(args).items() if k not in allowed and ckpt['config'].get(k) != v]
+        changed = [k for k,v in vars(args).items() if k not in allowed and saved_config_value(ckpt['config'], k) != v]
         if changed:
             raise ValueError(f'Resume configuration changed: {changed}; use a new save_dir')
         stats = ckpt['stats']
@@ -439,7 +453,8 @@ def run_fold(args, df, fold, device):
     print(f'Fold {number}: '+', '.join(f'{p}={len(fold[p])}' for p in ('train','val','test')))
     try:
         for epoch in range(start, args.epochs):
-            losses = train_one_epoch(model, loaders['train'], optimizer, device, ema)
+            losses = train_one_epoch(model, loaders['train'], optimizer, device, ema,
+                                     reconstruction_domain=args.reconstruction_domain)
             scheduler.step()
             for k,v in losses.items(): writer.add_scalar(f'train/{k}', v, epoch+1)
             entry = dict(epoch=epoch+1, train=losses)
@@ -489,6 +504,7 @@ def write_summary(results, path, args, split_file):
             aggregate[name][metric] = dict(mean=float(np.mean(values)) if values else None,
                 std=float(np.std(values)) if values else None, n=len(values))
     summary = dict(pipeline_version=PIPELINE_VERSION, model=args.model, split_file=str(split_file),
+        reconstruction_domain=saved_config_value(vars(args), 'reconstruction_domain'),
         best_metric=args.best_metric, fusion_method=args.fusion_method, clinical_features=args.conditions,
         clinical_embed_dim=args.clinical_embed_dim, sample_steps=args.sample_steps, sampler=args.sampler,
         time_steps=args.time_steps, ddim_eta=args.ddim_eta, config=vars(args),
@@ -516,10 +532,11 @@ def main():
             old_config = json.loads((folder/'config.json').read_text(encoding='utf-8'))
             allowed = {'resume','device','num_workers','cpu_threads','save_dir','visualize_n','visual_error_max',
                        'save_predictions','k_folds','preflight_only','skip_sia_checks'}
-            changed = [k for k,v in vars(args).items() if k not in allowed and old_config.get(k) != v]
+            changed = [k for k,v in vars(args).items() if k not in allowed and saved_config_value(old_config, k) != v]
             if changed:
                 raise ValueError(f'Resume configuration changed: {changed}; original results preserved')
     report.update(pipeline_version=PIPELINE_VERSION, input_maps=args.input_maps, output_maps=args.output_maps,
+                  reconstruction_domain=args.reconstruction_domain,
                   augmentation=args.augmentation, excel_sha256=args.excel_sha256)
     json_save(folder/'preflight.json', report)
     print(json.dumps(report, ensure_ascii=False, indent=2))
@@ -535,3 +552,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

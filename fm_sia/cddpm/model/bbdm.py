@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from diffusion.scheduler import BrownianScheduler
+from model.fm_common import masked_mse
 
 
 def extract(a, t, x_shape):
@@ -106,7 +107,7 @@ class BBDM(nn.Module):
     # training
     # =====================================================
 
-    def forward(self,pre_op, post_op,clinical=None):
+    def forward(self,pre_op, post_op,clinical=None,mask=None):
 
 
         B=post_op.shape[0]
@@ -124,9 +125,10 @@ class BBDM(nn.Module):
         # condition encoder
         cond_feature=self.condition_encoder(pre_op)
         pred=self.unet(xt,t,cond_feature,clinical=clinical)
-        loss=F.mse_loss(
+        loss=masked_mse(
             pred,
-            target
+            target,
+            mask
         )
 
         return {
@@ -284,3 +286,4 @@ class BBDM(nn.Module):
     
     def inference(self,x,clinical=None):
         return self.sample(x,clinical=clinical)
+

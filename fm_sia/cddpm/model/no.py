@@ -3,6 +3,7 @@ from neuralop.models import FNO,UNO
 import torch.nn as nn
 
 import torch.nn.functional as F
+from model.fm_common import masked_mae
 
 class FourierNeuralOperator(nn.Module):
 
@@ -29,7 +30,8 @@ class FourierNeuralOperator(nn.Module):
     def forward(
         self,
         pre,
-        post=None
+        post=None,
+        mask=None
     ):
         pred=self.fno(pre)
 
@@ -37,9 +39,10 @@ class FourierNeuralOperator(nn.Module):
             "pred":pred
         }
         if post is not None:
-            loss=F.l1_loss(
+            loss=masked_mae(
                 pred,
-                post
+                post,
+                mask
             )
             output["loss"]=loss
 
@@ -77,7 +80,8 @@ class UnetNeuralOperator(nn.Module):
     def forward(
         self,
         pre,
-        post=None
+        post=None,
+        mask=None
     ):
         pred=self.uno(pre)
 
@@ -85,9 +89,10 @@ class UnetNeuralOperator(nn.Module):
             "pred":pred
         }
         if post is not None:
-            loss=F.l1_loss(
+            loss=masked_mae(
                 pred,
-                post
+                post,
+                mask
             )
             output["loss"]=loss
 

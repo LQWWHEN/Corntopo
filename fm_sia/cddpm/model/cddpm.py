@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from diffusion.scheduler import GaussianScheduler
+from model.fm_common import masked_mse
 
 
 
@@ -93,7 +94,7 @@ class CDDPM(nn.Module):
     # Training forward
     # ----------------------------------
 
-    def forward(self,pre_op,post_op,clinical=None):
+    def forward(self,pre_op,post_op,clinical=None,mask=None):
 
         """
         pre_op:
@@ -127,7 +128,7 @@ class CDDPM(nn.Module):
 
         # DDPM loss
 
-        loss = F.mse_loss(noise_pred,noise)
+        loss = masked_mse(noise_pred,noise,mask)
         return {
             "loss": loss,
             "noise_pred": noise_pred,
@@ -309,3 +310,4 @@ class CDDPM(nn.Module):
             )
 
         return x
+
