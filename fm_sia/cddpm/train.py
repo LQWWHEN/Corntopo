@@ -22,6 +22,8 @@ from model.encoder import ConditionEncoder
 from model.unet import ConditionalUNet
 from model.ema import EMA
 from model.fm_sia import JointFlowMatching, fixed_sia_noise
+from task_balancing import (BALANCE_DEFAULTS, build_task_balancer,
+                            gradnorm_shared_parameters)
 
 PIPELINE_VERSION = 'front_fm_sia_v1'
 
@@ -41,7 +43,7 @@ def get_args(argv=None):
     p.add_argument('--epochs', type=int, default=200)
     p.add_argument('--batch_size', type=int, default=8)
     p.add_argument('--lr', type=float, default=1e-4)
-    p.add_argument('--num_workers', type=int, default=4)
+    p.add_argument('--num_workers', type=int, default=2)
     p.add_argument('--cpu_threads', type=int, default=2)
     p.add_argument('--time_steps', type=int, default=None)
     p.add_argument('--save_dir', default='./checkpoints')
@@ -75,6 +77,16 @@ def get_args(argv=None):
     p.add_argument('--lambda_scalar', type=float, default=1.0,
                    help='Scalar-mode standardized SIA velocity loss weight')
     p.add_argument('--lambda_sia', type=float, default=0.1)
+    p.add_argument('--loss_balance', choices=['fixed','gradnorm','dwa'], default='fixed',
+                   help='FM-SIA training loss weighting; fixed preserves the original lambda weights')
+    p.add_argument('--balance_tasks', choices=['branches','terms'], default='branches',
+                   help='branches=image vs combined SIA; terms=image/state/magnitude independently')
+    p.add_argument('--gradnorm_alpha', type=float, default=1.5,
+                   help='GradNorm relative training-rate exponent; 0 balances gradient norms only')
+    p.add_argument('--gradnorm_lr', type=float, default=1e-3,
+                   help='Separate GradNorm weight optimizer learning rate')
+    p.add_argument('--dwa_temperature', type=float, default=2.0,
+                   help='DWA softmax temperature, using two completed training epochs')
     p.add_argument('--sia_ref', type=float, default=1.0, help='Physical reference scale in D')
     p.add_argument('--huber_delta', type=float, default=1.0)
     p.add_argument('--invalid_zero', action='store_true', help='Use only if raw zeros explicitly mean missing pixels')
@@ -103,6 +115,11 @@ def get_args(argv=None):
 
 
 def check_args(a):
+    if a.loss_balance != 'fixed' and a.model != 'fm_sia':
+        raise ValueError('Adaptive task balancing requires --model fm_sia')
+    if (not all(math.isfinite(x) for x in (a.gradnorm_alpha, a.gradnorm_lr, a.dwa_temperature))
+            or a.gradnorm_alpha < 0 or min(a.gradnorm_lr, a.dwa_temperature) <= 0):
+        raise ValueError('Invalid GradNorm/DWA settings')
     if not math.isfinite(a.visual_error_max) or a.visual_error_max <= 0:
         raise ValueError('visual_error_max must be positive and finite')
     if len(a.input_maps) != 1 or len(a.output_maps) != 1:
@@ -227,6 +244,8 @@ def make_loader(dataset, args, device, shuffle=False, generator=None):
 
 def saved_config_value(config, key):
     """Recover historical image supervision for checkpoints without this option."""
+    if key in BALANCE_DEFAULTS and key not in config:
+        return BALANCE_DEFAULTS[key]
     if key == 'reconstruction_domain' and key not in config:
         return 'valid' if config.get('model') in ('fm', 'fm_sia') else 'full'
     if key not in config and key in ('sia_mode', 'lambda_scalar'):
@@ -252,23 +271,40 @@ def forward_batch(model, batch, device, reconstruction_domain='valid'):
             else model(pre, post, mask=mask))
 
 
-def train_one_epoch(model, loader, optimizer, device, ema=None, reconstruction_domain='valid'):
+def train_one_epoch(model, loader, optimizer, device, ema=None, reconstruction_domain='valid',
+                    balancer=None):
     model.train(); totals = {}; n = 0
+    shared = (gradnorm_shared_parameters(model)
+              if balancer is not None and balancer.method == 'gradnorm' else ())
     for batch in tqdm(loader, desc='Train'):
+        optimizer.zero_grad(set_to_none=True)
         output = forward_batch(model, batch, device, reconstruction_domain)
         loss = output['loss']
+        balance_logs = {}
+        if balancer is not None:
+            loss, balance_logs = balancer.combine(output, shared)
+            output['loss'] = loss
         if not torch.isfinite(loss):
             raise FloatingPointError('Non-finite training loss')
-        optimizer.zero_grad(set_to_none=True); loss.backward()
+        loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0, error_if_nonfinite=True)
         optimizer.step()
+        if balancer is not None:
+            balancer.step()
         if ema is not None:
             ema.update(model)
         count = batch['input'].shape[0]; n += count
         for key, value in output.items():
             if key.startswith('loss'):
                 totals[key] = totals.get(key, 0.0) + value.detach().item()*count
-    return {k: v/n for k, v in totals.items()}
+        for key, value in balance_logs.items():
+            totals[key] = totals.get(key, 0.0) + value.detach().item()*count
+    if n == 0:
+        raise ValueError('Empty training loader')
+    metrics = {k: v/n for k, v in totals.items()}
+    if balancer is not None:
+        balancer.end_epoch(metrics)
+    return metrics
 
 
 @torch.no_grad()
@@ -416,11 +452,13 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
     return metrics
 
 
-def checkpoint_payload(args, fold, stats, model, ema, optimizer, scheduler, epoch, best, generator):
+def checkpoint_payload(args, fold, stats, model, ema, optimizer, scheduler, epoch, best, generator,
+                       balancer=None):
     return dict(pipeline_version=PIPELINE_VERSION, config=vars(args), model_type=args.model,
         fold=fold, stats=stats, epoch=epoch, model=model.state_dict(),
         ema=ema.ema_model.state_dict() if ema else None, optimizer=optimizer.state_dict(),
         scheduler=scheduler.state_dict(), best=best.copy(),
+        task_balancer=balancer.state_dict() if balancer is not None else None,
         rng=dict(torch=torch.get_rng_state(), numpy=np.random.get_state(), python=random.getstate(),
                  cuda=torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
                  loader=generator.get_state()))
@@ -465,6 +503,7 @@ def run_fold(args, df, fold, device):
     loaders = {part: make_loader(ds, args, device, shuffle=part=='train', generator=generator if part=='train' else None)
                for part,ds in datasets.items()}
     model = build_model(args, stats).to(device)
+    balancer = build_task_balancer(args, model, device)
     ema = EMA(model, args.ema_decay) if args.use_ema else None
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
@@ -475,6 +514,11 @@ def run_fold(args, df, fold, device):
         model.load_state_dict(ckpt['model'])
         if ema: ema.ema_model.load_state_dict(ckpt['ema'])
         optimizer.load_state_dict(ckpt['optimizer']); scheduler.load_state_dict(ckpt['scheduler'])
+        if balancer is not None:
+            if ckpt.get('task_balancer') is not None:
+                balancer.load_state_dict(ckpt['task_balancer'])
+            elif balancer.method != 'fixed':
+                raise ValueError('Adaptive balancing state is missing; use a new save_dir')
         best, start = ckpt['best'], ckpt['epoch']+1
         restore_rng(ckpt['rng'], generator)
         del ckpt
@@ -487,7 +531,7 @@ def run_fold(args, df, fold, device):
     try:
         for epoch in range(start, args.epochs):
             losses = train_one_epoch(model, loaders['train'], optimizer, device, ema,
-                                     reconstruction_domain=args.reconstruction_domain)
+                                     reconstruction_domain=args.reconstruction_domain, balancer=balancer)
             scheduler.step()
             for k,v in losses.items(): writer.add_scalar(f'train/{k}', v, epoch+1)
             entry = dict(epoch=epoch+1, train=losses)
@@ -501,14 +545,14 @@ def run_fold(args, df, fold, device):
                     if v is not None: writer.add_scalar(f'validation/{k}', v, epoch+1)
                 improved = [k for k in best if metrics[k] < best[k]]
                 for k in improved: best[k] = metrics[k]
-                payload = checkpoint_payload(args, fold, stats, model, ema, optimizer, scheduler, epoch, best, generator)
+                payload = checkpoint_payload(args, fold, stats, model, ema, optimizer, scheduler, epoch, best, generator, balancer)
                 for k in improved:
                     torch_save_atomic(payload, folder/('best_image.pth' if k=='MAE' else 'best_sia.pth'))
                 del payload
                 print(f'Fold {number} epoch {epoch+1}: {losses}; validation={metrics}')
             history.append(entry); json_save(history_path, history)
             if (epoch+1) % args.checkpoint_every == 0 or epoch+1 == args.epochs or 'validation' in entry:
-                torch_save_atomic(checkpoint_payload(args, fold, stats, model, ema, optimizer, scheduler, epoch, best, generator), last)
+                torch_save_atomic(checkpoint_payload(args, fold, stats, model, ema, optimizer, scheduler, epoch, best, generator, balancer), last)
     finally:
         writer.close()
     shutil.copyfile(last, folder/'final.pth')
@@ -586,5 +630,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
