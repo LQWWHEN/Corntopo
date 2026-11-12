@@ -31,4 +31,16 @@ validation reporting, and no test-output directories.
 Compare the predeclared validation image MAE criterion with trial 1, fixed
 FM-SIA, and the image baseline. SIA remains a secondary diagnostic. Keep
 results private; do not inspect test outcomes to decide subsequent trials.
-Experiment pending at this preregistration commit; no success is claimed.
+All three 200-epoch validation-only runs completed. The 16-test suite, real-data
+smoke and post-run comparison audit passed. The configuration and per-fold
+normalization matched the fixed FM-SIA baseline for the declared controls.
+Private validation image MAE was lower than trial 1 and fixed FM-SIA, but did
+not beat the strongest image baseline. The final SIA multiplier became very
+small despite comparable gradient magnitudes at the monitored layer; gradient
+equality alone is not a prediction-quality guarantee.
+
+The direction is closed after two trials; unused budget is not a requirement
+to continue tuning. Alpha=0 is selected using only the predeclared validation
+image MAE. Freeze its existing image-selected checkpoints and source commit
+before a single test evaluation. No choice of checkpoint or hyperparameter
+will be made from that test outcome. Quantitative results remain private.
