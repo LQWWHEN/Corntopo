@@ -68,6 +68,8 @@ def get_args(argv=None):
     p.add_argument('--sia_columns', nargs=2, default=['delta_front_X','delta_front_Y'])
     p.add_argument('--sia_mode', choices=['vector','scalar'], default='vector',
                    help='FM-SIA target: vector=DeltaX/DeltaY; scalar=direct magnitude in D')
+    p.add_argument('--sia_prediction', choices=['flow','direct'], default='flow',
+                   help='SIA flow sampling, or a preoperative-only deterministic scalar head')
     p.add_argument('--sia_magnitude_column', default='front_SIA_D')
     p.add_argument('--sia_label_atol', type=float, default=1e-4)
     p.add_argument('--skip_sia_checks', action='store_true',
@@ -76,7 +78,7 @@ def get_args(argv=None):
     p.add_argument('--sia_num_heads', type=int, default=4)
     p.add_argument('--lambda_vector', type=float, default=1.0)
     p.add_argument('--lambda_scalar', type=float, default=1.0,
-                   help='Scalar-mode standardized SIA velocity loss weight')
+                   help='Scalar SIA loss weight: standardized velocity MSE (flow) or physical MAE/sia_ref (direct)')
     p.add_argument('--lambda_sia', type=float, default=0.1)
     p.add_argument('--loss_balance', choices=['fixed','gradnorm','dwa'], default='fixed',
                    help='FM-SIA training loss weighting; fixed preserves the original lambda weights')
@@ -118,6 +120,9 @@ def get_args(argv=None):
 
 
 def check_args(a):
+    if a.sia_prediction == 'direct' and (a.model != 'fm_sia' or a.sia_mode != 'scalar'
+                                       or a.loss_balance != 'fixed' or a.lambda_sia != 0):
+        raise ValueError('Direct SIA requires fm_sia, scalar mode, fixed balance and lambda_sia=0')
     if a.loss_balance != 'fixed' and a.model != 'fm_sia':
         raise ValueError('Adaptive task balancing requires --model fm_sia')
     if (not all(math.isfinite(x) for x in (a.gradnorm_alpha, a.gradnorm_lr, a.dwa_temperature))
@@ -207,15 +212,21 @@ def build_model(args, stats=None):
                 n_layers=args.fno_layers, hidden_channels=args.fno_hidden_channels, modes=args.fno_modes)
         return UnetNeuralOperator(in_channels=args.fno_in_channels, out_channels=args.fno_out_channels,
                                    hidden_channels=args.fno_hidden_channels)
+    direct_sia = args.model == 'fm_sia' and getattr(args, 'sia_prediction', 'flow') == 'direct'
     encoder = ConditionEncoder()
     unet = ConditionalUNet(discrete=args.model not in ('fm','fm_sia'), clinical_dim=len(args.conditions),
         clinical_embed_dim=args.clinical_embed_dim, fusion_method=args.fusion_method,
-        sia_embed_dim=args.sia_embed_dim if args.model == 'fm_sia' else None,
+        sia_embed_dim=args.sia_embed_dim if args.model == 'fm_sia' and not direct_sia else None,
         sia_num_heads=args.sia_num_heads,
         sia_state_dim=1 if getattr(args, 'sia_mode', 'vector') == 'scalar' else 2)
     if args.model == 'fm_sia':
         if not stats or not stats.get('sia'):
             raise ValueError('FM-SIA requires saved/fitted training-fold SIA statistics')
+        if direct_sia:
+            from model.direct_sia import DirectSIAFlowMatching
+            return DirectSIAFlowMatching(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
+                initial_sia=stats['sia']['median'][0], sample_steps=args.sample_steps,
+                method=args.ode_solver, lambda_scalar=args.lambda_scalar, sia_ref=args.sia_ref)
         return JointFlowMatching(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
             sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
             lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
@@ -246,7 +257,9 @@ def make_loader(dataset, args, device, shuffle=False, generator=None):
 
 
 def saved_config_value(config, key):
-    """Recover historical image supervision for checkpoints without this option."""
+    """Recover historical defaults for checkpoints without newer options."""
+    if key == 'sia_prediction' and key not in config:
+        return 'flow'
     if key == 'validation_only' and key not in config:
         return False
     if key in BALANCE_DEFAULTS and key not in config:
@@ -451,7 +464,9 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             eval_seed=args.eval_seed, eval_samples=args.eval_samples, steps=args.sample_steps,
             solver=args.ode_solver, pixel_domain='common finite pre/post region',
             image_scale=stats['image'], sia_mode=getattr(args, 'sia_mode', 'vector'),
-            SIA_point_estimator=('mean of nonnegative projected scalar samples' if getattr(args, 'sia_mode', 'vector') == 'scalar'
+            sia_prediction=getattr(args, 'sia_prediction', 'flow'),
+            SIA_point_estimator=('deterministic preoperative-only magnitude head' if getattr(args, 'sia_prediction', 'flow') == 'direct'
+                                 else 'mean of nonnegative projected scalar samples' if getattr(args, 'sia_mode', 'vector') == 'scalar'
                                  else 'mean of per-sample norms'),
             sample_std_is_calibrated_uncertainty=False))
     return metrics
@@ -488,6 +503,16 @@ def restore_rng(rng, generator):
         torch.cuda.set_rng_state_all(rng['cuda'])
 
 
+def fit_sia_stats(args, df, labels):
+    if args.model != 'fm_sia':
+        return None
+    columns = sia_target_columns(args)
+    stats = feature_stats(df, labels, columns)
+    if getattr(args, 'sia_prediction', 'flow') == 'direct':
+        stats['median'] = df[df.label_index.isin(labels)][columns].median().tolist()
+    return stats
+
+
 def run_fold(args, df, fold, device):
     fold_started = time.perf_counter()
     number = fold['fold']; folder = Path(args.save_dir)/f'fold_{number:02d}'
@@ -510,7 +535,7 @@ def run_fold(args, df, fold, device):
             raise FileExistsError(f'{folder} already contains checkpoints; use --resume or a new save_dir')
         stats = dict(image=fit_image_stats(args, fold['train']),
                      clinical=feature_stats(df, fold['train'], args.conditions),
-                     sia=feature_stats(df, fold['train'], sia_target_columns(args)) if args.model == 'fm_sia' else None)
+                     sia=fit_sia_stats(args, df, fold['train']))
     json_save(folder/'normalization.json', stats)
     partitions = ('train','val') if args.validation_only else ('train','val','test')
     datasets = {part: make_dataset(args, df, fold[part], stats, training=part=='train') for part in partitions}
@@ -607,6 +632,7 @@ def write_summary(results, path, args, split_file):
     summary = dict(pipeline_version=PIPELINE_VERSION, model=args.model, split_file=str(split_file),
         reporting_partition='val' if args.validation_only else 'test',
         sia_mode=getattr(args, 'sia_mode', 'vector'),
+        sia_prediction=getattr(args, 'sia_prediction', 'flow'),
         reconstruction_domain=saved_config_value(vars(args), 'reconstruction_domain'),
         best_metric=args.best_metric, fusion_method=args.fusion_method, clinical_features=args.conditions,
         clinical_embed_dim=args.clinical_embed_dim, sample_steps=args.sample_steps, sampler=args.sampler,

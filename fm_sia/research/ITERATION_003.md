@@ -50,7 +50,10 @@ full training. Source, configuration and protocol must be committed first.
 
 ## Experiment and analysis
 
-The 33-test audit and one-fold, one-epoch real-data smoke passed. Full training
-is pending at this preregistration commit. Do not infer improvement from augmentation alone.
+The 33-test audit and one-fold, one-epoch real-data smoke passed. All three
+200-epoch validation-only folds completed and the comparison audit passed.
+Validation image MAE and SIA MAE were both worse than base FM-SIA. Retain this
+negative result; do not advance this candidate to test evaluation. The direction
+is closed after one full trial without exhausting its five-trial maximum.
 Report validation and test separately, training time, and limitations of three
 overlapping CV training sets. Keep private data and results outside public Git.

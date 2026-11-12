@@ -1,0 +1,20 @@
+{
+  "direction": "sia_branch_and_joint_learning",
+  "trial": 3,
+  "maximum_trials": 5,
+  "prior_trials": ["iteration001", "iteration002"],
+  "overrides": {
+    "sia_prediction": "direct",
+    "sia_mode": "scalar",
+    "lambda_scalar": 1.0,
+    "lambda_sia": 0.0,
+    "loss_balance": "fixed",
+    "augmentation": "none",
+    "best_metric": "MAE",
+    "validation_only": true,
+    "use_ema": false,
+    "k_folds": 3,
+    "epochs": 200
+  },
+  "primary_selection": "mean validation SIA MAE at image-selected checkpoints"
+}
