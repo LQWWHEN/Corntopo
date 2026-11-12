@@ -18,3 +18,14 @@ the prior frozen GradNorm candidate and the training-only median control.
 Keep positive and negative outcomes. Do not revisit the frozen selection
 after observing this test result. Close the current SIA/joint-learning
 direction at three total trials, including iterations 001 and 002.
+
+## Completed test status
+
+The one planned three-fold evaluation completed. Scalar SIA MAE was modestly
+lower than the strongest learned SIA baseline, but remained worse than the
+training-median constant control. Image MAE improved over base FM-SIA but
+did not beat the strongest image baseline. One fold's selected SIA predictor
+was nearly constant, reinforcing the limited evidence for individualized
+prediction. These are descriptive exploratory results, not a confirmed
+generalization or clinical-performance claim. Native turbo images, prediction
+arrays, checkpoint hashes, metrics and training time are retained privately.
