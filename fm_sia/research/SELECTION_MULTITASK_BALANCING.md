@@ -17,3 +17,11 @@ already been observed. Three folds with overlapping training sets do not
 support claims of independent replicates or confirmed statistical superiority.
 FNO also differs in input modality (preoperative image only). Preserve that
 distinction when interpreting the comparison.
+
+## Completed test status
+
+The frozen alpha=0 candidate was evaluated once on all three test partitions.
+The image MAE improved modestly relative to base FM-SIA while SIA MAE worsened;
+the strongest corresponding baseline was not surpassed. Retain this mixed
+outcome without revising the frozen selection. Metrics, native-size turbo
+visuals, prediction arrays, source hashes and timing are archived privately.

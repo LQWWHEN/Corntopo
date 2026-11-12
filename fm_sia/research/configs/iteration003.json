@@ -1,0 +1,13 @@
+{
+  "direction": "geometric_data_augmentation",
+  "trial": 1,
+  "maximum_trials": 5,
+  "overrides": {
+    "augmentation": "d4",
+    "loss_balance": "fixed",
+    "validation_only": true,
+    "use_ema": false,
+    "k_folds": 3,
+    "epochs": 200
+  }
+}
