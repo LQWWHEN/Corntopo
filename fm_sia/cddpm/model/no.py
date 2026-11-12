@@ -5,7 +5,23 @@ import torch.nn as nn
 import torch.nn.functional as F
 from model.fm_common import masked_mae
 
-class FourierNeuralOperator(nn.Module):
+class OperatorModule(nn.Module):
+    """Keep neuralop constructor metadata out of nested PyTorch tensor state."""
+    def state_dict(self, *args, **kwargs):
+        state = super().state_dict(*args, **kwargs)
+        state.pop('_metadata', None)
+        return state
+
+    def load_state_dict(self, state_dict, strict=True, assign=False):
+        # Also accept older saves containing neuralop's top-level metadata key.
+        state = state_dict.copy()
+        if hasattr(state_dict, '_metadata'):
+            state._metadata = state_dict._metadata
+        state.pop('_metadata', None)
+        return super().load_state_dict(state, strict=strict, assign=assign)
+
+
+class FourierNeuralOperator(OperatorModule):
 
     def __init__(
         self,
@@ -51,7 +67,7 @@ class FourierNeuralOperator(nn.Module):
     def inference(self,x): 
         return self.forward(x)
     
-class UnetNeuralOperator(nn.Module):
+class UnetNeuralOperator(OperatorModule):
 
     def __init__(
         self,

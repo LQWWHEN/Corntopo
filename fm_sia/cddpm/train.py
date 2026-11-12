@@ -6,6 +6,7 @@ import math
 import os
 import random
 import shutil
+import time
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -98,6 +99,8 @@ def get_args(argv=None):
     p.add_argument('--checkpoint_every', type=int, default=10)
     p.add_argument('--resume', action='store_true', help='Resume last.pth separately within each fold')
     p.add_argument('--preflight_only', action='store_true')
+    p.add_argument('--validation_only', action='store_true',
+                   help='Development run: no test loader or test evaluation; report validation checkpoints only')
     p.add_argument('--save_predictions', action='store_true', help='Save all physical image predictions as .npy')
     p.add_argument('--visualize_n', type=int, default=5,
                    help='Legacy compatibility only: epoch=1, validation=5, test=all are fixed')
@@ -244,6 +247,8 @@ def make_loader(dataset, args, device, shuffle=False, generator=None):
 
 def saved_config_value(config, key):
     """Recover historical image supervision for checkpoints without this option."""
+    if key == 'validation_only' and key not in config:
+        return False
     if key in BALANCE_DEFAULTS and key not in config:
         return BALANCE_DEFAULTS[key]
     if key == 'reconstruction_domain' and key not in config:
@@ -469,6 +474,13 @@ def torch_save_atomic(payload, path):
     torch.save(payload, temporary); os.replace(temporary, path)
 
 
+def checkpoint_link(source, destination):
+    temporary = destination.with_name(destination.name+'.linktmp')
+    if temporary.exists(): temporary.unlink()
+    os.link(source, temporary)
+    os.replace(temporary, destination)
+
+
 def restore_rng(rng, generator):
     torch.set_rng_state(rng['torch']); np.random.set_state(rng['numpy']); random.setstate(rng['python'])
     generator.set_state(rng['loader'])
@@ -477,6 +489,7 @@ def restore_rng(rng, generator):
 
 
 def run_fold(args, df, fold, device):
+    fold_started = time.perf_counter()
     number = fold['fold']; folder = Path(args.save_dir)/f'fold_{number:02d}'
     folder.mkdir(parents=True, exist_ok=True)
     seed_everything(args.seed+number)
@@ -499,7 +512,8 @@ def run_fold(args, df, fold, device):
                      clinical=feature_stats(df, fold['train'], args.conditions),
                      sia=feature_stats(df, fold['train'], sia_target_columns(args)) if args.model == 'fm_sia' else None)
     json_save(folder/'normalization.json', stats)
-    datasets = {part: make_dataset(args, df, fold[part], stats, training=part=='train') for part in ('train','val','test')}
+    partitions = ('train','val') if args.validation_only else ('train','val','test')
+    datasets = {part: make_dataset(args, df, fold[part], stats, training=part=='train') for part in partitions}
     loaders = {part: make_loader(ds, args, device, shuffle=part=='train', generator=generator if part=='train' else None)
                for part,ds in datasets.items()}
     model = build_model(args, stats).to(device)
@@ -530,14 +544,18 @@ def run_fold(args, df, fold, device):
     print(f'Fold {number}: '+', '.join(f'{p}={len(fold[p])}' for p in ('train','val','test')))
     try:
         for epoch in range(start, args.epochs):
+            if device.type == 'cuda': torch.cuda.synchronize(device)
+            train_started = time.perf_counter()
             losses = train_one_epoch(model, loaders['train'], optimizer, device, ema,
                                      reconstruction_domain=args.reconstruction_domain, balancer=balancer)
+            if device.type == 'cuda': torch.cuda.synchronize(device)
+            train_seconds = time.perf_counter() - train_started
             scheduler.step()
             for k,v in losses.items(): writer.add_scalar(f'train/{k}', v, epoch+1)
-            entry = dict(epoch=epoch+1, train=losses)
+            entry = dict(epoch=epoch+1, train=losses, train_seconds=train_seconds)
             eval_model = ema.ema_model if ema else model
-            visualize_epoch(eval_model,datasets['val'],device,args,stats,epoch+1,folder/'visual')
             if epoch == 0 or (epoch+1) % args.eval_every == 0 or epoch+1 == args.epochs:
+                visualize_epoch(eval_model,datasets['val'],device,args,stats,epoch+1,folder/'visual')
                 metrics = evaluate(eval_model, loaders['val'], device, args, stats,
                     folder/'val_results'/f'epoch_{epoch+1:04d}',partition='val')
                 entry['validation'] = metrics
@@ -555,8 +573,8 @@ def run_fold(args, df, fold, device):
                 torch_save_atomic(checkpoint_payload(args, fold, stats, model, ema, optimizer, scheduler, epoch, best, generator, balancer), last)
     finally:
         writer.close()
-    shutil.copyfile(last, folder/'final.pth')
-    shutil.copyfile(folder/('best_image.pth' if args.best_metric=='MAE' else 'best_sia.pth'), folder/'best.pth')
+    checkpoint_link(last, folder/'final.pth')
+    checkpoint_link(folder/('best_image.pth' if args.best_metric=='MAE' else 'best_sia.pth'), folder/'best.pth')
     # Evaluate only a predeclared primary checkpoint plus final, never select on test data.
     results = {}
     del optimizer, scheduler, ema
@@ -565,11 +583,17 @@ def run_fold(args, df, fold, device):
         weights = state['ema'] if args.use_ema else state['model']
         model.load_state_dict(weights); selected_epoch = state['epoch']+1
         del state, weights
-        metrics = evaluate(model, loaders['test'], device, args, stats, folder/'test_results'/name,partition='test')
+        partition = 'val' if args.validation_only else 'test'
+        result_dir = folder/('validation_results' if args.validation_only else 'test_results')
+        metrics = evaluate(model, loaders[partition], device, args, stats, result_dir/name,partition=partition)
         results[name] = metrics
-        json_save(folder/'test_results'/f'{name}.json', metrics)
+        json_save(result_dir/f'{name}.json', metrics)
         print(f'Fold {number} {name} epoch {selected_epoch}: {metrics}')
-    return dict(fold=number, sizes={p:len(fold[p]) for p in ('train','val','test')}, **results)
+    timing = dict(train_seconds=sum(h.get('train_seconds',0) for h in history),
+        fold_wall_seconds=time.perf_counter()-fold_started, timed_epochs=sum('train_seconds' in h for h in history),
+        definition='train_seconds includes data loading, forward/backward, optimizer, EMA; excludes validation, plots, checkpoints and test; fold wall includes all')
+    json_save(folder/'timing.json',timing)
+    return dict(fold=number, sizes={p:len(fold[p]) for p in ('train','val','test')}, timing=timing, **results)
 
 
 def write_summary(results, path, args, split_file):
@@ -581,6 +605,7 @@ def write_summary(results, path, args, split_file):
             aggregate[name][metric] = dict(mean=float(np.mean(values)) if values else None,
                 std=float(np.std(values)) if values else None, n=len(values))
     summary = dict(pipeline_version=PIPELINE_VERSION, model=args.model, split_file=str(split_file),
+        reporting_partition='val' if args.validation_only else 'test',
         sia_mode=getattr(args, 'sia_mode', 'vector'),
         reconstruction_domain=saved_config_value(vars(args), 'reconstruction_domain'),
         best_metric=args.best_metric, fusion_method=args.fusion_method, clinical_features=args.conditions,

@@ -1,6 +1,6 @@
 """Separate, fixed-scale pre/gt/pred/error PNGs for corneal topography.
 
-The jet palette, black invalid pixels and lower origin follow the dataset
+The turbo palette, black invalid pixels and lower origin follow the dataset
 heatmap exporter. PNGs preserve the input height and width by default. Numeric predictions
 and metric inputs are never modified by display clipping.
 """
@@ -16,7 +16,7 @@ def visualization_spec(image_stats, error_max=1.0):
     minimum, scale = float(image_stats['minimum']), float(image_stats['scale'])
     if not np.isfinite([minimum, scale]).all() or scale <= 0:
         raise ValueError('Invalid visualization image scale')
-    return dict(cmap='jet', invalid_color='black', origin='lower', size_pixels=None,
+    return dict(cmap='turbo', invalid_color='black', origin='lower', size_pixels=None,
                 size_policy='preserve input height and width; no resizing by default',
                 map_min=minimum, map_max=minimum+scale,
                 error_min=0.0, error_max=float(error_max),
@@ -36,7 +36,7 @@ def save_heatmap(values, path, valid, vmin, vmax, size=None):
         raise ValueError('Invalid heatmap display bounds')
     valid = valid & np.isfinite(values)
     normalized = np.clip((np.where(valid,values,vmin)-vmin)/(vmax-vmin),0,1)
-    rgb = colormaps['jet'](normalized,bytes=True)[...,:3].copy()
+    rgb = colormaps['turbo'](normalized,bytes=True)[...,:3].copy()
     rgb[~valid] = 0
     # The dataset exporter uses origin='lower'. Flip only for PNG rendering.
     picture = Image.fromarray(np.flipud(rgb))

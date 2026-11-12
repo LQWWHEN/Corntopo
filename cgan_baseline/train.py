@@ -6,6 +6,7 @@ import math
 import os
 import random
 import shutil
+import time
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -306,6 +307,13 @@ def torch_save_atomic(payload, path):
     torch.save(payload, temporary); os.replace(temporary, path)
 
 
+def checkpoint_link(source, destination):
+    temporary = destination.with_name(destination.name+'.linktmp')
+    if temporary.exists(): temporary.unlink()
+    os.link(source, temporary)
+    os.replace(temporary, destination)
+
+
 def restore_rng(rng, generator):
     torch.set_rng_state(rng['torch']); np.random.set_state(rng['numpy']); random.setstate(rng['python'])
     generator.set_state(rng['loader'])
@@ -314,6 +322,7 @@ def restore_rng(rng, generator):
 
 
 def run_fold(args, df, fold, device):
+    fold_started = time.perf_counter()
     number = fold['fold']; folder = Path(args.save_dir)/f'fold_{number:02d}'
     folder.mkdir(parents=True, exist_ok=True)
     seed_everything(args.seed+number)
@@ -364,13 +373,17 @@ def run_fold(args, df, fold, device):
     print(f'Fold {number}: '+', '.join(f'{p}={len(fold[p])}' for p in ('train','val','test')))
     try:
         for epoch in range(start, args.epochs):
+            if device.type == 'cuda': torch.cuda.synchronize(device)
+            train_started = time.perf_counter()
             losses = train_one_epoch(model, loaders['train'], optimizer, device, ema)
+            if device.type == 'cuda': torch.cuda.synchronize(device)
+            train_seconds = time.perf_counter() - train_started
             for sched in scheduler.values(): sched.step()
             for k,v in losses.items(): writer.add_scalar(f'train/{k}', v, epoch+1)
-            entry = dict(epoch=epoch+1, train=losses)
+            entry = dict(epoch=epoch+1, train=losses, train_seconds=train_seconds)
             eval_model = ema.ema_model if ema else model
-            visualize_epoch(eval_model,datasets['val'],device,args,stats,epoch+1,folder/'visual')
             if epoch == 0 or (epoch+1) % args.eval_every == 0 or epoch+1 == args.epochs:
+                visualize_epoch(eval_model,datasets['val'],device,args,stats,epoch+1,folder/'visual')
                 metrics = evaluate(eval_model, loaders['val'], device, args, stats,
                     folder/'val_results'/f'epoch_{epoch+1:04d}',partition='val')
                 entry['validation'] = metrics
@@ -388,8 +401,8 @@ def run_fold(args, df, fold, device):
                 torch_save_atomic(checkpoint_payload(args, fold, stats, model, ema, optimizer, scheduler, epoch, best, generator), last)
     finally:
         writer.close()
-    shutil.copyfile(last, folder/'final.pth')
-    shutil.copyfile(folder/('best_image.pth' if args.best_metric=='MAE' else 'best_sia.pth'), folder/'best.pth')
+    checkpoint_link(last, folder/'final.pth')
+    checkpoint_link(folder/('best_image.pth' if args.best_metric=='MAE' else 'best_sia.pth'), folder/'best.pth')
     # Evaluate only a predeclared primary checkpoint plus final, never select on test data.
     results = {}
     del optimizer, scheduler, ema
@@ -404,7 +417,11 @@ def run_fold(args, df, fold, device):
         results[name] = metrics
         json_save(folder/'test_results'/f'{name}.json', metrics)
         print(f'Fold {number} {name} epoch {selected_epoch}: {metrics}')
-    return dict(fold=number, sizes={p:len(fold[p]) for p in ('train','val','test')}, **results)
+    timing = dict(train_seconds=sum(h.get('train_seconds',0) for h in history),
+        fold_wall_seconds=time.perf_counter()-fold_started, timed_epochs=sum('train_seconds' in h for h in history),
+        definition='train_seconds includes data loading, forward/backward, optimizer, EMA; excludes validation, plots, checkpoints and test; fold wall includes all')
+    json_save(folder/'timing.json',timing)
+    return dict(fold=number, sizes={p:len(fold[p]) for p in ('train','val','test')}, timing=timing, **results)
 
 
 def write_summary(results, path, args, split_file):

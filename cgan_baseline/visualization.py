@@ -1,6 +1,6 @@
 """Separate, fixed-scale pre/gt/pred/error PNGs for corneal topography.
 
-The jet palette, black invalid pixels, lower origin and borderless 512-pixel
+The turbo palette, black invalid pixels, lower origin and native-resolution
 rendering follow the available dataset heatmap exporter. Numeric predictions
 and metric inputs are never modified by display clipping.
 """
@@ -18,7 +18,7 @@ def visualization_spec(image_stats, error_max=1.0, visual_scale='global'):
         raise ValueError('Invalid visualization image scale')
     if visual_scale not in ('global','local'):
         raise ValueError('visual_scale must be global or local')
-    return dict(cmap='jet', invalid_color='black', origin='lower', size_pixels=512,
+    return dict(cmap='turbo', invalid_color='black', origin='lower', size_pixels=None,
                 map_min=minimum if visual_scale=='global' else None,
                 map_max=minimum+scale if visual_scale=='global' else None,
                 visual_scale=visual_scale,
@@ -30,7 +30,7 @@ def visualization_spec(image_stats, error_max=1.0, visual_scale='global'):
                 scale_policy=f'{visual_scale} image range; fixed error range; display-only clipping')
 
 
-def save_heatmap(values, path, valid, vmin, vmax, size=512):
+def save_heatmap(values, path, valid, vmin, vmax, size=None):
     """Save a borderless RGB PNG without per-image min/max normalization."""
     values = np.asarray(values, dtype=np.float64)
     valid = np.asarray(valid, dtype=bool)
@@ -40,11 +40,12 @@ def save_heatmap(values, path, valid, vmin, vmax, size=512):
         raise ValueError('Invalid heatmap display bounds')
     valid = valid & np.isfinite(values)
     normalized = np.clip((np.where(valid,values,vmin)-vmin)/(vmax-vmin),0,1)
-    rgb = colormaps['jet'](normalized,bytes=True)[...,:3].copy()
+    rgb = colormaps['turbo'](normalized,bytes=True)[...,:3].copy()
     rgb[~valid] = 0
     # The dataset exporter uses origin='lower'. Flip only for PNG rendering.
     picture = Image.fromarray(np.flipud(rgb))
-    picture = picture.resize((size,size),resample=Image.Resampling.NEAREST)
+    if size is not None:
+        picture = picture.resize((size,size),resample=Image.Resampling.NEAREST)
     path = Path(path); path.parent.mkdir(parents=True,exist_ok=True)
     picture.save(path)
 
