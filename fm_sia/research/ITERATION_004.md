@@ -64,6 +64,16 @@ roundtrip and unchanged original tests. A real-data smoke precedes full training
 
 ## Experiment and analysis
 
-The 35-test audit and one-fold real-data smoke passed. Full training is pending
-at preregistration. Retain code, audit outcomes, full trial counts and private quantitative
-results whether or not the new readout improves the declared metric.
+The 35-test audit and one-fold real-data smoke passed. All three 200-epoch
+validation-only folds completed; the post-run audit verified unchanged image/
+clinical normalization and training-only scalar statistics/median.
+
+Validation SIA MAE at image-selected checkpoints improved over the two learned
+SIA baselines, but did not improve over the training-median constant control.
+This limits the evidence for useful individualized predictions. Image MAE
+also improved over base FM-SIA but remained above the strongest image baseline.
+
+Freeze this configuration and its existing best_image checkpoints before one
+test evaluation; do not tune more head/loss variants from the test outcome.
+The broad SIA/joint-learning budget stops at 3/5 trials. Retain all private
+metrics, predictions and timing, including the constant-control comparison.
