@@ -1,0 +1,15 @@
+{
+  "direction": "multitask_balancing",
+  "trial": 2,
+  "maximum_trials": 5,
+  "overrides": {
+    "loss_balance": "gradnorm",
+    "balance_tasks": "branches",
+    "gradnorm_alpha": 0.0,
+    "gradnorm_lr": 0.001,
+    "validation_only": true,
+    "use_ema": false,
+    "k_folds": 3,
+    "epochs": 200
+  }
+}

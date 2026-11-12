@@ -2,6 +2,7 @@ import copy
 import sys
 from pathlib import Path
 import torch
+import pytest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'cddpm'))
 from task_balancing import MultiTaskBalancer
 from train import get_args, saved_config_value
@@ -20,16 +21,17 @@ def test_fixed_preserves_original_loss_and_gradients():
     assert total is out['loss']
     torch.testing.assert_close(torch.autograd.grad(total,w)[0],original)
 
-def test_gradnorm_gradient_isolation_and_resume():
+@pytest.mark.parametrize('alpha',[0.0,1.5])
+def test_gradnorm_gradient_isolation_and_resume(alpha):
     w=torch.nn.Parameter(torch.tensor([.3,.8]))
-    b=MultiTaskBalancer(method='gradnorm')
+    b=MultiTaskBalancer(method='gradnorm',alpha=alpha)
     total,logs=b.combine(losses(w),[w])
     assert w.grad is None and b.weights.grad is not None
     assert logs['gradnorm_image']>0 and logs['gradnorm_sia_task']>0
     total.backward(); assert torch.isfinite(w.grad).all()
     b.step(); assert (b.weights>0).all()
     torch.testing.assert_close(b.weights.sum(),torch.tensor(2.))
-    clone=MultiTaskBalancer(method='gradnorm');clone.load_state_dict(copy.deepcopy(b.state_dict()))
+    clone=MultiTaskBalancer(method='gradnorm',alpha=alpha);clone.load_state_dict(copy.deepcopy(b.state_dict()))
     for control in [b,clone]:
         control.combine(losses(w),[w]);control.step()
     torch.testing.assert_close(b.weights,clone.weights)

@@ -63,6 +63,9 @@ outside the repository. Archive the precise source commit with each run.
 
 ## Experiment and analysis status
 
-Pending actual run; no improvement or experimental result is claimed here.
-Record failures and negative results privately with the same care as successes.
-Future trial decisions must include the validation evidence and remaining budget.
+The declared three-fold training and validation-only evaluation completed.
+The audit and real-data smoke passed. This trial did not meet the declared
+strongest-baseline validation target. Private quantitative results and gradient
+diagnostics are retained outside the public repository. No test evaluation was
+performed. The direction continues with the single-factor alpha ablation in
+ITERATION_002.md; this run counts as trial 1 of the five-trial direction budget.
