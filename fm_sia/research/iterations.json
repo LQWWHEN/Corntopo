@@ -91,10 +91,12 @@
       "change": "Preoperative double-angle clinical conditions",
       "budget_group": "clinical_feature_selection",
       "trial": 1,
-      "source_commit": null,
-      "status": "frozen_pending_acceptance",
+      "source_commit": "7df391cb6f4e4c1fa1740179d19e7dec86645f66",
+      "status": "completed_negative_validation_not_tested",
       "SIA_output": "vector",
-      "axis_metrics_evaluated": false
+      "axis_metrics_evaluated": true,
+      "tests_passed": 44,
+      "checkpoint_files": 0
     }
   ],
   "artifact_policy": {
