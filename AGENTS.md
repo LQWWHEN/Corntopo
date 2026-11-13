@@ -20,8 +20,11 @@ Do not save a disguised weight snapshot in an archive or other extension.
 
 Keep the frozen first 3 of 10 patient folds, 200 epochs, no EMA, and the existing
 data-quality policy unless the user changes them. Inspect training at 30-minute
-intervals. Each broad improvement direction has at most 5 tuning trials; count
-related head and loss-weight variants together. Commit each attempt to GitHub.
+intervals. The latest user budget is at most 5 tuning trials per concrete
+improvement proposal, not a cap on an entire broad direction. Keep cumulative
+direction counts for history. Related hyperparameter variants of the same
+proposal share its budget; do not rename a variant to reset its count.
+Commit each attempt to GitHub.
 Never publish private datasets, individual predictions/images, credentials,
 connection details or keys. Public iteration records contain methods only;
 quantitative patient-data results remain in the private experiment registry.

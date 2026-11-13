@@ -13,7 +13,172 @@
     "epochs": 200,
     "ema": false
   },
-  "budgets": {
+  "iterations": [
+    {
+      "id": "001",
+      "proposal": "ITERATION_001.md",
+      "change": "GradNorm alpha=1.5",
+      "budget_group": "sia_branch_and_joint_learning",
+      "trial": 1,
+      "source_commit": "6669f19c34ad1d92e27d545f9901d82092ba554d",
+      "status": "completed_not_selected",
+      "SIA_output": "vector",
+      "axis_metrics_evaluated": false,
+      "proposal_id": "gradnorm",
+      "tuning_round": 1
+    },
+    {
+      "id": "002",
+      "proposal": "ITERATION_002.md",
+      "change": "GradNorm alpha=0",
+      "budget_group": "sia_branch_and_joint_learning",
+      "trial": 2,
+      "source_commit": "d0921814e226884d80f12765c2240dbeb92ded48",
+      "status": "completed_test_once_mixed_result",
+      "SIA_output": "vector",
+      "axis_metrics_evaluated": false,
+      "proposal_id": "gradnorm",
+      "tuning_round": 2
+    },
+    {
+      "id": "003",
+      "proposal": "ITERATION_003.md",
+      "change": "D4 augmentation",
+      "budget_group": "geometric_data_augmentation",
+      "trial": 1,
+      "source_commit": "565da1a367abfc7a7f82a13536afdd4101d85561",
+      "status": "completed_negative_validation",
+      "SIA_output": "vector",
+      "axis_metrics_evaluated": false,
+      "proposal_id": "d4_augmentation",
+      "tuning_round": 1
+    },
+    {
+      "id": "004",
+      "proposal": "ITERATION_004.md",
+      "change": "Direct magnitude-only head",
+      "budget_group": "sia_branch_and_joint_learning",
+      "trial": 3,
+      "source_commit": "0149bb9c7b96351f6deb98fadb44d651e47bef60",
+      "status": "diagnostic_ablation_incomplete_for_joint_task",
+      "SIA_output": "magnitude_only",
+      "axis_metrics_evaluated": false,
+      "proposal_id": "direct_scalar_sia",
+      "tuning_round": 1
+    },
+    {
+      "id": "005",
+      "proposal": "ITERATION_005.md",
+      "change": "Preoperative axial-moment direct vector head",
+      "budget_group": "sia_branch_and_joint_learning",
+      "trial": 4,
+      "source_commit": "8da6116491a8fccfe324bdf6d61e98a051173ae1",
+      "status": "completed_joint_improvement_over_basic_not_best_controls",
+      "SIA_output": "vector",
+      "axis_metrics_evaluated": true,
+      "tests_passed": 41,
+      "checkpoint_files": 0,
+      "proposal_id": "axial_direct_vector",
+      "tuning_round": 1
+    },
+    {
+      "id": "006",
+      "proposal": "ITERATION_006.md",
+      "change": "Preoperative double-angle clinical conditions",
+      "budget_group": "clinical_feature_selection",
+      "trial": 1,
+      "source_commit": "7df391cb6f4e4c1fa1740179d19e7dec86645f66",
+      "status": "completed_negative_validation_not_tested",
+      "SIA_output": "vector",
+      "axis_metrics_evaluated": true,
+      "tests_passed": 44,
+      "checkpoint_files": 0,
+      "proposal_id": "preoperative_vector_conditions",
+      "tuning_round": 1
+    },
+    {
+      "id": "007",
+      "proposal": "ITERATION_007.md",
+      "change": "Preoperative reference-frame spatial feature fusion",
+      "budget_group": "image_clinical_fusion",
+      "trial": 1,
+      "source_commit": "26f32cccbbada639208b73e36200fef46756d224",
+      "status": "completed_mixed_validation_not_tested",
+      "SIA_output": "vector",
+      "axis_metrics_evaluated": true,
+      "proposal_id": "preoperative_frame_fusion",
+      "tuning_round": 1,
+      "tests_passed": 47,
+      "checkpoint_files": 0
+    }
+  ],
+  "artifact_policy": {
+    "historical_experiment_checkpoints": "deleted_at_user_request",
+    "retain": [
+      "metrics",
+      "predictions",
+      "images",
+      "logs",
+      "configuration",
+      "source_commit",
+      "timing"
+    ],
+    "private_results": "private experiment registry, outside public repository"
+  },
+  "budget_policy": {
+    "scope": "concrete_improvement_proposal",
+    "maximum_tuning_rounds": 5,
+    "direction_counts": "historical_tracking_only",
+    "same_proposal_variants_share_budget": true,
+    "deterministic_frozen_rerun_is_not_new_configuration": true,
+    "updated_by_user": "2026-11-13"
+  },
+  "proposal_budgets": {
+    "gradnorm": {
+      "used": 2,
+      "maximum": 5,
+      "iterations": [
+        "001",
+        "002"
+      ]
+    },
+    "d4_augmentation": {
+      "used": 1,
+      "maximum": 5,
+      "iterations": [
+        "003"
+      ]
+    },
+    "direct_scalar_sia": {
+      "used": 1,
+      "maximum": 5,
+      "iterations": [
+        "004"
+      ]
+    },
+    "axial_direct_vector": {
+      "used": 1,
+      "maximum": 5,
+      "iterations": [
+        "005"
+      ]
+    },
+    "preoperative_vector_conditions": {
+      "used": 1,
+      "maximum": 5,
+      "iterations": [
+        "006"
+      ]
+    },
+    "preoperative_frame_fusion": {
+      "used": 1,
+      "maximum": 5,
+      "iterations": [
+        "007"
+      ]
+    }
+  },
+  "historical_direction_budgets": {
     "sia_branch_and_joint_learning": {
       "used": 4,
       "maximum": 5
@@ -30,101 +195,5 @@
       "used": 1,
       "maximum": 5
     }
-  },
-  "iterations": [
-    {
-      "id": "001",
-      "proposal": "ITERATION_001.md",
-      "change": "GradNorm alpha=1.5",
-      "budget_group": "sia_branch_and_joint_learning",
-      "trial": 1,
-      "source_commit": "6669f19c34ad1d92e27d545f9901d82092ba554d",
-      "status": "completed_not_selected",
-      "SIA_output": "vector",
-      "axis_metrics_evaluated": false
-    },
-    {
-      "id": "002",
-      "proposal": "ITERATION_002.md",
-      "change": "GradNorm alpha=0",
-      "budget_group": "sia_branch_and_joint_learning",
-      "trial": 2,
-      "source_commit": "d0921814e226884d80f12765c2240dbeb92ded48",
-      "status": "completed_test_once_mixed_result",
-      "SIA_output": "vector",
-      "axis_metrics_evaluated": false
-    },
-    {
-      "id": "003",
-      "proposal": "ITERATION_003.md",
-      "change": "D4 augmentation",
-      "budget_group": "geometric_data_augmentation",
-      "trial": 1,
-      "source_commit": "565da1a367abfc7a7f82a13536afdd4101d85561",
-      "status": "completed_negative_validation",
-      "SIA_output": "vector",
-      "axis_metrics_evaluated": false
-    },
-    {
-      "id": "004",
-      "proposal": "ITERATION_004.md",
-      "change": "Direct magnitude-only head",
-      "budget_group": "sia_branch_and_joint_learning",
-      "trial": 3,
-      "source_commit": "0149bb9c7b96351f6deb98fadb44d651e47bef60",
-      "status": "diagnostic_ablation_incomplete_for_joint_task",
-      "SIA_output": "magnitude_only",
-      "axis_metrics_evaluated": false
-    },
-    {
-      "id": "005",
-      "proposal": "ITERATION_005.md",
-      "change": "Preoperative axial-moment direct vector head",
-      "budget_group": "sia_branch_and_joint_learning",
-      "trial": 4,
-      "source_commit": "8da6116491a8fccfe324bdf6d61e98a051173ae1",
-      "status": "completed_joint_improvement_over_basic_not_best_controls",
-      "SIA_output": "vector",
-      "axis_metrics_evaluated": true,
-      "tests_passed": 41,
-      "checkpoint_files": 0
-    },
-    {
-      "id": "006",
-      "proposal": "ITERATION_006.md",
-      "change": "Preoperative double-angle clinical conditions",
-      "budget_group": "clinical_feature_selection",
-      "trial": 1,
-      "source_commit": "7df391cb6f4e4c1fa1740179d19e7dec86645f66",
-      "status": "completed_negative_validation_not_tested",
-      "SIA_output": "vector",
-      "axis_metrics_evaluated": true,
-      "tests_passed": 44,
-      "checkpoint_files": 0
-    },
-    {
-      "id": "007",
-      "proposal": "ITERATION_007.md",
-      "change": "Preoperative reference-frame spatial feature fusion",
-      "budget_group": "image_clinical_fusion",
-      "trial": 1,
-      "source_commit": null,
-      "status": "frozen_pending_acceptance",
-      "SIA_output": "vector",
-      "axis_metrics_evaluated": false
-    }
-  ],
-  "artifact_policy": {
-    "historical_experiment_checkpoints": "deleted_at_user_request",
-    "retain": [
-      "metrics",
-      "predictions",
-      "images",
-      "logs",
-      "configuration",
-      "source_commit",
-      "timing"
-    ],
-    "private_results": "private experiment registry, outside public repository"
   }
 }
