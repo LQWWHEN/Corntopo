@@ -17,7 +17,7 @@ from dataloader import (CornealTopoDataset, feature_stats, fit_image_stats,
                         validate_table, validate_maps, sia_target_columns)
 from transforms import DataTransform
 from patient_cv import load_or_create_cv_splits
-from metrics import MetricAccumulator
+from metrics import MetricAccumulator, axis_details
 from visualization import save_visuals, visualization_spec
 from model.encoder import ConditionEncoder
 from model.unet import ConditionalUNet
@@ -68,8 +68,8 @@ def get_args(argv=None):
     p.add_argument('--sia_columns', nargs=2, default=['delta_front_X','delta_front_Y'])
     p.add_argument('--sia_mode', choices=['vector','scalar'], default='vector',
                    help='FM-SIA target: vector=DeltaX/DeltaY; scalar=direct magnitude in D')
-    p.add_argument('--sia_prediction', choices=['flow','direct'], default='flow',
-                   help='SIA flow sampling, or a preoperative-only deterministic scalar head')
+    p.add_argument('--sia_prediction', choices=['flow','direct','axial_direct'], default='flow',
+                   help='SIA flow, direct scalar, or spatial-moment direct vector head')
     p.add_argument('--sia_magnitude_column', default='front_SIA_D')
     p.add_argument('--sia_label_atol', type=float, default=1e-4)
     p.add_argument('--skip_sia_checks', action='store_true',
@@ -123,6 +123,9 @@ def get_args(argv=None):
 def check_args(a):
     if a.resume and not a.save_checkpoints:
         raise ValueError("--resume requires explicit --save_checkpoints")
+    if a.sia_prediction == 'axial_direct' and (a.model != 'fm_sia' or a.sia_mode != 'vector'
+                                              or a.loss_balance != 'fixed'):
+        raise ValueError('Axial direct SIA requires fm_sia, vector mode and fixed balance')
     if a.sia_prediction == 'direct' and (a.model != 'fm_sia' or a.sia_mode != 'scalar'
                                        or a.loss_balance != 'fixed' or a.lambda_sia != 0):
         raise ValueError('Direct SIA requires fm_sia, scalar mode, fixed balance and lambda_sia=0')
@@ -215,7 +218,7 @@ def build_model(args, stats=None):
                 n_layers=args.fno_layers, hidden_channels=args.fno_hidden_channels, modes=args.fno_modes)
         return UnetNeuralOperator(in_channels=args.fno_in_channels, out_channels=args.fno_out_channels,
                                    hidden_channels=args.fno_hidden_channels)
-    direct_sia = args.model == 'fm_sia' and getattr(args, 'sia_prediction', 'flow') == 'direct'
+    direct_sia = args.model == 'fm_sia' and getattr(args, 'sia_prediction', 'flow') in ('direct','axial_direct')
     encoder = ConditionEncoder()
     unet = ConditionalUNet(discrete=args.model not in ('fm','fm_sia'), clinical_dim=len(args.conditions),
         clinical_embed_dim=args.clinical_embed_dim, fusion_method=args.fusion_method,
@@ -225,6 +228,11 @@ def build_model(args, stats=None):
     if args.model == 'fm_sia':
         if not stats or not stats.get('sia'):
             raise ValueError('FM-SIA requires saved/fitted training-fold SIA statistics')
+        if getattr(args, 'sia_prediction', 'flow') == 'axial_direct':
+            from model.axial_sia import AxialSIAFlowMatching
+            return AxialSIAFlowMatching(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
+                sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
+                lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta)
         if direct_sia:
             from model.direct_sia import DirectSIAFlowMatching
             return DirectSIAFlowMatching(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
@@ -424,9 +432,12 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
                         SIA_sample_std_D=out['sia_sample_std'][j].item(), samples=args.eval_samples)
                     if q_true is not None:
                         qt, qp = q_true[j].cpu().numpy(), out['sia_vector'][j].cpu().numpy()
+                        axes = axis_details(qp[None], qt[None])
                         row.update(true_delta_X=float(qt[0]), true_delta_Y=float(qt[1]),
                             pred_delta_X=float(qp[0]), pred_delta_Y=float(qp[1]),
-                            SIA_from_mean_vector_D=out['sia_from_mean_vector'][j].item())
+                            SIA_from_mean_vector_D=out['sia_from_mean_vector'][j].item(),
+                            true_axis_deg=float(axes['true'][0]), pred_axis_deg=float(axes['pred'][0]),
+                            axis_error_deg=float(axes['error'][0]), axis_gt_ge_0p1D=bool(st >= .1))
                     else:
                         row.update(pred_SIA_unclipped_D=out['sia_unclipped'][j].item(),
                             SIA_negative_sample_fraction=float((out['sia_unclipped_samples'][:, j] < 0).float().mean()))
@@ -470,7 +481,10 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             solver=args.ode_solver, pixel_domain='common finite pre/post region',
             image_scale=stats['image'], sia_mode=getattr(args, 'sia_mode', 'vector'),
             sia_prediction=getattr(args, 'sia_prediction', 'flow'),
-            SIA_point_estimator=('deterministic preoperative-only magnitude head' if getattr(args, 'sia_prediction', 'flow') == 'direct'
+            axis_protocol=dict(period_degrees=180, zero_epsilon_D=1e-8, stable_gt_threshold_D=.1,
+                undefined_prediction_penalty_degrees=90, vector_for_axis='mean predicted physical vector'),
+            SIA_point_estimator=('deterministic preoperative-only spatial-moment vector head' if getattr(args, 'sia_prediction', 'flow') == 'axial_direct'
+                                 else 'deterministic preoperative-only magnitude head' if getattr(args, 'sia_prediction', 'flow') == 'direct'
                                  else 'mean of nonnegative projected scalar samples' if getattr(args, 'sia_mode', 'vector') == 'scalar'
                                  else 'mean of per-sample norms'),
             sample_std_is_calibrated_uncertainty=False))

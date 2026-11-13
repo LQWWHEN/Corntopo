@@ -7,6 +7,7 @@ import torch
 from dataloader import center_crop
 from train import build_model, resolve_device, json_save, PIPELINE_VERSION, saved_config_value
 from model.fm_sia import JointFlowMatching, fixed_sia_noise
+from metrics import axis_details
 
 
 def load_checkpoint(path, device='cpu', cpu_threads=2):
@@ -71,8 +72,11 @@ def predict_case(model, args, stats, device, pre_path, clinical_values, sample_i
         arrays.update(sia_samples=s)
         if qs:
             q = np.asarray(qs)
+            axis = axis_details(q.mean(0, keepdims=True), q.mean(0, keepdims=True))['pred'][0]
             result.update(pred_delta_X=float(q.mean(0)[0]), pred_delta_Y=float(q.mean(0)[1]),
-                          SIA_from_mean_vector_D=float(np.linalg.norm(q.mean(0))))
+                          SIA_from_mean_vector_D=float(np.linalg.norm(q.mean(0))),
+                          pred_axis_deg=float(axis) if np.isfinite(axis) else None,
+                          axis_period_degrees=180)
             arrays['sia_vector_samples'] = q
         else:
             raw_s = np.asarray(raw_ss)

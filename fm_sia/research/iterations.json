@@ -1,12 +1,96 @@
 {
   "schema_version": 1,
-  "requirements": {"outputs": ["postoperative_image", "SIA_magnitude", "SIA_axis"], "axis_period_degrees": 180, "save_checkpoints_default": false, "checkpoint_opt_in_requires_user_request": true, "folds": 3, "epochs": 200, "ema": false},
-  "budgets": {"sia_branch_and_joint_learning": {"used": 3, "maximum": 5}, "geometric_data_augmentation": {"used": 1, "maximum": 5}},
+  "requirements": {
+    "outputs": [
+      "postoperative_image",
+      "SIA_magnitude",
+      "SIA_axis"
+    ],
+    "axis_period_degrees": 180,
+    "save_checkpoints_default": false,
+    "checkpoint_opt_in_requires_user_request": true,
+    "folds": 3,
+    "epochs": 200,
+    "ema": false
+  },
+  "budgets": {
+    "sia_branch_and_joint_learning": {
+      "used": 4,
+      "maximum": 5
+    },
+    "geometric_data_augmentation": {
+      "used": 1,
+      "maximum": 5
+    }
+  },
   "iterations": [
-    {"id": "001", "proposal": "ITERATION_001.md", "change": "GradNorm alpha=1.5", "budget_group": "sia_branch_and_joint_learning", "trial": 1, "source_commit": "6669f19c34ad1d92e27d545f9901d82092ba554d", "status": "completed_not_selected", "SIA_output": "vector", "axis_metrics_evaluated": false},
-    {"id": "002", "proposal": "ITERATION_002.md", "change": "GradNorm alpha=0", "budget_group": "sia_branch_and_joint_learning", "trial": 2, "source_commit": "d0921814e226884d80f12765c2240dbeb92ded48", "status": "completed_test_once_mixed_result", "SIA_output": "vector", "axis_metrics_evaluated": false},
-    {"id": "003", "proposal": "ITERATION_003.md", "change": "D4 augmentation", "budget_group": "geometric_data_augmentation", "trial": 1, "source_commit": "565da1a367abfc7a7f82a13536afdd4101d85561", "status": "completed_negative_validation", "SIA_output": "vector", "axis_metrics_evaluated": false},
-    {"id": "004", "proposal": "ITERATION_004.md", "change": "Direct magnitude-only head", "budget_group": "sia_branch_and_joint_learning", "trial": 3, "source_commit": "0149bb9c7b96351f6deb98fadb44d651e47bef60", "status": "diagnostic_ablation_incomplete_for_joint_task", "SIA_output": "magnitude_only", "axis_metrics_evaluated": false}
+    {
+      "id": "001",
+      "proposal": "ITERATION_001.md",
+      "change": "GradNorm alpha=1.5",
+      "budget_group": "sia_branch_and_joint_learning",
+      "trial": 1,
+      "source_commit": "6669f19c34ad1d92e27d545f9901d82092ba554d",
+      "status": "completed_not_selected",
+      "SIA_output": "vector",
+      "axis_metrics_evaluated": false
+    },
+    {
+      "id": "002",
+      "proposal": "ITERATION_002.md",
+      "change": "GradNorm alpha=0",
+      "budget_group": "sia_branch_and_joint_learning",
+      "trial": 2,
+      "source_commit": "d0921814e226884d80f12765c2240dbeb92ded48",
+      "status": "completed_test_once_mixed_result",
+      "SIA_output": "vector",
+      "axis_metrics_evaluated": false
+    },
+    {
+      "id": "003",
+      "proposal": "ITERATION_003.md",
+      "change": "D4 augmentation",
+      "budget_group": "geometric_data_augmentation",
+      "trial": 1,
+      "source_commit": "565da1a367abfc7a7f82a13536afdd4101d85561",
+      "status": "completed_negative_validation",
+      "SIA_output": "vector",
+      "axis_metrics_evaluated": false
+    },
+    {
+      "id": "004",
+      "proposal": "ITERATION_004.md",
+      "change": "Direct magnitude-only head",
+      "budget_group": "sia_branch_and_joint_learning",
+      "trial": 3,
+      "source_commit": "0149bb9c7b96351f6deb98fadb44d651e47bef60",
+      "status": "diagnostic_ablation_incomplete_for_joint_task",
+      "SIA_output": "magnitude_only",
+      "axis_metrics_evaluated": false
+    },
+    {
+      "id": "005",
+      "proposal": "ITERATION_005.md",
+      "change": "Preoperative axial-moment direct vector head",
+      "budget_group": "sia_branch_and_joint_learning",
+      "trial": 4,
+      "source_commit": null,
+      "status": "frozen_pending_acceptance",
+      "SIA_output": "vector",
+      "axis_metrics_evaluated": false
+    }
   ],
-  "artifact_policy": {"historical_experiment_checkpoints": "deleted_at_user_request", "retain": ["metrics", "predictions", "images", "logs", "configuration", "source_commit", "timing"], "private_results": "private experiment registry, outside public repository"}
+  "artifact_policy": {
+    "historical_experiment_checkpoints": "deleted_at_user_request",
+    "retain": [
+      "metrics",
+      "predictions",
+      "images",
+      "logs",
+      "configuration",
+      "source_commit",
+      "timing"
+    ],
+    "private_results": "private experiment registry, outside public repository"
+  }
 }

@@ -11,6 +11,37 @@ from scipy.ndimage import binary_erosion
 from skimage.metrics import structural_similarity
 
 
+def axis_details(q_pred, q_true, epsilon=1e-8):
+    """Double-angle vectors -> axes in [0,180); zero-vector axes stay undefined."""
+    qp, qt = np.asarray(q_pred, dtype=np.float64), np.asarray(q_true, dtype=np.float64)
+    if qp.ndim != 2 or qp.shape[1] != 2 or qt.shape != qp.shape or not np.isfinite(qp).all() or not np.isfinite(qt).all():
+        raise ValueError('Axis metrics require finite matching [N,2] physical vectors')
+    ap, at = [(np.degrees(np.arctan2(q[:, 1], q[:, 0]))*.5) % 180 for q in (qp, qt)]
+    ap[np.linalg.norm(qp, axis=1) <= epsilon] = np.nan
+    at[np.linalg.norm(qt, axis=1) <= epsilon] = np.nan
+    difference = np.abs(ap-at)
+    return dict(pred=ap, true=at, error=np.minimum(difference, 180-difference))
+
+
+def axis_metrics(q_pred, q_true):
+    details = axis_details(q_pred, q_true)
+    result = {}
+    norm_true = np.linalg.norm(q_true, axis=1)
+    for suffix, eligible in [('nonzero', norm_true > 1e-8), ('ge_0p1D', norm_true >= .1)]:
+        error = details['error'][eligible]
+        defined = np.isfinite(error)
+        count = int(eligible.sum())
+        # Keep undefined predictions in the denominator; the maximum axial error is 90 degrees.
+        scored = np.where(defined, error, 90.)
+        result.update({f'Axis_{suffix}_GT_count': count,
+            f'Axis_{suffix}_coverage': float(eligible.mean()),
+            f'Axis_{suffix}_undefined_pred_count': int((~defined).sum()),
+            f'Axis_{suffix}_MAE_deg': float(scored.mean()) if count else None,
+            f'Axis_{suffix}_RMSE_deg': float(np.sqrt(np.square(scored).mean())) if count else None,
+            f'Axis_{suffix}_defined_MAE_deg': float(error[defined].mean()) if defined.any() else None})
+    return result
+
+
 class MetricAccumulator:
     def __init__(self, image_scale=1.0):
         self.image_scale = image_scale
@@ -110,6 +141,7 @@ class MetricAccumulator:
             result.update(Vector_MAE=float(np.linalg.norm(err, axis=1).mean()),
                           Vector_RMSE=float(np.sqrt(np.square(err).sum(1).mean())),
                           DeltaX_MAE=float(np.abs(err[:, 0]).mean()), DeltaY_MAE=float(np.abs(err[:, 1]).mean()))
+            result.update(axis_metrics(np.concatenate(self.q_pred), np.concatenate(self.q_true)))
         return result
 
 
