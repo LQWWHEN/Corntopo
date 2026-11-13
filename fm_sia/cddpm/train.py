@@ -23,7 +23,7 @@ from model.encoder import ConditionEncoder
 from model.unet import ConditionalUNet
 from model.ema import EMA
 from model.fm_sia import JointFlowMatching, fixed_sia_noise
-from clinical_features import prepare_clinical_features, PRE_VECTOR
+from clinical_features import prepare_clinical_features, PRE_VECTOR, EYE_SIGN
 from task_balancing import (BALANCE_DEFAULTS, build_task_balancer,
                             gradnorm_shared_parameters)
 
@@ -80,6 +80,8 @@ def get_args(argv=None):
                    help='Axial direct FRONT velocity loss: normalized pixels or physical D / sia_ref')
     p.add_argument('--image_backbone', choices=['unet','fno'], default='unet',
                    help='Axial direct FM-SIA velocity network; historical models retain UNet')
+    p.add_argument('--eye_frame', choices=['native','right'], default='native',
+                   help='Optional right-eye coordinates with explicit preoperative eye condition')
     p.add_argument('--sia_magnitude_column', default='front_SIA_D')
     p.add_argument('--sia_label_atol', type=float, default=1e-4)
     p.add_argument('--skip_sia_checks', action='store_true',
@@ -137,6 +139,13 @@ def check_args(a):
         raise ValueError("--resume requires explicit --save_checkpoints")
     if a.validation_reference and a.validation_only:
         raise ValueError('validation_reference is for a frozen test rerun, not validation_only')
+    if a.eye_frame == 'right':
+        if a.model != 'fm_sia' or a.sia_prediction != 'axial_direct' or EYE_SIGN not in a.conditions:
+            raise ValueError('Right-eye frame requires axial_direct FM-SIA and pre_eye_sign')
+        directional = [c for c in a.conditions if c != EYE_SIGN and
+                       (c in PRE_VECTOR or any(w in c.lower() for w in ('axis','angle','meridian','location','eye','side','j0','j45')))]
+        if directional or a.sia_feature_fusion != 'lab':
+            raise ValueError('Right-eye frame currently supports scalar clinical fields plus pre_eye_sign')
     if a.image_backbone == 'fno' and (a.model != 'fm_sia' or a.sia_prediction != 'axial_direct'):
         raise ValueError('Conditional FNO backbone requires axial_direct FM-SIA')
     if a.image_backbone == 'fno' and (min(*a.fno_modes,a.fno_hidden_channels,a.fno_layers)<1
@@ -265,12 +274,21 @@ def build_model(args, stats=None):
             from model.axial_sia import AxialSIAFlowMatching
             frame = getattr(args, 'sia_feature_fusion', 'lab')
             frame_args = dict(feature_fusion=frame)
+            model_class = AxialSIAFlowMatching
+            if getattr(args, 'eye_frame', 'native') == 'right':
+                from model.eye_frame import EyeFrameSIAFlowMatching
+                model_class = EyeFrameSIAFlowMatching
+                eye_index = args.conditions.index(EYE_SIGN)
+                frame_args.update(eye_index=eye_index,
+                    eye_mean=stats['clinical']['mean'][eye_index],
+                    eye_std=stats['clinical']['std'][eye_index],
+                    canonical_sia_mean=stats['sia']['canonical_mean'])
             if frame == 'preop_frame':
                 indices = [args.conditions.index(name) for name in PRE_VECTOR]
                 frame_args.update(clinical_vector_indices=indices,
                     clinical_vector_mean=[stats['clinical']['mean'][i] for i in indices],
                     clinical_vector_std=[stats['clinical']['std'][i] for i in indices])
-            return AxialSIAFlowMatching(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
+            return model_class(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
                 sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
                 lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
                 image_loss_units=getattr(args, 'image_loss_units', 'normalized'),
@@ -324,6 +342,8 @@ def saved_config_value(config, key):
         return 'unet'
     if key == 'strict_determinism' and key not in config:
         return False
+    if key == 'eye_frame' and key not in config:
+        return 'native'
     if key == 'validation_only' and key not in config:
         return False
     if key in BALANCE_DEFAULTS and key not in config:
@@ -588,6 +608,11 @@ def fit_sia_stats(args, df, labels):
     stats = feature_stats(df, labels, columns)
     if getattr(args, 'sia_prediction', 'flow') == 'direct':
         stats['median'] = df[df.label_index.isin(labels)][columns].median().tolist()
+    if getattr(args, 'eye_frame', 'native') == 'right':
+        training = df[df.label_index.isin(labels)]
+        vector = training[columns].to_numpy(copy=True)
+        vector[:, 1] *= training[EYE_SIGN].to_numpy()
+        stats['canonical_mean'] = vector.mean(0).tolist()
     return stats
 
 
