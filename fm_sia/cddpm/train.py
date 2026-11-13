@@ -111,7 +111,7 @@ def get_args(argv=None):
     p.add_argument('--best_metric', choices=['MAE','SIA_MAE'], default='MAE')
     p.add_argument('--eval_every', type=int, default=10)
     p.add_argument('--checkpoint_every', type=int, default=10)
-    p.add_argument('--save_checkpoints', action='store_true', help='Explicit opt-in to persist model/optimizer checkpoints; default is memory-only selection')
+    p.add_argument('--save_checkpoints', action='store_true', help='Write temporary training checkpoints for later test; finalize with checkpoint_lifecycle.py after result verification')
     p.add_argument('--resume', action='store_true', help='Resume last.pth separately within each fold')
     p.add_argument('--preflight_only', action='store_true')
     p.add_argument('--validation_only', action='store_true',

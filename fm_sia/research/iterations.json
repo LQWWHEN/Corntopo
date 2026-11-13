@@ -8,10 +8,18 @@
     ],
     "axis_period_degrees": 180,
     "save_checkpoints_default": false,
-    "checkpoint_opt_in_requires_user_request": true,
     "folds": 3,
     "epochs": 200,
-    "ema": false
+    "ema": false,
+    "experiment_temporary_checkpoints": true,
+    "checkpoint_retention": "delete after completed test and result audit; rejected validation after decision archive",
+    "checkpoint_policy_user_updated": "2026-11-14",
+    "image_report_metrics": [
+      "PSNR",
+      "SSIM",
+      "RMSE",
+      "MAE"
+    ]
   },
   "iterations": [
     {
@@ -161,7 +169,7 @@
       "trial": 1,
       "proposal_id": "laterality_canonical_frame",
       "tuning_round": 1,
-      "status": "validation_selected_pending_frozen_test",
+      "status": "completed_frozen_test",
       "SIA_output": "vector",
       "axis_metrics_evaluated": true,
       "tests_passed": 64,
@@ -172,7 +180,8 @@
       "source_commit": "44f881b2fcc19ae405ae3134736bafbbe453a651",
       "smoke_exit_code": 0,
       "validation_gate_passed": true,
-      "test_evaluated": false
+      "test_evaluated": true,
+      "frozen_validation_reproduced_exactly": true
     }
   ],
   "artifact_policy": {

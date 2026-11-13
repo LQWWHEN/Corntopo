@@ -35,7 +35,7 @@ def main():
     # Read labels from the trusted checkpoint. Never regenerate test splits here.
     ckpt=torch.load(a.checkpoint,map_location='cpu',weights_only=False)
     labels=ckpt['fold'][a.partition]; del ckpt
-    df=load_dataframe(args.excel_path)
+    df=load_dataframe(args.excel_path,args.conditions)
     validate_table(df,args)
     validate_maps(df[df.label_index.isin(labels)],args)
     dataset=make_dataset(args,df,labels,stats)

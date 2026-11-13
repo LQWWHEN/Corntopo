@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import torch
 from dataloader import center_crop
-from train import build_model, resolve_device, json_save, PIPELINE_VERSION, saved_config_value
+from train import build_model, resolve_device, json_save, PIPELINE_VERSION, saved_config_value, seed_everything
 from model.fm_sia import JointFlowMatching, fixed_sia_noise
 from metrics import axis_details
 
@@ -22,6 +22,7 @@ def load_checkpoint(path, device='cpu', cpu_threads=2):
     if not hasattr(args, 'reconstruction_domain'):
         args.reconstruction_domain = saved_config_value(checkpoint['config'], 'reconstruction_domain')
     target = resolve_device(device, cpu_threads)
+    seed_everything(args.seed, strict=getattr(args, 'strict_determinism', False))
     model = build_model(args, checkpoint['stats'])
     model.load_state_dict(checkpoint['ema'] if args.use_ema else checkpoint['model'])
     model = model.to(target).eval()
