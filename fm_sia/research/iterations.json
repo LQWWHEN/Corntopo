@@ -135,7 +135,7 @@
       "trial": 1,
       "proposal_id": "conditional_fourier_velocity",
       "tuning_round": 1,
-      "status": "strict_validation_selected_pending_frozen_test",
+      "status": "completed_mixed_frozen_test",
       "SIA_output": "vector",
       "axis_metrics_evaluated": true,
       "tests_passed": 53,
@@ -145,11 +145,13 @@
       "parent_real_dofs": 38825155,
       "source_commit": "8b5b1453efcab7b5c837bb1096cd9976897d1b92",
       "selection_commit": "4cb54441fda6aa35c9bf1432ef9f03b748aca081",
-      "test_evaluated": false,
+      "test_evaluated": true,
       "runtime_tests_passed": 59,
       "reproduction_smoke_exact": true,
       "deterministic_source_commit": "9763c6f7fb7ca30f62e8b18b0e4f4c4c9af7abb7",
-      "strict_validation_gate_passed": true
+      "strict_validation_gate_passed": true,
+      "deterministic_selection_commit": "b9aabe4e56641eab07c484745a7b82de16f51b8b",
+      "frozen_validation_reproduced_exactly": true
     },
     {
       "id": "010",
@@ -159,14 +161,16 @@
       "trial": 1,
       "proposal_id": "laterality_canonical_frame",
       "tuning_round": 1,
-      "status": "cpu_audited_pending_real_data_smoke",
+      "status": "validation_training",
       "SIA_output": "vector",
       "axis_metrics_evaluated": false,
       "tests_passed": 64,
       "checkpoint_files": 0,
       "parent": "009_strict_validation",
       "parameter_real_dofs": 31225539,
-      "parent_real_dofs": 31225283
+      "parent_real_dofs": 31225283,
+      "source_commit": "44f881b2fcc19ae405ae3134736bafbbe453a651",
+      "smoke_exit_code": 0
     }
   ],
   "artifact_policy": {
