@@ -74,10 +74,12 @@
       "change": "Preoperative axial-moment direct vector head",
       "budget_group": "sia_branch_and_joint_learning",
       "trial": 4,
-      "source_commit": null,
-      "status": "frozen_pending_acceptance",
+      "source_commit": "8da6116491a8fccfe324bdf6d61e98a051173ae1",
+      "status": "completed_joint_improvement_over_basic_not_best_controls",
       "SIA_output": "vector",
-      "axis_metrics_evaluated": false
+      "axis_metrics_evaluated": true,
+      "tests_passed": 41,
+      "checkpoint_files": 0
     }
   ],
   "artifact_policy": {
