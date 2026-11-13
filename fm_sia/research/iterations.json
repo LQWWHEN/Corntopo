@@ -135,7 +135,7 @@
       "trial": 1,
       "proposal_id": "conditional_fourier_velocity",
       "tuning_round": 1,
-      "status": "deterministic_repair_audited_pending_revalidation",
+      "status": "strict_validation_selected_pending_frozen_test",
       "SIA_output": "vector",
       "axis_metrics_evaluated": true,
       "tests_passed": 53,
@@ -147,7 +147,9 @@
       "selection_commit": "4cb54441fda6aa35c9bf1432ef9f03b748aca081",
       "test_evaluated": false,
       "runtime_tests_passed": 59,
-      "reproduction_smoke_exact": true
+      "reproduction_smoke_exact": true,
+      "deterministic_source_commit": "9763c6f7fb7ca30f62e8b18b0e4f4c4c9af7abb7",
+      "strict_validation_gate_passed": true
     }
   ],
   "artifact_policy": {
