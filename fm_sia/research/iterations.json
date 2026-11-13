@@ -161,16 +161,18 @@
       "trial": 1,
       "proposal_id": "laterality_canonical_frame",
       "tuning_round": 1,
-      "status": "validation_training",
+      "status": "validation_selected_pending_frozen_test",
       "SIA_output": "vector",
-      "axis_metrics_evaluated": false,
+      "axis_metrics_evaluated": true,
       "tests_passed": 64,
       "checkpoint_files": 0,
       "parent": "009_strict_validation",
       "parameter_real_dofs": 31225539,
       "parent_real_dofs": 31225283,
       "source_commit": "44f881b2fcc19ae405ae3134736bafbbe453a651",
-      "smoke_exit_code": 0
+      "smoke_exit_code": 0,
+      "validation_gate_passed": true,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
