@@ -10,4 +10,5 @@ matplotlib>=3.7
 tqdm>=4.65
 tensorboard>=2.14
 pytest>=7.0
-# Optional existing FNO/UNO models require neuraloperator; FM/FM-SIA do not.
+# Optional FNO/UNO and FM-SIA --image_backbone fno require neuraloperator==1.0.2.
+# Default UNet FM/FM-SIA does not require neuraloperator.

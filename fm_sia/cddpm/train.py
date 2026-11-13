@@ -76,6 +76,8 @@ def get_args(argv=None):
                    help='Axial direct readout: lab moments or preoperative-axis-conditioned moments')
     p.add_argument('--image_loss_units', choices=['normalized','diopter'], default='normalized',
                    help='Axial direct FRONT velocity loss: normalized pixels or physical D / sia_ref')
+    p.add_argument('--image_backbone', choices=['unet','fno'], default='unet',
+                   help='Axial direct FM-SIA velocity network; historical models retain UNet')
     p.add_argument('--sia_magnitude_column', default='front_SIA_D')
     p.add_argument('--sia_label_atol', type=float, default=1e-4)
     p.add_argument('--skip_sia_checks', action='store_true',
@@ -129,6 +131,11 @@ def get_args(argv=None):
 def check_args(a):
     if a.resume and not a.save_checkpoints:
         raise ValueError("--resume requires explicit --save_checkpoints")
+    if a.image_backbone == 'fno' and (a.model != 'fm_sia' or a.sia_prediction != 'axial_direct'):
+        raise ValueError('Conditional FNO backbone requires axial_direct FM-SIA')
+    if a.image_backbone == 'fno' and (min(*a.fno_modes,a.fno_hidden_channels,a.fno_layers)<1
+                                     or not math.isfinite(a.fno_domain_padding) or a.fno_domain_padding<0):
+        raise ValueError('Invalid conditional FNO dimensions or padding')
     if a.image_loss_units == 'diopter' and (a.model != 'fm_sia' or a.sia_prediction != 'axial_direct'
                                            or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
         raise ValueError('Diopter image loss requires axial_direct FM-SIA with FRONT maps')
@@ -231,11 +238,17 @@ def build_model(args, stats=None):
                                    hidden_channels=args.fno_hidden_channels)
     direct_sia = args.model == 'fm_sia' and getattr(args, 'sia_prediction', 'flow') in ('direct','axial_direct')
     encoder = ConditionEncoder()
-    unet = ConditionalUNet(discrete=args.model not in ('fm','fm_sia'), clinical_dim=len(args.conditions),
-        clinical_embed_dim=args.clinical_embed_dim, fusion_method=args.fusion_method,
-        sia_embed_dim=args.sia_embed_dim if args.model == 'fm_sia' and not direct_sia else None,
-        sia_num_heads=args.sia_num_heads,
-        sia_state_dim=1 if getattr(args, 'sia_mode', 'vector') == 'scalar' else 2)
+    if getattr(args, 'image_backbone', 'unet') == 'fno':
+        from model.conditional_fno import ConditionalFNO
+        unet = ConditionalFNO(clinical_dim=len(args.conditions),clinical_embed_dim=args.clinical_embed_dim,
+            fusion_method=args.fusion_method,modes=args.fno_modes,hidden_channels=args.fno_hidden_channels,
+            n_layers=args.fno_layers,domain_padding=args.fno_domain_padding)
+    else:
+        unet = ConditionalUNet(discrete=args.model not in ('fm','fm_sia'), clinical_dim=len(args.conditions),
+            clinical_embed_dim=args.clinical_embed_dim, fusion_method=args.fusion_method,
+            sia_embed_dim=args.sia_embed_dim if args.model == 'fm_sia' and not direct_sia else None,
+            sia_num_heads=args.sia_num_heads,
+            sia_state_dim=1 if getattr(args, 'sia_mode', 'vector') == 'scalar' else 2)
     if args.model == 'fm_sia':
         if not stats or not stats.get('sia'):
             raise ValueError('FM-SIA requires saved/fitted training-fold SIA statistics')
@@ -298,6 +311,8 @@ def saved_config_value(config, key):
         return 'lab'
     if key == 'image_loss_units' and key not in config:
         return 'normalized'
+    if key == 'image_backbone' and key not in config:
+        return 'unet'
     if key == 'validation_only' and key not in config:
         return False
     if key in BALANCE_DEFAULTS and key not in config:

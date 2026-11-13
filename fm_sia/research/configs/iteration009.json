@@ -1,0 +1,24 @@
+{
+  "sia_prediction": "axial_direct",
+  "sia_feature_fusion": "lab",
+  "image_loss_units": "normalized",
+  "image_backbone": "fno",
+  "fno_modes": [32, 32],
+  "fno_hidden_channels": 64,
+  "fno_layers": 4,
+  "fno_domain_padding": 0.05,
+  "sia_mode": "vector",
+  "lambda_vector": 1.0,
+  "lambda_sia": 1.0,
+  "sia_ref": 1.0,
+  "huber_delta": 1.0,
+  "loss_balance": "fixed",
+  "augmentation": "none",
+  "fusion_method": "film",
+  "conditions": [
+    "pre_age_years",
+    "pre_GENERAL DATA_Cornea Front Astig",
+    "pre_GENERAL DATA_K Max (Front)",
+    "pre_GENERAL DATA_Pachy Min"
+  ]
+}

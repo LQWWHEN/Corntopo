@@ -91,9 +91,10 @@ class AxialSIAFlowMatching(JointFlowMatching):
             raise ValueError('steps must be positive')
         cond = self.condition_encoder(pre)
         q = self.predict_sia(cond, clinical)
+        image_cond = self.unet.prepare_condition(cond, clinical) if hasattr(self.unet, 'prepare_condition') else cond
         def field(state, time):
             t = pre.new_full((pre.shape[0],), time)
-            return (self.unet(state[0], t, cond, clinical=clinical),)
+            return (self.unet(state[0], t, image_cond, clinical=clinical),)
         state = (pre,)
         for k in range(steps):
             state = ode_step(field, state, k/steps, 1/steps, method or self.method)
