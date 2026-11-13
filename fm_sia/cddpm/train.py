@@ -74,6 +74,8 @@ def get_args(argv=None):
                    help='SIA flow, direct scalar, or spatial-moment direct vector head')
     p.add_argument('--sia_feature_fusion', choices=['lab','preop_frame'], default='lab',
                    help='Axial direct readout: lab moments or preoperative-axis-conditioned moments')
+    p.add_argument('--image_loss_units', choices=['normalized','diopter'], default='normalized',
+                   help='Axial direct FRONT velocity loss: normalized pixels or physical D / sia_ref')
     p.add_argument('--sia_magnitude_column', default='front_SIA_D')
     p.add_argument('--sia_label_atol', type=float, default=1e-4)
     p.add_argument('--skip_sia_checks', action='store_true',
@@ -127,6 +129,9 @@ def get_args(argv=None):
 def check_args(a):
     if a.resume and not a.save_checkpoints:
         raise ValueError("--resume requires explicit --save_checkpoints")
+    if a.image_loss_units == 'diopter' and (a.model != 'fm_sia' or a.sia_prediction != 'axial_direct'
+                                           or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
+        raise ValueError('Diopter image loss requires axial_direct FM-SIA with FRONT maps')
     if a.sia_feature_fusion == 'preop_frame' and (a.sia_prediction != 'axial_direct' or not set(PRE_VECTOR).issubset(a.conditions)):
         raise ValueError('Preoperative frame requires axial_direct and both pre_front_X/Y conditions')
     if a.sia_prediction == 'axial_direct' and (a.model != 'fm_sia' or a.sia_mode != 'vector'
@@ -245,7 +250,10 @@ def build_model(args, stats=None):
                     clinical_vector_std=[stats['clinical']['std'][i] for i in indices])
             return AxialSIAFlowMatching(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
                 sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
-                lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta, **frame_args)
+                lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
+                image_loss_units=getattr(args, 'image_loss_units', 'normalized'),
+                image_scale=stats['image']['scale'] if getattr(args, 'image_loss_units', 'normalized') == 'diopter' else 1.,
+                **frame_args)
         if direct_sia:
             from model.direct_sia import DirectSIAFlowMatching
             return DirectSIAFlowMatching(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
@@ -288,6 +296,8 @@ def saved_config_value(config, key):
         return 'flow'
     if key == 'sia_feature_fusion' and key not in config:
         return 'lab'
+    if key == 'image_loss_units' and key not in config:
+        return 'normalized'
     if key == 'validation_only' and key not in config:
         return False
     if key in BALANCE_DEFAULTS and key not in config:

@@ -110,6 +110,21 @@
       "tuning_round": 1,
       "tests_passed": 47,
       "checkpoint_files": 0
+    },
+    {
+      "id": "008",
+      "proposal": "ITERATION_008.md",
+      "change": "Physical-unit FRONT velocity loss with shared 1D reference",
+      "budget_group": "loss_function_design",
+      "trial": 1,
+      "proposal_id": "physical_unit_image_loss",
+      "tuning_round": 1,
+      "status": "audit_passed_ready_for_validation",
+      "SIA_output": "vector",
+      "axis_metrics_evaluated": false,
+      "tests_passed": 50,
+      "smoke_exit_code": 0,
+      "checkpoint_files": 0
     }
   ],
   "artifact_policy": {
@@ -175,6 +190,13 @@
       "maximum": 5,
       "iterations": [
         "007"
+      ]
+    },
+    "physical_unit_image_loss": {
+      "used": 1,
+      "maximum": 5,
+      "iterations": [
+        "008"
       ]
     }
   },
