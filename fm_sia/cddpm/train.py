@@ -58,6 +58,8 @@ def get_args(argv=None):
     p.add_argument('--k_folds', type=int, default=10)
     p.add_argument('--split_file', default=None)
     p.add_argument('--seed', type=int, default=42)
+    p.add_argument('--strict_determinism', action='store_true',
+                   help='Require deterministic PyTorch/CUDA algorithms, including interpolation backward')
     p.add_argument('--eval_seed', type=int, default=2026)
     p.add_argument('--eval_samples', type=int, default=1, help='Fixed noise samples per input for FM-SIA')
     p.add_argument('--use_ema', action='store_true')
@@ -203,7 +205,10 @@ def check_args(a):
         raise ValueError('Two distinct X/Y columns required')
 
 
-def seed_everything(seed):
+def seed_everything(seed, strict=False):
+    if strict:
+        os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
+    torch.use_deterministic_algorithms(strict)
     random.seed(seed); np.random.seed(seed); torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
@@ -317,6 +322,8 @@ def saved_config_value(config, key):
         return 'normalized'
     if key == 'image_backbone' and key not in config:
         return 'unet'
+    if key == 'strict_determinism' and key not in config:
+        return False
     if key == 'validation_only' and key not in config:
         return False
     if key in BALANCE_DEFAULTS and key not in config:
@@ -626,7 +633,7 @@ def run_fold(args, df, fold, device):
     fold_started = time.perf_counter()
     number = fold['fold']; folder = Path(args.save_dir)/f'fold_{number:02d}'
     folder.mkdir(parents=True, exist_ok=True)
-    seed_everything(args.seed+number)
+    seed_everything(args.seed+number,strict=args.strict_determinism)
     generator = torch.Generator().manual_seed(args.seed+number)
     last = folder/'last.pth'
     if (folder/'history.json').exists() and not args.resume:
@@ -773,7 +780,7 @@ def write_summary(results, path, args, split_file):
 
 def main():
     args = get_args()
-    seed_everything(args.seed)
+    seed_everything(args.seed,strict=args.strict_determinism)
     device = resolve_device(args.device, args.cpu_threads)
     df = load_dataframe(args.excel_path, args.conditions)
     report = validate_table(df, args)
