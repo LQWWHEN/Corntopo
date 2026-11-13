@@ -119,12 +119,13 @@
       "trial": 1,
       "proposal_id": "physical_unit_image_loss",
       "tuning_round": 1,
-      "status": "audit_passed_ready_for_validation",
+      "status": "completed_mixed_validation_primary_failed_not_tested",
       "SIA_output": "vector",
-      "axis_metrics_evaluated": false,
+      "axis_metrics_evaluated": true,
       "tests_passed": 50,
       "smoke_exit_code": 0,
-      "checkpoint_files": 0
+      "checkpoint_files": 0,
+      "source_commit": "514f860708865a28db5b4842897173a8ad9ba240"
     }
   ],
   "artifact_policy": {
