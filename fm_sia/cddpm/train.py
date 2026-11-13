@@ -112,6 +112,8 @@ def get_args(argv=None):
     p.add_argument('--preflight_only', action='store_true')
     p.add_argument('--validation_only', action='store_true',
                    help='Development run: no test loader or test evaluation; report validation checkpoints only')
+    p.add_argument('--validation_reference', default=None,
+                   help='Frozen rerun: verify each fold against this prior validation run before evaluating test')
     p.add_argument('--save_predictions', action='store_true', help='Save all physical image predictions as .npy')
     p.add_argument('--visualize_n', type=int, default=5,
                    help='Legacy compatibility only: epoch=1, validation=5, test=all are fixed')
@@ -131,6 +133,8 @@ def get_args(argv=None):
 def check_args(a):
     if a.resume and not a.save_checkpoints:
         raise ValueError("--resume requires explicit --save_checkpoints")
+    if a.validation_reference and a.validation_only:
+        raise ValueError('validation_reference is for a frozen test rerun, not validation_only')
     if a.image_backbone == 'fno' and (a.model != 'fm_sia' or a.sia_prediction != 'axial_direct'):
         raise ValueError('Conditional FNO backbone requires axial_direct FM-SIA')
     if a.image_backbone == 'fno' and (min(*a.fno_modes,a.fno_hidden_channels,a.fno_layers)<1
@@ -580,6 +584,44 @@ def fit_sia_stats(args, df, labels):
     return stats
 
 
+def verify_frozen_validation(reference, number, args, stats, history):
+    """Compare a frozen rerun before any test batch is evaluated in this fold."""
+    reference = Path(reference)
+    config = json.loads((reference/'config.json').read_text(encoding='utf-8'))
+    operational = {'save_dir','validation_only','validation_reference','preflight_only','resume'}
+    changed = [key for key,value in vars(args).items()
+               if key not in operational and saved_config_value(config,key) != value]
+    if changed:
+        raise ValueError(f'Frozen rerun configuration differs: {changed}')
+    folder = reference/f'fold_{number:02d}'
+    if json.loads((folder/'normalization.json').read_text(encoding='utf-8')) != stats:
+        raise ValueError('Frozen rerun normalization differs')
+    expected = json.loads((folder/'history.json').read_text(encoding='utf-8'))
+    expected = [(row['epoch'],row['validation']) for row in expected if 'validation' in row]
+    actual = [(row['epoch'],row['validation']) for row in history if 'validation' in row]
+    if not expected or [e for e,_ in expected] != [e for e,_ in actual]:
+        raise ValueError('Frozen rerun validation epochs differ')
+    maximum = 0.; comparisons = 0
+    for (epoch,want),(_,got) in zip(expected,actual):
+        if want.keys() != got.keys():
+            raise ValueError('Frozen rerun validation metric schema differs')
+        for key,value in want.items():
+            other = got[key]
+            if value is None or other is None:
+                if value != other:
+                    raise ValueError(f'Frozen validation differs at epoch {epoch}: {key}')
+                continue
+            if not math.isclose(value,other,rel_tol=1e-6,abs_tol=1e-7):
+                raise ValueError(f'Frozen validation differs at epoch {epoch}: {key}')
+            maximum = max(maximum,abs(value-other)); comparisons += 1
+    selected = min(actual,key=lambda row:row[1][args.best_metric])[0]
+    if selected != min(expected,key=lambda row:row[1][args.best_metric])[0]:
+        raise ValueError('Frozen rerun selected epoch differs')
+    return dict(status='PASS',fold=number,validation_epochs=[e for e,_ in actual],
+                metrics_compared=comparisons,max_absolute_metric_difference=maximum,
+                selected_epoch=selected,relative_tolerance=1e-6,absolute_tolerance=1e-7)
+
+
 def run_fold(args, df, fold, device):
     fold_started = time.perf_counter()
     number = fold['fold']; folder = Path(args.save_dir)/f'fold_{number:02d}'
@@ -678,6 +720,9 @@ def run_fold(args, df, fold, device):
         checkpoint_link(folder/('best_image.pth' if args.best_metric=='MAE' else 'best_sia.pth'), folder/'best.pth')
     else:
         memory_final = (cpu_weight_snapshot(ema.ema_model if ema else model), args.epochs)
+    if args.validation_reference:
+        verification = verify_frozen_validation(args.validation_reference,number,args,stats,history)
+        json_save(folder/'frozen_validation_verification.json',verification)
     # Evaluate only a predeclared primary checkpoint plus final, never select on test data.
     results = {}
     del optimizer, scheduler, ema
