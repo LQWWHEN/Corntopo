@@ -49,6 +49,7 @@ def make_parser():
     p.add_argument('--best_metric', choices=['MAE','SIA_MAE'], default='MAE')
     p.add_argument('--eval_every', type=int, default=1)
     p.add_argument('--checkpoint_every', type=int, default=10)
+    p.add_argument('--save_checkpoints', action='store_true', help='Explicit opt-in to write checkpoints; disabled by default')
     p.add_argument('--resume', action='store_true')
     p.add_argument('--preflight_only', action='store_true')
     p.add_argument('--save_predictions', action='store_true')
@@ -72,6 +73,8 @@ def make_parser():
 
 
 def check_args(a):
+    if a.resume and not a.save_checkpoints:
+        raise ValueError("--resume requires explicit --save_checkpoints")
     if a.sia_mode == 'auto':
         a.sia_mode = 'scalar' if a.model == 'mCPTP' else 'off'
     if a.lr_D is None:

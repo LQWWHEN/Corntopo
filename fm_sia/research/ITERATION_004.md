@@ -77,3 +77,9 @@ Freeze this configuration and its existing best_image checkpoints before one
 test evaluation; do not tune more head/loss variants from the test outcome.
 The broad SIA/joint-learning budget stops at 3/5 trials. Retain all private
 metrics, predictions and timing, including the constant-control comparison.
+
+## Subsequent task clarification (2026-11-13)
+
+The user requires both SIA magnitude and axis. This scalar-only attempt is a
+diagnostic ablation and is not eligible as a complete task solution. Historical
+weights have been deleted at user request; metrics and source records remain.

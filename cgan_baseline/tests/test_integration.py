@@ -11,6 +11,24 @@ import train
 from test_contracts import args_for, fixture_data
 
 
+def test_default_memory_only_matches_persisted_selection(tmp_path,monkeypatch):
+    df,folds=fixture_data(tmp_path)
+    a=args_for(tmp_path,'--conditions','age','--fusion_method','film','--sia_mode','vector')
+    assert not a.save_checkpoints
+    a.excel_sha256=hashlib.sha256(Path(a.excel_path).read_bytes()).hexdigest()
+    a.split_sha256=hashlib.sha256(Path(a.split_file).read_bytes()).hexdigest()
+    a.save_dir=str(tmp_path/'memory')
+    real_save=train.torch_save_atomic
+    monkeypatch.setattr(train,'torch_save_atomic',lambda *args:pytest.fail('Default run saved weights'))
+    memory=train.run_fold(a,df,folds[0],torch.device('cpu'))
+    assert not list(Path(a.save_dir).rglob('*.pth'))
+    monkeypatch.setattr(train,'torch_save_atomic',real_save)
+    b=copy.deepcopy(a);b.save_dir=str(tmp_path/'disk');b.save_checkpoints=True
+    disk=train.run_fold(b,df,folds[0],torch.device('cpu'))
+    for selection in ('best','final'):
+        assert memory[selection]==pytest.approx(disk[selection],abs=1e-6)
+
+
 @pytest.mark.parametrize('mode',['scalar','vector'])
 def test_three_fold_cli_and_independent_evaluation(tmp_path,mode):
     fixture_data(tmp_path)
@@ -18,7 +36,7 @@ def test_three_fold_cli_and_independent_evaluation(tmp_path,mode):
     common=['--excel_path',str(tmp_path/'data.csv'),'--data_root',str(tmp_path),
         '--split_file',str(tmp_path/'split.json'),'--save_dir',str(tmp_path/'results'),
         '--device','cpu','--num_workers','0','--epochs','1','--batch_size','8',
-        '--ngf','4','--ndf','4','--sia_mode',mode,'--conditions','age','--fusion_method','film','--use_ema','--save_predictions']
+        '--ngf','4','--ndf','4','--sia_mode',mode,'--conditions','age','--fusion_method','film','--use_ema','--save_predictions','--save_checkpoints']
     split_before=(tmp_path/'split.json').read_bytes()
     r=subprocess.run([sys.executable,str(root/'train.py'),*common],capture_output=True,text=True)
     assert r.returncode==0,r.stdout+r.stderr
@@ -49,13 +67,13 @@ def test_three_fold_cli_and_independent_evaluation(tmp_path,mode):
     assert set(state['stats'])=={'image','clinical','sia'}
     # Refuse silent overwrite of completed experiments.
     r=subprocess.run([sys.executable,str(root/'train.py'),*common],capture_output=True,text=True)
-    assert r.returncode!=0 and 'already contains checkpoints' in r.stderr
+    assert r.returncode!=0 and 'already exists' in r.stderr
 
 
 @pytest.mark.parametrize('mode',['scalar','vector'])
 def test_resume_matches_uninterrupted(tmp_path,monkeypatch,mode):
     df,folds=fixture_data(tmp_path);a=args_for(tmp_path,'--conditions','age','--fusion_method','film',
-        '--use_ema','--dropout','--augmentation','d4','--sia_mode',mode)
+        '--use_ema','--dropout','--augmentation','d4','--sia_mode',mode,'--save_checkpoints')
     # Fill the fingerprints main() normally records.
     a.excel_sha256=hashlib.sha256(Path(a.excel_path).read_bytes()).hexdigest()
     a.split_sha256=hashlib.sha256(Path(a.split_file).read_bytes()).hexdigest()

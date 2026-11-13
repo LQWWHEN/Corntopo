@@ -307,6 +307,14 @@ def torch_save_atomic(payload, path):
     torch.save(payload, temporary); os.replace(temporary, path)
 
 
+def cpu_weight_snapshot(model):
+    """Detached in-memory weights; preserve state_dict version metadata."""
+    state = model.state_dict()
+    for key, value in state.items():
+        state[key] = value.detach().to(device='cpu', copy=True)
+    return state
+
+
 def checkpoint_link(source, destination):
     temporary = destination.with_name(destination.name+'.linktmp')
     if temporary.exists(): temporary.unlink()
@@ -328,13 +336,18 @@ def run_fold(args, df, fold, device):
     seed_everything(args.seed+number)
     generator = torch.Generator().manual_seed(args.seed+number)
     last = folder/'last.pth'
+    if (folder/'history.json').exists() and not args.resume:
+        raise FileExistsError('Experiment history already exists; choose a new save_dir')
+    if args.resume and not last.exists():
+        raise FileNotFoundError('Cannot resume without last.pth; checkpoint-free runs must restart in a new directory')
     ckpt = None
+    memory_best = None
     if args.resume and last.exists():
         ckpt = torch.load(last, map_location='cpu', weights_only=False)
         if ckpt['pipeline_version'] != PIPELINE_VERSION or ckpt['fold'] != fold:
             raise ValueError('Checkpoint pipeline/fold does not match')
         allowed = {'resume','device','num_workers','cpu_threads','save_dir','visualize_n','visual_error_max','visual_scale','save_predictions','k_folds','preflight_only','skip_sia_checks'}
-        changed = [k for k,v in vars(args).items() if k not in allowed and ckpt['config'].get(k,'global' if k=='image_normalization' else None) != v]
+        changed = [k for k,v in vars(args).items() if k not in allowed and ckpt['config'].get(k,True if k=='save_checkpoints' else 'global' if k=='image_normalization' else None) != v]
         if changed:
             raise ValueError(f'Resume configuration changed: {changed}; use a new save_dir')
         stats = ckpt['stats']
@@ -391,26 +404,38 @@ def run_fold(args, df, fold, device):
                     if v is not None: writer.add_scalar(f'validation/{k}', v, epoch+1)
                 improved = [k for k in best if metrics[k] < best[k]]
                 for k in improved: best[k] = metrics[k]
-                payload = checkpoint_payload(args, fold, stats, model, ema, optimizer, scheduler, epoch, best, generator)
-                for k in improved:
-                    torch_save_atomic(payload, folder/('best_image.pth' if k=='MAE' else 'best_sia.pth'))
-                del payload
+                if args.save_checkpoints:
+                    payload = checkpoint_payload(args, fold, stats, model, ema, optimizer, scheduler, epoch, best, generator)
+                    for k in improved:
+                        torch_save_atomic(payload, folder/('best_image.pth' if k=='MAE' else 'best_sia.pth'))
+                    del payload
+                elif args.best_metric in improved:
+                    memory_best = (cpu_weight_snapshot(eval_model), epoch+1)
                 print(f'Fold {number} epoch {epoch+1}: {losses}; validation={metrics}')
             history.append(entry); json_save(history_path, history)
-            if (epoch+1) % args.checkpoint_every == 0 or epoch+1 == args.epochs or 'validation' in entry:
+            if args.save_checkpoints and ((epoch+1) % args.checkpoint_every == 0 or epoch+1 == args.epochs or 'validation' in entry):
                 torch_save_atomic(checkpoint_payload(args, fold, stats, model, ema, optimizer, scheduler, epoch, best, generator), last)
     finally:
         writer.close()
-    checkpoint_link(last, folder/'final.pth')
-    checkpoint_link(folder/('best_image.pth' if args.best_metric=='MAE' else 'best_sia.pth'), folder/'best.pth')
+    if args.save_checkpoints:
+        checkpoint_link(last, folder/'final.pth')
+        checkpoint_link(folder/('best_image.pth' if args.best_metric=='MAE' else 'best_sia.pth'), folder/'best.pth')
+    else:
+        memory_final = (cpu_weight_snapshot(ema.ema_model if ema else model), args.epochs)
     # Evaluate only a predeclared primary checkpoint plus final, never select on test data.
     results = {}
     del optimizer, scheduler, ema
     for name in ('best','final'):
-        state = torch.load(folder/f'{name}.pth', map_location='cpu', weights_only=False)
-        weights = state['ema'] if args.use_ema else state['model']
-        model.load_state_dict(weights); selected_epoch = state['epoch']+1
-        del state, weights
+        if args.save_checkpoints:
+            state = torch.load(folder/f'{name}.pth', map_location='cpu', weights_only=False)
+            weights = state['ema'] if args.use_ema else state['model']
+            model.load_state_dict(weights); selected_epoch = state['epoch']+1
+            del state, weights
+        else:
+            weights, selected_epoch = memory_best if name == 'best' else memory_final
+            model.load_state_dict(weights)
+        json_save(folder/f'{name}_selection.json', dict(epoch=selected_epoch,
+            metric=args.best_metric if name == 'best' else None, persisted=args.save_checkpoints))
         metrics = evaluate(model, loaders['test'], device, args, stats, folder/'test_results'/name,partition='test')
         json_save(folder/'test_results'/name/'checkpoint.json',dict(epoch=selected_epoch,
             checkpoint=name,used_ema=args.use_ema,fold=number))
@@ -455,6 +480,8 @@ def main():
     folds = load_cv_splits(df, split_file, seed=args.seed)
     args.split_sha256 = hashlib.sha256(split_file.read_bytes()).hexdigest()
     folder = Path(args.save_dir); folder.mkdir(parents=True, exist_ok=True)
+    if not args.preflight_only and not args.resume and any(folder.glob('fold_*/history.json')):
+        raise FileExistsError('Experiment history already exists; choose a new save_dir')
     if not args.preflight_only and any(folder.glob('fold_*/*.pth')):
         if not args.resume:
             raise FileExistsError(f'{folder} already contains checkpoints; use --resume or a new save_dir')
@@ -462,7 +489,7 @@ def main():
             old_config = json.loads((folder/'config.json').read_text(encoding='utf-8'))
             allowed = {'resume','device','num_workers','cpu_threads','save_dir','visualize_n','visual_error_max','visual_scale',
                        'save_predictions','k_folds','preflight_only','skip_sia_checks'}
-            changed = [k for k,v in vars(args).items() if k not in allowed and old_config.get(k,'global' if k=='image_normalization' else None) != v]
+            changed = [k for k,v in vars(args).items() if k not in allowed and old_config.get(k,True if k=='save_checkpoints' else 'global' if k=='image_normalization' else None) != v]
             if changed:
                 raise ValueError(f'Resume configuration changed: {changed}; original results preserved')
     report.update(pipeline_version=PIPELINE_VERSION, input_maps=args.input_maps, output_maps=args.output_maps,

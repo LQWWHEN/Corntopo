@@ -1,5 +1,10 @@
 # CPTP / mCPTP 与 FM_SIA 公平对比版本（v2：标量主实验 + 向量消融）
 
+> 2026-11-13 起：完整任务同时要求 SIA 幅值和轴位。标量模式只作为历史基线/消融，不构成完整任务解法。实验索引及预算见 `fm_sia/research/README.md`（仓库根目录相对路径）。
+>
+> 训练默认不写 checkpoint；仅用户明确要求时使用 `--save_checkpoints`。默认模式在内存中选择最佳权重并完成当次评估，保留指标、图像、预测、日志及选择epoch元数据。下文基于 `.pth` 的恢复训练/独立评估命令仅适用于用户授权保存的运行；历史实验权重已按要求删除。
+
+
 本版本以项目当前 `/Corntopo/train.py`、`dataloader.py`、`metrics.py`、`patient_cv.py`、`transforms.py`、`fm_sia.py`、`ema.py` 和 `visualization.py` 为参考，重构上传的 cGAN 训练与测试入口。不是仅将一次随机划分改成循环训练。
 
 请完整解压并使用整个 `cgan_fair` 目录，或将目录内容整体放入项目的 `cGAN` 子目录。不要只替换两个模型文件后继续使用旧的 `models/__init__.py`、options 或 util 调用方式。新版本不依赖旧 util/Visdom/DDP，支持单进程 CPU / 单 GPU；旧权重不能直接当作新框架 checkpoint 使用。

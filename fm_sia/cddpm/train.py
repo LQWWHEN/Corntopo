@@ -99,6 +99,7 @@ def get_args(argv=None):
     p.add_argument('--best_metric', choices=['MAE','SIA_MAE'], default='MAE')
     p.add_argument('--eval_every', type=int, default=10)
     p.add_argument('--checkpoint_every', type=int, default=10)
+    p.add_argument('--save_checkpoints', action='store_true', help='Explicit opt-in to persist model/optimizer checkpoints; default is memory-only selection')
     p.add_argument('--resume', action='store_true', help='Resume last.pth separately within each fold')
     p.add_argument('--preflight_only', action='store_true')
     p.add_argument('--validation_only', action='store_true',
@@ -120,6 +121,8 @@ def get_args(argv=None):
 
 
 def check_args(a):
+    if a.resume and not a.save_checkpoints:
+        raise ValueError("--resume requires explicit --save_checkpoints")
     if a.sia_prediction == 'direct' and (a.model != 'fm_sia' or a.sia_mode != 'scalar'
                                        or a.loss_balance != 'fixed' or a.lambda_sia != 0):
         raise ValueError('Direct SIA requires fm_sia, scalar mode, fixed balance and lambda_sia=0')
@@ -258,6 +261,8 @@ def make_loader(dataset, args, device, shuffle=False, generator=None):
 
 def saved_config_value(config, key):
     """Recover historical defaults for checkpoints without newer options."""
+    if key == 'save_checkpoints' and key not in config:
+        return True
     if key == 'sia_prediction' and key not in config:
         return 'flow'
     if key == 'validation_only' and key not in config:
@@ -489,6 +494,14 @@ def torch_save_atomic(payload, path):
     torch.save(payload, temporary); os.replace(temporary, path)
 
 
+def cpu_weight_snapshot(model):
+    """Detached in-memory weights; preserve state_dict version metadata."""
+    state = model.state_dict()
+    for key, value in state.items():
+        state[key] = value.detach().to(device='cpu', copy=True)
+    return state
+
+
 def checkpoint_link(source, destination):
     temporary = destination.with_name(destination.name+'.linktmp')
     if temporary.exists(): temporary.unlink()
@@ -520,7 +533,12 @@ def run_fold(args, df, fold, device):
     seed_everything(args.seed+number)
     generator = torch.Generator().manual_seed(args.seed+number)
     last = folder/'last.pth'
+    if (folder/'history.json').exists() and not args.resume:
+        raise FileExistsError('Experiment history already exists; choose a new save_dir')
+    if args.resume and not last.exists():
+        raise FileNotFoundError('Cannot resume without last.pth; checkpoint-free runs must restart in a new directory')
     ckpt = None
+    memory_best = None
     if args.resume and last.exists():
         ckpt = torch.load(last, map_location='cpu', weights_only=False)
         if ckpt['pipeline_version'] != PIPELINE_VERSION or ckpt['fold'] != fold:
@@ -588,26 +606,38 @@ def run_fold(args, df, fold, device):
                     if v is not None: writer.add_scalar(f'validation/{k}', v, epoch+1)
                 improved = [k for k in best if metrics[k] < best[k]]
                 for k in improved: best[k] = metrics[k]
-                payload = checkpoint_payload(args, fold, stats, model, ema, optimizer, scheduler, epoch, best, generator, balancer)
-                for k in improved:
-                    torch_save_atomic(payload, folder/('best_image.pth' if k=='MAE' else 'best_sia.pth'))
-                del payload
+                if args.save_checkpoints:
+                    payload = checkpoint_payload(args, fold, stats, model, ema, optimizer, scheduler, epoch, best, generator, balancer)
+                    for k in improved:
+                        torch_save_atomic(payload, folder/('best_image.pth' if k=='MAE' else 'best_sia.pth'))
+                    del payload
+                elif args.best_metric in improved:
+                    memory_best = (cpu_weight_snapshot(eval_model), epoch+1)
                 print(f'Fold {number} epoch {epoch+1}: {losses}; validation={metrics}')
             history.append(entry); json_save(history_path, history)
-            if (epoch+1) % args.checkpoint_every == 0 or epoch+1 == args.epochs or 'validation' in entry:
+            if args.save_checkpoints and ((epoch+1) % args.checkpoint_every == 0 or epoch+1 == args.epochs or 'validation' in entry):
                 torch_save_atomic(checkpoint_payload(args, fold, stats, model, ema, optimizer, scheduler, epoch, best, generator, balancer), last)
     finally:
         writer.close()
-    checkpoint_link(last, folder/'final.pth')
-    checkpoint_link(folder/('best_image.pth' if args.best_metric=='MAE' else 'best_sia.pth'), folder/'best.pth')
+    if args.save_checkpoints:
+        checkpoint_link(last, folder/'final.pth')
+        checkpoint_link(folder/('best_image.pth' if args.best_metric=='MAE' else 'best_sia.pth'), folder/'best.pth')
+    else:
+        memory_final = (cpu_weight_snapshot(ema.ema_model if ema else model), args.epochs)
     # Evaluate only a predeclared primary checkpoint plus final, never select on test data.
     results = {}
     del optimizer, scheduler, ema
     for name in ('best','final'):
-        state = torch.load(folder/f'{name}.pth', map_location='cpu', weights_only=False)
-        weights = state['ema'] if args.use_ema else state['model']
-        model.load_state_dict(weights); selected_epoch = state['epoch']+1
-        del state, weights
+        if args.save_checkpoints:
+            state = torch.load(folder/f'{name}.pth', map_location='cpu', weights_only=False)
+            weights = state['ema'] if args.use_ema else state['model']
+            model.load_state_dict(weights); selected_epoch = state['epoch']+1
+            del state, weights
+        else:
+            weights, selected_epoch = memory_best if name == 'best' else memory_final
+            model.load_state_dict(weights)
+        json_save(folder/f'{name}_selection.json', dict(epoch=selected_epoch,
+            metric=args.best_metric if name == 'best' else None, persisted=args.save_checkpoints))
         partition = 'val' if args.validation_only else 'test'
         result_dir = folder/('validation_results' if args.validation_only else 'test_results')
         metrics = evaluate(model, loaders[partition], device, args, stats, result_dir/name,partition=partition)
@@ -654,6 +684,8 @@ def main():
     split_file = Path(args.split_file) if args.split_file else Path(args.data_root)/'patient_10fold_splits.json'
     folds = load_or_create_cv_splits(df, split_file, seed=args.seed)
     folder = Path(args.save_dir); folder.mkdir(parents=True, exist_ok=True)
+    if not args.preflight_only and not args.resume and any(folder.glob('fold_*/history.json')):
+        raise FileExistsError('Experiment history already exists; choose a new save_dir')
     if not args.preflight_only and any(folder.glob('fold_*/*.pth')):
         if not args.resume:
             raise FileExistsError(f'{folder} already contains checkpoints; use --resume or a new save_dir')
