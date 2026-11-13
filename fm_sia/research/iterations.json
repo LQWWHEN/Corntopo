@@ -21,6 +21,10 @@
     "geometric_data_augmentation": {
       "used": 1,
       "maximum": 5
+    },
+    "clinical_feature_selection": {
+      "used": 1,
+      "maximum": 5
     }
   },
   "iterations": [
@@ -80,6 +84,17 @@
       "axis_metrics_evaluated": true,
       "tests_passed": 41,
       "checkpoint_files": 0
+    },
+    {
+      "id": "006",
+      "proposal": "ITERATION_006.md",
+      "change": "Preoperative double-angle clinical conditions",
+      "budget_group": "clinical_feature_selection",
+      "trial": 1,
+      "source_commit": null,
+      "status": "frozen_pending_acceptance",
+      "SIA_output": "vector",
+      "axis_metrics_evaluated": false
     }
   ],
   "artifact_policy": {

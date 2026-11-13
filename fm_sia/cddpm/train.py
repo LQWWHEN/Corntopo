@@ -23,14 +23,16 @@ from model.encoder import ConditionEncoder
 from model.unet import ConditionalUNet
 from model.ema import EMA
 from model.fm_sia import JointFlowMatching, fixed_sia_noise
+from clinical_features import prepare_clinical_features, PRE_VECTOR
 from task_balancing import (BALANCE_DEFAULTS, build_task_balancer,
                             gradnorm_shared_parameters)
 
 PIPELINE_VERSION = 'front_fm_sia_v1'
 
 
-def load_dataframe(path):
-    return pd.read_csv(path) if Path(path).suffix.lower() == '.csv' else pd.read_excel(path)
+def load_dataframe(path, conditions=()):
+    frame = pd.read_csv(path) if Path(path).suffix.lower() == '.csv' else pd.read_excel(path)
+    return prepare_clinical_features(frame, conditions)
 
 
 def get_args(argv=None):
@@ -157,7 +159,7 @@ def check_args(a):
         raise ValueError('Clinical fusion requires --conditions')
     if a.fusion_method != 'none' and a.model in ('fno','uno'):
         raise ValueError('Neural operator clinical fusion is not implemented')
-    if a.augmentation == 'd4' and any(any(w in c.lower() for w in ('axis','angle','meridian','location','eye','side','j0','j45')) for c in a.conditions):
+    if a.augmentation == 'd4' and any(c in PRE_VECTOR or any(w in c.lower() for w in ('axis','angle','meridian','location','eye','side','j0','j45')) for c in a.conditions):
         raise ValueError('D4 does not transform directional/eye-side clinical inputs; use --augmentation none')
     if a.time_steps is None:
         a.time_steps = 1000 if a.model == 'cddpm' else 50000
@@ -690,7 +692,7 @@ def main():
     args = get_args()
     seed_everything(args.seed)
     device = resolve_device(args.device, args.cpu_threads)
-    df = load_dataframe(args.excel_path)
+    df = load_dataframe(args.excel_path, args.conditions)
     report = validate_table(df, args)
     validate_maps(df, args)
     # Byte fingerprint prevents silent resume after changing labels/clinical values.
