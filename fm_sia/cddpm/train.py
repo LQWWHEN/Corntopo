@@ -72,6 +72,8 @@ def get_args(argv=None):
                    help='FM-SIA target: vector=DeltaX/DeltaY; scalar=direct magnitude in D')
     p.add_argument('--sia_prediction', choices=['flow','direct','axial_direct'], default='flow',
                    help='SIA flow, direct scalar, or spatial-moment direct vector head')
+    p.add_argument('--sia_feature_fusion', choices=['lab','preop_frame'], default='lab',
+                   help='Axial direct readout: lab moments or preoperative-axis-conditioned moments')
     p.add_argument('--sia_magnitude_column', default='front_SIA_D')
     p.add_argument('--sia_label_atol', type=float, default=1e-4)
     p.add_argument('--skip_sia_checks', action='store_true',
@@ -125,6 +127,8 @@ def get_args(argv=None):
 def check_args(a):
     if a.resume and not a.save_checkpoints:
         raise ValueError("--resume requires explicit --save_checkpoints")
+    if a.sia_feature_fusion == 'preop_frame' and (a.sia_prediction != 'axial_direct' or not set(PRE_VECTOR).issubset(a.conditions)):
+        raise ValueError('Preoperative frame requires axial_direct and both pre_front_X/Y conditions')
     if a.sia_prediction == 'axial_direct' and (a.model != 'fm_sia' or a.sia_mode != 'vector'
                                               or a.loss_balance != 'fixed'):
         raise ValueError('Axial direct SIA requires fm_sia, vector mode and fixed balance')
@@ -232,9 +236,16 @@ def build_model(args, stats=None):
             raise ValueError('FM-SIA requires saved/fitted training-fold SIA statistics')
         if getattr(args, 'sia_prediction', 'flow') == 'axial_direct':
             from model.axial_sia import AxialSIAFlowMatching
+            frame = getattr(args, 'sia_feature_fusion', 'lab')
+            frame_args = dict(feature_fusion=frame)
+            if frame == 'preop_frame':
+                indices = [args.conditions.index(name) for name in PRE_VECTOR]
+                frame_args.update(clinical_vector_indices=indices,
+                    clinical_vector_mean=[stats['clinical']['mean'][i] for i in indices],
+                    clinical_vector_std=[stats['clinical']['std'][i] for i in indices])
             return AxialSIAFlowMatching(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
                 sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
-                lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta)
+                lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta, **frame_args)
         if direct_sia:
             from model.direct_sia import DirectSIAFlowMatching
             return DirectSIAFlowMatching(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
@@ -275,6 +286,8 @@ def saved_config_value(config, key):
         return True
     if key == 'sia_prediction' and key not in config:
         return 'flow'
+    if key == 'sia_feature_fusion' and key not in config:
+        return 'lab'
     if key == 'validation_only' and key not in config:
         return False
     if key in BALANCE_DEFAULTS and key not in config:

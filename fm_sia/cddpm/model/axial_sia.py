@@ -23,8 +23,18 @@ def axial_moments(feature):
 
 
 class AxialSIAFlowMatching(JointFlowMatching):
-    def __init__(self, condition_encoder, unet, sia_mean, sia_std, **kwargs):
+    def __init__(self, condition_encoder, unet, sia_mean, sia_std, *, feature_fusion='lab',
+                 clinical_vector_indices=None, clinical_vector_mean=None, clinical_vector_std=None, **kwargs):
         super().__init__(condition_encoder, unet, sia_mean, sia_std, sia_mode='vector', **kwargs)
+        if feature_fusion not in ('lab', 'preop_frame'):
+            raise ValueError('Unknown axial feature fusion')
+        self.feature_fusion = feature_fusion
+        if feature_fusion == 'preop_frame':
+            if clinical_vector_indices is None or len(clinical_vector_indices) != 2:
+                raise ValueError('Preoperative frame needs two ordered clinical vector indices')
+            self.clinical_vector_indices = list(clinical_vector_indices)
+            self.register_buffer('pre_vector_mean', torch.as_tensor(clinical_vector_mean, dtype=torch.float32))
+            self.register_buffer('pre_vector_std', torch.as_tensor(clinical_vector_std, dtype=torch.float32))
         if unet.sia_interaction is not None:
             raise ValueError('Axial direct SIA requires an image-only UNet')
         clinical_width = (unet.clinical_encoder.feature_embedding.shape[1]
@@ -35,7 +45,11 @@ class AxialSIAFlowMatching(JointFlowMatching):
             self.sia_readout[-1].bias.copy_(self.sia_mean)
 
     def predict_sia(self, condition_features, clinical):
-        feature = axial_moments(condition_features[-1])
+        if self.feature_fusion == 'preop_frame':
+            pre_vector = clinical[:, self.clinical_vector_indices]*self.pre_vector_std+self.pre_vector_mean
+            feature = preoperative_frame_moments(condition_features[-1], pre_vector)
+        else:
+            feature = axial_moments(condition_features[-1])
         if self.unet.clinical_encoder is not None:
             embedding, _ = self.unet.clinical_encoder(clinical)
             feature = torch.cat((feature, embedding), dim=1)
@@ -75,3 +89,30 @@ class AxialSIAFlowMatching(JointFlowMatching):
         for k in range(steps):
             state = ode_step(field, state, k/steps, 1/steps, method or self.method)
         return dict(pred=state[0], sia_vector=q, sia=q.norm(dim=-1), sia_state=(q-self.sia_mean)/self.sia_std)
+
+
+def preoperative_frame_moments(feature, pre_vector):
+    """Condition spatial quadrupole moments on the preoperative flat meridian.
+
+    Raw map rows increase upwards (the renderer uses origin='lower'). Both
+    angular moments use the SAME radial normalization, so a rotation is a
+    rotation of a two-component quadrupole, not of differently scaled values.
+    No image resampling or trainable parameters; world-frame tokens remain.
+    """
+    h, w = feature.shape[-2:]
+    yy, xx = torch.meshgrid(2*(torch.arange(h, device=feature.device, dtype=feature.dtype)+.5)/h-1,
+                            2*(torch.arange(w, device=feature.device, dtype=feature.dtype)+.5)/w-1, indexing='ij')
+    r2 = xx.square()+yy.square()
+    aperture = (r2 <= 1).to(feature.dtype)
+    radial_norm = (r2*aperture).sum().clamp_min(1)
+    weights = torch.stack((aperture/aperture.sum().clamp_min(1),
+                           (xx.square()-yy.square())*aperture/radial_norm,
+                           2*xx*yy*aperture/radial_norm))
+    moments = torch.einsum('bchw,khw->bkc', feature, weights)
+    mean, cosine, sine = moments.unbind(1)
+    length = pre_vector.norm(dim=-1)
+    known = length > 1e-6
+    denom = length.clamp_min(1e-6)
+    c = torch.where(known, pre_vector[:, 0]/denom, torch.ones_like(length))[:, None]
+    s = torch.where(known, pre_vector[:, 1]/denom, torch.zeros_like(length))[:, None]
+    return torch.stack((mean, c*cosine+s*sine, -s*cosine+c*sine), dim=1).flatten(1)

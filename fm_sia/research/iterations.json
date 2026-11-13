@@ -25,6 +25,10 @@
     "clinical_feature_selection": {
       "used": 1,
       "maximum": 5
+    },
+    "image_clinical_fusion": {
+      "used": 1,
+      "maximum": 5
     }
   },
   "iterations": [
@@ -97,6 +101,17 @@
       "axis_metrics_evaluated": true,
       "tests_passed": 44,
       "checkpoint_files": 0
+    },
+    {
+      "id": "007",
+      "proposal": "ITERATION_007.md",
+      "change": "Preoperative reference-frame spatial feature fusion",
+      "budget_group": "image_clinical_fusion",
+      "trial": 1,
+      "source_commit": null,
+      "status": "frozen_pending_acceptance",
+      "SIA_output": "vector",
+      "axis_metrics_evaluated": false
     }
   ],
   "artifact_policy": {
