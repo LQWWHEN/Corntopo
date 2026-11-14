@@ -153,12 +153,22 @@ def get_args(argv=None):
     p.add_argument('--fno_in_channels', type=int, default=1)
     p.add_argument('--fno_out_channels', type=int, default=1)
     p.add_argument('--fno_domain_padding', type=float, default=0.05)
+    p.add_argument('--sia_clinical_moments', action='store_true',
+                   help='Clinical channel gains shared across SIA axial moments')
     args = p.parse_args(argv)
     check_args(args)
     return args
 
 
 def check_args(a):
+    if a.sia_clinical_moments and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
+            or a.image_backbone != 'fno' or a.eye_frame != 'native' or a.sia_feature_fusion != 'lab'
+            or not a.conditions or a.sia_radial_contrast or a.sia_velocity_coupling
+            or a.sia_spatial_conditioning or a.sia_rank_weight or a.image_local_residual
+            or a.image_gradient_weight or a.image_harmonic_weight or a.augmentation != 'none'
+            or a.image_loss_units != 'normalized' or a.reconstruction_domain != 'valid'
+            or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
+        raise ValueError('Clinical moments require independent clinical native FRONT polar FNO')
     if a.sia_radial_contrast and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
             or a.image_backbone != 'fno' or a.eye_frame != 'native' or a.sia_feature_fusion != 'lab'
             or a.sia_velocity_coupling or a.sia_spatial_conditioning or a.sia_rank_weight
@@ -383,6 +393,9 @@ def build_model(args, stats=None):
             if getattr(args, 'sia_radial_contrast', False):
                 from model.radial_sia import RadialContrastPolarSIAFlowMatching
                 polar_class = RadialContrastPolarSIAFlowMatching
+            if getattr(args, 'sia_clinical_moments', False):
+                from model.clinical_moments import ClinicalMomentPolarSIAFlowMatching
+                polar_class = ClinicalMomentPolarSIAFlowMatching
             return polar_class(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
                 sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
                 lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
@@ -457,6 +470,8 @@ def make_loader(dataset, args, device, shuffle=False, generator=None):
 
 def saved_config_value(config, key):
     """Recover historical defaults for checkpoints without newer options."""
+    if key == 'sia_clinical_moments' and key not in config:
+        return False
     if key == 'sia_radial_contrast' and key not in config:
         return False
     if key == 'image_local_residual' and key not in config:
@@ -703,6 +718,7 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             image_gradient_weight=getattr(args, 'image_gradient_weight', 0.),
             image_local_residual=getattr(args, 'image_local_residual', False),
             sia_radial_contrast=getattr(args, 'sia_radial_contrast', False),
+            sia_clinical_moments=getattr(args, 'sia_clinical_moments', False),
             axis_protocol=dict(period_degrees=180, zero_epsilon_D=1e-8, stable_gt_threshold_D=.1,
                 undefined_prediction_penalty_degrees=90, vector_for_axis='mean predicted physical vector'),
             SIA_point_estimator=('deterministic preoperative-velocity-coupled magnitude/phase vector head' if getattr(args, 'sia_velocity_coupling', False)

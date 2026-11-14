@@ -441,6 +441,21 @@
       "validation_gate_passed": false,
       "checkpoint_files": 0,
       "checkpoint_cleanup": "PASS"
+    },
+    {
+      "id": "022",
+      "proposal": "ITERATION_022.md",
+      "change": "Clinical channel gains shared across SIA axial moments",
+      "budget_group": "image_clinical_fusion",
+      "proposal_id": "clinical_moment_modulation",
+      "tuning_round": 1,
+      "status": "cpu_audited_gpu_smoke_running",
+      "SIA_output": "vector",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "temporary_checkpoints": true,
+      "test_evaluated": false,
+      "tests_passed": 198
     }
   ],
   "artifact_policy": {
@@ -569,6 +584,13 @@
       "iterations": [
         "019"
       ]
+    },
+    "clinical_moment_modulation": {
+      "used": 1,
+      "maximum": 5,
+      "iterations": [
+        "022"
+      ]
     }
   },
   "historical_direction_budgets": {
@@ -592,14 +614,14 @@
   "direction_counts": {
     "sia_branch_and_joint_learning": 8,
     "clinical_feature_selection": 1,
-    "image_clinical_fusion": 4,
+    "image_clinical_fusion": 5,
     "loss_function_design": 3,
     "model_architecture": 2,
     "contrastive_autoregressive_integration": 1,
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "paused_after_single_authorized_iteration021",
+    "status": "resumed_iteration022",
     "date": "2026-11-15",
     "completed_through": "021",
     "private_summary_verified": true,
@@ -607,8 +629,9 @@
     "active_experiment_jobs": 0,
     "experiment_checkpoint_files": 0,
     "iteration021_started": true,
-    "resume_requires_user_request": true,
-    "stop_after": "021",
-    "private_iteration021_report_verified": true
+    "resume_requires_user_request": false,
+    "stop_after": null,
+    "private_iteration021_report_verified": true,
+    "iteration022_started": false
   }
 }
