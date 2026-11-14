@@ -308,20 +308,24 @@
       "budget_group": "image_clinical_fusion",
       "proposal_id": "laterality_canonical_frame",
       "tuning_round": 3,
-      "status": "selected_for_saved_weight_test",
+      "status": "completed_mixed_frozen_test",
       "SIA_output": "vector",
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "geometry_source_commit": "44f881b2fcc19ae405ae3134736bafbbe453a651",
       "tests_passed": 123,
       "temporary_checkpoints": true,
-      "test_evaluated": false,
+      "test_evaluated": true,
       "source_commit": "40de7271309359749a16e1f86ad37611e5742f83",
       "smoke_exit_code": 0,
       "parameter_real_dofs": 31225539,
       "validation_reload_metrics_compared": 37,
       "validation_gate_passed": true,
-      "audit": "PASS"
+      "audit": "PASS",
+      "checkpoint_cleanup": "PASS",
+      "checkpoint_files": 0,
+      "test_retraining": false,
+      "selection_commit": "73c34afa5268683d63448f3f0120eb6842299078"
     },
     {
       "id": "017",
@@ -330,13 +334,17 @@
       "budget_group": "data_augmentation",
       "proposal_id": "paired_spherical_power_shift",
       "tuning_round": 1,
-      "status": "unit_audited_pending_gpu_smoke",
+      "status": "running_frozen_validation",
       "SIA_output": "vector",
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "tests_passed": 134,
       "temporary_checkpoints": true,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "2bb9de4afd12be7e719ad96abda46cc42de60bb7",
+      "smoke_exit_code": 0,
+      "parameter_real_dofs": 31225283,
+      "validation_reload_metrics_compared": 37
     }
   ],
   "artifact_policy": {
