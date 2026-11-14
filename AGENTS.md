@@ -32,6 +32,10 @@ Commit each attempt to GitHub.
 Latest user stop condition (2026-11-14): finish iteration020 and its result audit,
 prepare a private summary report covering iterations001-020, then pause the goal.
 Do not start iteration021 unless the user later resumes the work.
+Completion record (2026-11-14): iterations001-020 and the private seventeen-page
+summary have passed final audit. The campaign is paused; there are no active
+experiment jobs or retained experiment checkpoints. See the qualitative public
+record in `fm_sia/research/SUMMARY_001_020.md` before any later resumption.
 Never publish private datasets, individual predictions/images, credentials,
 connection details or keys. Public iteration records contain methods only;
 quantitative patient-data results remain in the private experiment registry.
