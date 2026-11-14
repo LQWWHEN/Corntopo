@@ -143,7 +143,7 @@ class CornealTopoDataset(Dataset):
     def __init__(self, opt, excel_path, data_root, input_maps=None, output_maps=None,
                  data_type='raw', image_size=None, normalize=True, transforms=None,
                  seed=42, indices=None, labels=None, dataframe=None,
-                 clinical_mean=None, clinical_std=None, image_stats=None):
+                 clinical_mean=None, clinical_std=None, image_stats=None, paired_transform=None):
         if data_type != 'raw':
             raise ValueError('This physically scaled pipeline requires raw .npy maps')
         if indices is not None and labels is not None:
@@ -161,6 +161,7 @@ class CornealTopoDataset(Dataset):
         self.input_maps = input_maps or getattr(opt, 'input_maps', ['FRONT'])
         self.output_maps = output_maps or getattr(opt, 'output_maps', ['FRONT'])
         self.image_size, self.transforms = image_size, transforms
+        self.paired_transform = paired_transform
         self.normalize, self.image_stats = normalize, image_stats
         if normalize and image_stats is None:
             raise ValueError('Supply training-fold image_stats; per-image normalization is intentionally disabled')
@@ -208,9 +209,10 @@ class CornealTopoDataset(Dataset):
             pre, post, mask_pre, mask_post = [self.transforms(x, params) for x in (pre, post, mask_pre, mask_post)]
             if vector_mode:
                 q = self.transforms.transform_vector(q, params)
-        return dict(input=pre, target=post, mask_pre=mask_pre, mask_post=mask_post,
-                    condition=torch.from_numpy(clinical), sia_vector=q, sia_magnitude=s,
-                    targets=torch.tensor([float(row[c]) for c in self.targets]), label=label)
+        sample = dict(input=pre, target=post, mask_pre=mask_pre, mask_post=mask_post,
+                      condition=torch.from_numpy(clinical), sia_vector=q, sia_magnitude=s,
+                      targets=torch.tensor([float(row[c]) for c in self.targets]), label=label)
+        return self.paired_transform(sample) if self.paired_transform is not None else sample
 
 
 def build_dataloader(excel_path, data_root, input_maps, output_maps, data_type='raw',

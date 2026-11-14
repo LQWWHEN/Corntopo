@@ -53,7 +53,7 @@
       "id": "003",
       "proposal": "ITERATION_003.md",
       "change": "D4 augmentation",
-      "budget_group": "geometric_data_augmentation",
+      "budget_group": "data_augmentation",
       "trial": 1,
       "source_commit": "565da1a367abfc7a7f82a13536afdd4101d85561",
       "status": "completed_negative_validation",
@@ -320,6 +320,21 @@
       "smoke_exit_code": 0,
       "parameter_real_dofs": 31225539,
       "validation_reload_metrics_compared": 37
+    },
+    {
+      "id": "017",
+      "proposal": "ITERATION_017.md",
+      "change": "Training-only paired FRONT/Kmax additive power offsets preserving full SIA labels",
+      "budget_group": "data_augmentation",
+      "proposal_id": "paired_spherical_power_shift",
+      "tuning_round": 1,
+      "status": "unit_audited_pending_gpu_smoke",
+      "SIA_output": "vector",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "tests_passed": 134,
+      "temporary_checkpoints": true,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -431,6 +446,13 @@
       "iterations": [
         "015"
       ]
+    },
+    "paired_spherical_power_shift": {
+      "used": 1,
+      "maximum": 5,
+      "iterations": [
+        "017"
+      ]
     }
   },
   "historical_direction_budgets": {
@@ -453,11 +475,11 @@
   },
   "direction_counts": {
     "sia_branch_and_joint_learning": 6,
-    "geometric_data_augmentation": 1,
     "clinical_feature_selection": 1,
     "image_clinical_fusion": 4,
     "loss_function_design": 2,
     "model_architecture": 1,
-    "contrastive_autoregressive_integration": 1
+    "contrastive_autoregressive_integration": 1,
+    "data_augmentation": 2
   }
 }

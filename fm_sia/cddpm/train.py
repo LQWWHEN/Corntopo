@@ -16,6 +16,7 @@ from tqdm import tqdm
 from dataloader import (CornealTopoDataset, feature_stats, fit_image_stats,
                         validate_table, validate_maps, sia_target_columns)
 from transforms import DataTransform
+from power_augmentation import PairedSphericalShift, PRE_KMAX
 from patient_cv import load_or_create_cv_splits
 from metrics import MetricAccumulator, axis_details
 from visualization import save_visuals, visualization_spec
@@ -120,7 +121,9 @@ def get_args(argv=None):
     p.add_argument('--invalid_zero', action='store_true', help='Use only if raw zeros explicitly mean missing pixels')
     p.add_argument('--reconstruction_domain', choices=['valid','full'], default='valid',
                    help='Training image loss only: valid=common pre/post mask; full=all pixels including filled background')
-    p.add_argument('--augmentation', choices=['none','d4'], default='none')
+    p.add_argument('--augmentation', choices=['none','d4','spherical_shift'], default='none')
+    p.add_argument('--spherical_shift_D', type=float, default=.25,
+                   help='Maximum absolute paired FRONT/Kmax shift in D; used only with spherical_shift training augmentation')
     p.add_argument('--best_metric', choices=['MAE','SIA_MAE'], default='MAE')
     p.add_argument('--eval_every', type=int, default=10)
     p.add_argument('--checkpoint_every', type=int, default=10)
@@ -232,6 +235,15 @@ def check_args(a):
         raise ValueError('Neural operator clinical fusion is not implemented')
     if a.augmentation == 'd4' and any(c in PRE_VECTOR or any(w in c.lower() for w in ('axis','angle','meridian','location','eye','side','j0','j45')) for c in a.conditions):
         raise ValueError('D4 does not transform directional/eye-side clinical inputs; use --augmentation none')
+    if a.augmentation == 'spherical_shift':
+        if (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct' or a.eye_frame != 'native'
+                or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']
+                or PRE_KMAX not in a.conditions or a.sia_velocity_coupling or a.sia_rank_weight
+                or not set(a.conditions) <= {'pre_age_years','pre_GENERAL DATA_Cornea Front Astig',
+                                             PRE_KMAX,'pre_GENERAL DATA_Pachy Min'}):
+            raise ValueError('Spherical shift requires native polar FRONT FM-SIA with matched Kmax input')
+        if not math.isfinite(a.spherical_shift_D) or a.spherical_shift_D <= 0:
+            raise ValueError('Spherical shift magnitude must be positive and finite')
     if a.time_steps is None:
         a.time_steps = 1000 if a.model == 'cddpm' else 50000
     if a.sampler == 'ddim' and a.model != 'cddpm':
@@ -379,11 +391,15 @@ def build_model(args, stats=None):
 
 def make_dataset(args, dataframe, labels, stats, training=False):
     clinical = stats.get('clinical')
+    paired = None
+    if training and args.augmentation == 'spherical_shift':
+        index = args.conditions.index(PRE_KMAX)
+        paired = PairedSphericalShift(args.spherical_shift_D,stats['image']['scale'],index,clinical['std'][index])
     return CornealTopoDataset(args, args.excel_path, args.data_root, image_size=args.image_size,
         dataframe=dataframe, labels=labels, input_maps=args.input_maps, output_maps=args.output_maps,
         image_stats=stats['image'], clinical_mean=clinical['mean'] if clinical else None,
         clinical_std=clinical['std'] if clinical else None,
-        transforms=DataTransform() if training and args.augmentation == 'd4' else None)
+        transforms=DataTransform() if training and args.augmentation == 'd4' else None, paired_transform=paired)
 
 
 def make_loader(dataset, args, device, shuffle=False, generator=None):
@@ -393,6 +409,8 @@ def make_loader(dataset, args, device, shuffle=False, generator=None):
 
 def saved_config_value(config, key):
     """Recover historical defaults for checkpoints without newer options."""
+    if key == 'spherical_shift_D' and key not in config:
+        return .25
     if key == 'save_checkpoints' and key not in config:
         return True
     if key == 'sia_prediction' and key not in config:
