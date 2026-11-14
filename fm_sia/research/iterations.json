@@ -449,13 +449,20 @@
       "budget_group": "image_clinical_fusion",
       "proposal_id": "clinical_moment_modulation",
       "tuning_round": 1,
-      "status": "cpu_audited_gpu_smoke_running",
+      "status": "completed_negative_validation_no_test",
       "SIA_output": "vector",
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "temporary_checkpoints": true,
       "test_evaluated": false,
-      "tests_passed": 198
+      "tests_passed": 198,
+      "source_commit": "1a43c98c36b61accbf501462b52ea5abdb3dafa5",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "checkpoint_files": 0,
+      "checkpoint_cleanup": "PASS",
+      "validation_reload_metrics_compared": 37,
+      "parameter_real_dofs": 31291331
     }
   ],
   "artifact_policy": {
@@ -621,9 +628,9 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "resumed_iteration022",
+    "status": "active_after_iteration022",
     "date": "2026-11-15",
-    "completed_through": "021",
+    "completed_through": "022",
     "private_summary_verified": true,
     "public_summary": "SUMMARY_001_020.md",
     "active_experiment_jobs": 0,
