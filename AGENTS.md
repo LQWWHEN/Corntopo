@@ -40,3 +40,6 @@ record cleanup. Do not launch the old checkpoint-free frozen-rerun workflow.
 Every image report includes PSNR (dB), SSIM and RMSE, alongside MAE, on the
 common valid region. Aggregate measured per-fold metrics; never derive mean
 PSNR from mean RMSE. Keep validation and test tables separate.
+Every iteration report identifies the direct parent model and source version,
+the changes introduced in this round, and all cumulative changes from basic
+FM-SIA. Do not imply that unselected branches were inherited. Use MODEL_LINEAGE.md.
