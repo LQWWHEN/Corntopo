@@ -345,6 +345,21 @@
       "smoke_exit_code": 0,
       "parameter_real_dofs": 31225283,
       "validation_reload_metrics_compared": 37
+    },
+    {
+      "id": "018",
+      "proposal": "ITERATION_018.md",
+      "change": "Predicted physical SIA quadrupole conditions postoperative image flow",
+      "budget_group": "sia_branch_and_joint_learning",
+      "proposal_id": "preoperative_velocity_sia_coupling",
+      "tuning_round": 2,
+      "status": "unit_audited_pending_gpu_smoke",
+      "SIA_output": "vector",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "tests_passed": 144,
+      "temporary_checkpoints": true,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -444,10 +459,11 @@
       ]
     },
     "preoperative_velocity_sia_coupling": {
-      "used": 1,
+      "used": 2,
       "maximum": 5,
       "iterations": [
-        "014"
+        "014",
+        "018"
       ]
     },
     "axial_metric_rank_contrast": {
@@ -484,7 +500,7 @@
     }
   },
   "direction_counts": {
-    "sia_branch_and_joint_learning": 6,
+    "sia_branch_and_joint_learning": 7,
     "clinical_feature_selection": 1,
     "image_clinical_fusion": 4,
     "loss_function_design": 2,

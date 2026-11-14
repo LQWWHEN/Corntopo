@@ -82,6 +82,8 @@ def get_args(argv=None):
                    help='Auxiliary annular angular-order 0–2 velocity-error energy; zero preserves the pixel objective')
     p.add_argument('--sia_velocity_coupling', action='store_true',
                    help='Append preoperative-endpoint image-velocity descriptors to the polar SIA head')
+    p.add_argument('--sia_spatial_conditioning', action='store_true',
+                   help='Condition the image FNO on a preoperative-only predicted SIA quadrupole')
     p.add_argument('--endpoint_image_weight', type=float, default=.5,
                    help='Image loss fraction at preoperative t=0 when velocity coupling is enabled')
     p.add_argument('--sia_rank_weight', type=float, default=0.,
@@ -175,6 +177,11 @@ def check_args(a):
         if (not math.isfinite(a.lambda_axis) or a.lambda_axis <= 0
                 or not math.isfinite(a.axis_loss_min_magnitude) or a.axis_loss_min_magnitude < 0):
             raise ValueError('Invalid polar axis objective')
+    if a.sia_spatial_conditioning:
+        if (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct' or a.image_backbone != 'fno'
+                or a.eye_frame != 'native' or a.sia_velocity_coupling or a.sia_rank_weight
+                or a.augmentation != 'none' or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
+            raise ValueError('SIA spatial conditioning requires independent native polar FRONT FNO without augmentation')
     if a.sia_velocity_coupling:
         if (a.sia_prediction != 'polar_direct' or a.image_backbone != 'fno' or a.eye_frame != 'native'
                 or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
@@ -336,6 +343,9 @@ def build_model(args, stats=None):
                 from model.velocity_sia import VelocityPolarSIAFlowMatching
                 polar_class = VelocityPolarSIAFlowMatching
                 coupling_args.update(image_scale=stats['image']['scale'], endpoint_image_weight=args.endpoint_image_weight)
+            if getattr(args, 'sia_spatial_conditioning', False):
+                from model.sia_shape import ShapeConditionedPolarSIAFlowMatching
+                polar_class = ShapeConditionedPolarSIAFlowMatching
             return polar_class(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
                 sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
                 lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
@@ -409,6 +419,8 @@ def make_loader(dataset, args, device, shuffle=False, generator=None):
 
 def saved_config_value(config, key):
     """Recover historical defaults for checkpoints without newer options."""
+    if key == 'sia_spatial_conditioning' and key not in config:
+        return False
     if key == 'spherical_shift_D' and key not in config:
         return .25
     if key == 'save_checkpoints' and key not in config:
@@ -643,6 +655,7 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             solver=args.ode_solver, pixel_domain='common finite pre/post region',
             image_scale=stats['image'], sia_mode=getattr(args, 'sia_mode', 'vector'),
             sia_prediction=getattr(args, 'sia_prediction', 'flow'),
+            sia_spatial_conditioning=getattr(args, 'sia_spatial_conditioning', False),
             axis_protocol=dict(period_degrees=180, zero_epsilon_D=1e-8, stable_gt_threshold_D=.1,
                 undefined_prediction_penalty_degrees=90, vector_for_axis='mean predicted physical vector'),
             SIA_point_estimator=('deterministic preoperative-velocity-coupled magnitude/phase vector head' if getattr(args, 'sia_velocity_coupling', False)

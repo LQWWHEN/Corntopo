@@ -1,0 +1,34 @@
+{
+  "sia_prediction": "polar_direct",
+  "sia_feature_fusion": "lab",
+  "image_loss_units": "normalized",
+  "image_backbone": "fno",
+  "fno_modes": [
+    32,
+    32
+  ],
+  "fno_hidden_channels": 64,
+  "fno_layers": 4,
+  "fno_domain_padding": 0.05,
+  "sia_mode": "vector",
+  "lambda_sia": 1.0,
+  "sia_ref": 1.0,
+  "loss_balance": "fixed",
+  "augmentation": "none",
+  "fusion_method": "film",
+  "conditions": [
+    "pre_age_years",
+    "pre_GENERAL DATA_Cornea Front Astig",
+    "pre_GENERAL DATA_K Max (Front)",
+    "pre_GENERAL DATA_Pachy Min"
+  ],
+  "lambda_axis": 1.0,
+  "axis_loss_min_magnitude": 0.1,
+  "eye_frame": "native",
+  "strict_determinism": true,
+  "save_checkpoints": true,
+  "sia_spatial_conditioning": true,
+  "sia_velocity_coupling": false,
+  "sia_rank_weight": 0.0,
+  "image_harmonic_weight": 0.0
+}
