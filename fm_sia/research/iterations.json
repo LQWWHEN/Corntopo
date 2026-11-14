@@ -391,6 +391,21 @@
       "smoke_exit_code": 0,
       "parameter_real_dofs": 31225283,
       "validation_reload_metrics_compared": 37
+    },
+    {
+      "id": "020",
+      "proposal": "ITERATION_020.md",
+      "change": "Conditional Fourier velocity plus mean-free two-scale local correction",
+      "budget_group": "model_architecture",
+      "proposal_id": "conditional_fourier_velocity",
+      "tuning_round": 2,
+      "status": "unit_audited_pending_gpu_smoke",
+      "SIA_output": "vector",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "tests_passed": 171,
+      "temporary_checkpoints": true,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -467,10 +482,11 @@
       ]
     },
     "conditional_fourier_velocity": {
-      "used": 1,
+      "used": 2,
       "maximum": 5,
       "iterations": [
-        "009"
+        "009",
+        "020"
       ]
     },
     "laterality_canonical_frame": {
@@ -542,7 +558,7 @@
     "clinical_feature_selection": 1,
     "image_clinical_fusion": 4,
     "loss_function_design": 3,
-    "model_architecture": 1,
+    "model_architecture": 2,
     "contrastive_autoregressive_integration": 1,
     "data_augmentation": 2
   }

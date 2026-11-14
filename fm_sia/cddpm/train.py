@@ -98,6 +98,8 @@ def get_args(argv=None):
                    help='Axial direct FRONT velocity loss: normalized pixels or physical D / sia_ref')
     p.add_argument('--image_backbone', choices=['unet','fno'], default='unet',
                    help='Axial direct FM-SIA velocity network; historical models retain UNet')
+    p.add_argument('--image_local_residual', action='store_true',
+                   help='Add a preoperative-mask mean-free two-scale local CNN to conditional FNO velocity')
     p.add_argument('--eye_frame', choices=['native','right'], default='native',
                    help='Optional right-eye coordinates with explicit preoperative eye condition')
     p.add_argument('--sia_magnitude_column', default='front_SIA_D')
@@ -155,6 +157,12 @@ def get_args(argv=None):
 
 
 def check_args(a):
+    if a.image_local_residual and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
+            or a.image_backbone != 'fno' or a.eye_frame != 'native' or a.sia_velocity_coupling
+            or a.sia_spatial_conditioning or a.sia_rank_weight or a.image_gradient_weight
+            or a.image_harmonic_weight or a.augmentation != 'none' or a.reconstruction_domain != 'valid'
+            or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
+        raise ValueError('Local residual requires independent native FRONT polar FNO and the original objective')
     if not math.isfinite(a.image_gradient_weight) or a.image_gradient_weight < 0:
         raise ValueError('Invalid image gradient weight')
     if a.image_gradient_weight and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
@@ -327,7 +335,11 @@ def build_model(args, stats=None):
     encoder = ConditionEncoder()
     if getattr(args, 'image_backbone', 'unet') == 'fno':
         from model.conditional_fno import ConditionalFNO
-        unet = ConditionalFNO(clinical_dim=len(args.conditions),clinical_embed_dim=args.clinical_embed_dim,
+        fno_class = ConditionalFNO
+        if getattr(args, 'image_local_residual', False):
+            from model.local_fno import LocalResidualFNO
+            fno_class = LocalResidualFNO
+        unet = fno_class(clinical_dim=len(args.conditions),clinical_embed_dim=args.clinical_embed_dim,
             fusion_method=args.fusion_method,modes=args.fno_modes,hidden_channels=args.fno_hidden_channels,
             n_layers=args.fno_layers,domain_padding=args.fno_domain_padding)
     else:
@@ -356,6 +368,9 @@ def build_model(args, stats=None):
             if getattr(args, 'sia_spatial_conditioning', False):
                 from model.sia_shape import ShapeConditionedPolarSIAFlowMatching
                 polar_class = ShapeConditionedPolarSIAFlowMatching
+            if getattr(args, 'image_local_residual', False):
+                from model.local_fno import LocalResidualPolarSIAFlowMatching
+                polar_class = LocalResidualPolarSIAFlowMatching
             return polar_class(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
                 sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
                 lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
@@ -430,6 +445,8 @@ def make_loader(dataset, args, device, shuffle=False, generator=None):
 
 def saved_config_value(config, key):
     """Recover historical defaults for checkpoints without newer options."""
+    if key == 'image_local_residual' and key not in config:
+        return False
     if key == 'image_gradient_weight' and key not in config:
         return 0.
     if key == 'sia_spatial_conditioning' and key not in config:
@@ -670,6 +687,7 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             sia_prediction=getattr(args, 'sia_prediction', 'flow'),
             sia_spatial_conditioning=getattr(args, 'sia_spatial_conditioning', False),
             image_gradient_weight=getattr(args, 'image_gradient_weight', 0.),
+            image_local_residual=getattr(args, 'image_local_residual', False),
             axis_protocol=dict(period_degrees=180, zero_epsilon_D=1e-8, stable_gt_threshold_D=.1,
                 undefined_prediction_penalty_degrees=90, vector_for_axis='mean predicted physical vector'),
             SIA_point_estimator=('deterministic preoperative-velocity-coupled magnitude/phase vector head' if getattr(args, 'sia_velocity_coupling', False)

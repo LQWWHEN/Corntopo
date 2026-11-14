@@ -49,8 +49,11 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
     def predict_sia(self, condition_features, clinical):
         return self.predict_polar(condition_features, clinical)[0]
 
+    def image_velocity(self, state, time, condition, clinical, pre_mask=None):
+        return self.unet(state, time, condition, clinical=clinical)
+
     def forward(self, pre, post, sia_vector=None, clinical=None, mask=None, t=None,
-                noise=None, sia_magnitude=None):
+                noise=None, sia_magnitude=None, pre_mask=None):
         batch = pre.shape[0]
         if sia_vector is None or sia_vector.shape != (batch, 2) or not torch.isfinite(sia_vector).all():
             raise ValueError('sia_vector must be finite [B,2] in physical D')
@@ -65,7 +68,7 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
             q, magnitude, phase = self.predict_polar(cond, clinical)
         target = sia_vector.to(pre)
         tau = t[:, None, None, None]
-        velocity = self.unet((1-tau)*pre+tau*post, t, cond, clinical=clinical)
+        velocity = self.image_velocity((1-tau)*pre+tau*post, t, cond, clinical, pre_mask)
         normalized_image_loss = masked_mse(velocity, post-pre, mask)
         image_loss = self.image_loss_multiplier*normalized_image_loss
         extra_logs = {}
