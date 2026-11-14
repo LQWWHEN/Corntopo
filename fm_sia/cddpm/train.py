@@ -322,7 +322,8 @@ def build_model(args, stats=None):
                 initial_magnitude=stats['sia']['polar_median_magnitude'],
                 initial_phase=stats['sia']['polar_initial_phase'],lambda_axis=args.lambda_axis,
                 axis_min_magnitude=args.axis_loss_min_magnitude,
-                rank_weight=args.sia_rank_weight, rank_temperature=args.sia_rank_temperature, **coupling_args)
+                rank_weight=getattr(args, 'sia_rank_weight', 0.),
+                rank_temperature=getattr(args, 'sia_rank_temperature', .2), **coupling_args)
         if getattr(args, 'sia_prediction', 'flow') == 'axial_direct':
             from model.axial_sia import AxialSIAFlowMatching
             frame = getattr(args, 'sia_feature_fusion', 'lab')

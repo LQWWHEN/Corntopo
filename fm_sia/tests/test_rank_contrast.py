@@ -111,6 +111,23 @@ def test_rank_configuration_saved_reload_preserves_inference(tmp_path):
     path.unlink()
 
 
+@pytest.mark.parametrize('coupled',[False,True])
+def test_legacy_polar_checkpoint_without_rank_flags(tmp_path,coupled):
+    pytest.importorskip('neuralop');torch.set_num_threads(1)
+    args=arguments(0,extra=['--sia_velocity_coupling'] if coupled else [])
+    model=build_model(args,stats()).eval();pre=torch.rand(1,1,32,32);clinical=torch.zeros(1,1)
+    before=model.sample(pre,clinical=clinical)
+    config=vars(args).copy();config.pop('sia_rank_weight');config.pop('sia_rank_temperature')
+    if not coupled:
+        config.pop('sia_velocity_coupling');config.pop('endpoint_image_weight')
+    path=tmp_path/'legacy.pth'
+    torch.save(dict(pipeline_version=PIPELINE_VERSION,config=config,stats=stats(),model=model.state_dict(),ema=None),path)
+    restored,_,_,_=load_checkpoint(path,'cpu',cpu_threads=1)
+    after=restored.sample(pre,clinical=clinical)
+    for key in ('pred','sia','sia_vector'):torch.testing.assert_close(before[key],after[key],rtol=0,atol=0)
+    path.unlink()
+
+
 @pytest.mark.parametrize('extra',[
     ['--sia_rank_weight','-1'],['--sia_rank_weight','nan'],['--sia_rank_temperature','0'],
     ['--sia_velocity_coupling'],['--sia_prediction','axial_direct'],
