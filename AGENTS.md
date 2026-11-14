@@ -58,4 +58,4 @@ and result audit. Its SIA gates failed, so no test was run; temporary weights
 were cleaned. Its private report is complete and the task is paused.
 No iteration022 is authorized.
 
-2026-11-15新指令：用户明确要求“从022开始继续迭代任务”。长期迭代已恢复；此前021后暂停记录为历史状态。当前022处于实现和审计阶段，尚未启动训练。继续遵守既有协议、最多5轮方案预算及checkpoint清理规则。
+2026-11-15新指令：用户明确要求“从022开始继续迭代任务”。长期迭代已恢复；此前021后暂停记录为历史状态。022已完成，后续各轮状态见公开索引和私有动态上下文。继续遵守既有协议、最多5轮方案预算及checkpoint清理规则。

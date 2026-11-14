@@ -24,12 +24,13 @@ def periodic_axis_loss(phase, target, minimum_magnitude):
 class PolarSIAFlowMatching(AxialSIAFlowMatching):
     def __init__(self, *args, initial_magnitude, initial_phase, lambda_axis=1.,
                  axis_min_magnitude=.1, rank_weight=0., rank_temperature=.2,
-                 image_gradient_weight=0., **kwargs):
+                 image_gradient_weight=0., axis_gradient_projection=False, **kwargs):
         super().__init__(*args, **kwargs)
         if (not all(math.isfinite(v) for v in (initial_magnitude, initial_phase, lambda_axis, axis_min_magnitude))
                 or initial_magnitude < 0 or lambda_axis <= 0 or axis_min_magnitude < 0):
             raise ValueError('Invalid polar initialization or axis objective')
         self.lambda_axis = lambda_axis
+        self.axis_gradient_projection = axis_gradient_projection
         self.axis_min_magnitude = axis_min_magnitude
         if not math.isfinite(image_gradient_weight) or image_gradient_weight < 0:
             raise ValueError('Image gradient weight must be finite and nonnegative')
@@ -61,7 +62,7 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
         if t.shape != (batch,) or not torch.isfinite(t).all() or ((t < 0) | (t > 1)).any():
             raise ValueError('Invalid time')
         cond = self.condition_encoder(pre)
-        if self.rank_weight:
+        if self.rank_weight or self.axis_gradient_projection:
             hidden = self.sia_readout[1](self.sia_readout[0](self.sia_features(cond, clinical)))
             q, magnitude, phase = decode_polar(self.sia_readout[2](hidden))
         else:
@@ -83,6 +84,11 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
                     loss_image=image_loss, loss_sia=magnitude_loss, loss_axis=axis_loss,
                     loss_image_normalized=normalized_image_loss,
                     velocity_pred=velocity, q_clean=q, sia_clean=magnitude, t=t, **extra_logs)
+        if self.axis_gradient_projection and self.training and torch.is_grad_enabled():
+            from model.axis_gradient import axis_gradient_surrogate
+            surrogate, diagnostics = axis_gradient_surrogate(
+                hidden, self.lambda_sia*magnitude_loss, self.lambda_axis*axis_loss)
+            output.update(loss=output['loss']+surrogate, **diagnostics)
         if self.rank_weight:
             from model.rank_contrast import axial_rank_contrast
             auxiliary = axial_rank_contrast(hidden, target/self.sia_ref, self.rank_temperature)
