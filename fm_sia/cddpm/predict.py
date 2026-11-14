@@ -50,7 +50,9 @@ def predict_case(model, args, stats, device, pre_path, clinical_values, sample_i
     preds, qs, ss, raw_ss = [], [], [], []
     for m in range(samples if isinstance(model, JointFlowMatching) else 1):
         if isinstance(model, JointFlowMatching):
-            out = model.sample(pre, clinical=clinical, noise=fixed_sia_noise([sample_id], seed, m, model.state_dim).to(pre))
+            pre_info = ({'pre_mask':torch.from_numpy(mask)[None,None].to(pre)}
+                        if getattr(model, 'uses_preoperative_mask', False) else {})
+            out = model.sample(pre, clinical=clinical, noise=fixed_sia_noise([sample_id], seed, m, model.state_dim).to(pre), **pre_info)
             ss.append(out['sia'][0].item())
             if 'sia_vector' in out:
                 qs.append(out['sia_vector'][0].cpu().numpy())

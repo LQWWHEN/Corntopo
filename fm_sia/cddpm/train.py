@@ -79,6 +79,10 @@ def get_args(argv=None):
                    help='Polar training axis loss: minimum GT magnitude in D; evaluation protocol is unchanged')
     p.add_argument('--image_harmonic_weight', type=float, default=0.,
                    help='Auxiliary annular angular-order 0–2 velocity-error energy; zero preserves the pixel objective')
+    p.add_argument('--sia_velocity_coupling', action='store_true',
+                   help='Append preoperative-endpoint image-velocity descriptors to the polar SIA head')
+    p.add_argument('--endpoint_image_weight', type=float, default=.5,
+                   help='Image loss fraction at preoperative t=0 when velocity coupling is enabled')
     p.add_argument('--sia_feature_fusion', choices=['lab','preop_frame'], default='lab',
                    help='Axial direct readout: lab moments or preoperative-axis-conditioned moments')
     p.add_argument('--image_loss_units', choices=['normalized','diopter'], default='normalized',
@@ -164,6 +168,12 @@ def check_args(a):
         if (not math.isfinite(a.lambda_axis) or a.lambda_axis <= 0
                 or not math.isfinite(a.axis_loss_min_magnitude) or a.axis_loss_min_magnitude < 0):
             raise ValueError('Invalid polar axis objective')
+    if a.sia_velocity_coupling:
+        if (a.sia_prediction != 'polar_direct' or a.image_backbone != 'fno'
+                or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
+            raise ValueError('Velocity coupling requires polar direct FRONT conditional-FNO FM-SIA')
+        if not math.isfinite(a.endpoint_image_weight) or not 0 < a.endpoint_image_weight < 1:
+            raise ValueError('Endpoint image weight must be strictly between zero and one')
     if a.image_backbone == 'fno' and (a.model != 'fm_sia' or a.sia_prediction not in ('axial_direct','polar_direct')):
         raise ValueError('Conditional FNO backbone requires a spatial-moment direct FM-SIA head')
     if a.image_backbone == 'fno' and (min(*a.fno_modes,a.fno_hidden_channels,a.fno_layers)<1
@@ -290,12 +300,17 @@ def build_model(args, stats=None):
             raise ValueError('FM-SIA requires saved/fitted training-fold SIA statistics')
         if getattr(args, 'sia_prediction', 'flow') == 'polar_direct':
             from model.polar_sia import PolarSIAFlowMatching
-            return PolarSIAFlowMatching(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
+            polar_class, coupling_args = PolarSIAFlowMatching, {}
+            if getattr(args, 'sia_velocity_coupling', False):
+                from model.velocity_sia import VelocityPolarSIAFlowMatching
+                polar_class = VelocityPolarSIAFlowMatching
+                coupling_args.update(image_scale=stats['image']['scale'], endpoint_image_weight=args.endpoint_image_weight)
+            return polar_class(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
                 sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
                 lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
                 initial_magnitude=stats['sia']['polar_median_magnitude'],
                 initial_phase=stats['sia']['polar_initial_phase'],lambda_axis=args.lambda_axis,
-                axis_min_magnitude=args.axis_loss_min_magnitude)
+                axis_min_magnitude=args.axis_loss_min_magnitude, **coupling_args)
         if getattr(args, 'sia_prediction', 'flow') == 'axial_direct':
             from model.axial_sia import AxialSIAFlowMatching
             frame = getattr(args, 'sia_feature_fusion', 'lab')
@@ -365,6 +380,8 @@ def saved_config_value(config, key):
         return {'lambda_axis':1.,'axis_loss_min_magnitude':.1}[key]
     if key == 'image_harmonic_weight' and key not in config:
         return 0.
+    if key not in config and key in ('sia_velocity_coupling','endpoint_image_weight'):
+        return {'sia_velocity_coupling':False,'endpoint_image_weight':.5}[key]
     if key == 'sia_feature_fusion' and key not in config:
         return 'lab'
     if key == 'image_loss_units' and key not in config:
@@ -396,7 +413,8 @@ def forward_batch(model, batch, device, reconstruction_domain='valid'):
         if model.sia_mode == 'scalar':
             return model(pre, post, clinical=clinical, mask=mask,
                          sia_magnitude=batch['sia_magnitude'].to(device))
-        return model(pre, post, batch['sia_vector'].to(device), clinical=clinical, mask=mask)
+        pre_info = {'pre_mask':batch['mask_pre'].to(device)} if getattr(model, 'uses_preoperative_mask', False) else {}
+        return model(pre, post, batch['sia_vector'].to(device), clinical=clinical, mask=mask, **pre_info)
     from model.fm import FlowMatching
     if isinstance(model, FlowMatching):
         return model(pre, post, clinical=clinical, mask=mask)
@@ -444,8 +462,9 @@ def train_one_epoch(model, loader, optimizer, device, ema=None, reconstruction_d
 def sample_batch(model, batch, args, device):
     pre, clinical = batch['input'].to(device), batch['condition'].to(device)
     if isinstance(model, JointFlowMatching):
+        pre_info = {'pre_mask':batch['mask_pre'].to(device)} if getattr(model, 'uses_preoperative_mask', False) else {}
         outputs = [model.sample(pre, clinical=clinical, noise=fixed_sia_noise(
-            batch['label'], args.eval_seed, m, model.state_dim).to(pre)) for m in range(args.eval_samples)]
+            batch['label'], args.eval_seed, m, model.state_dim).to(pre), **pre_info) for m in range(args.eval_samples)]
         if model.sia_mode == 'scalar':
             s = torch.stack([o['sia'] for o in outputs])
             raw = torch.stack([o['sia_unclipped'] for o in outputs])
@@ -585,7 +604,8 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             sia_prediction=getattr(args, 'sia_prediction', 'flow'),
             axis_protocol=dict(period_degrees=180, zero_epsilon_D=1e-8, stable_gt_threshold_D=.1,
                 undefined_prediction_penalty_degrees=90, vector_for_axis='mean predicted physical vector'),
-            SIA_point_estimator=('deterministic preoperative-only magnitude/phase physical vector head' if getattr(args, 'sia_prediction', 'flow') == 'polar_direct'
+            SIA_point_estimator=('deterministic preoperative-velocity-coupled magnitude/phase vector head' if getattr(args, 'sia_velocity_coupling', False)
+                                 else 'deterministic preoperative-only magnitude/phase physical vector head' if getattr(args, 'sia_prediction', 'flow') == 'polar_direct'
                                  else 'deterministic preoperative-only spatial-moment vector head' if getattr(args, 'sia_prediction', 'flow') == 'axial_direct'
                                  else 'deterministic preoperative-only magnitude head' if getattr(args, 'sia_prediction', 'flow') == 'direct'
                                  else 'mean of nonnegative projected scalar samples' if getattr(args, 'sia_mode', 'vector') == 'scalar'
