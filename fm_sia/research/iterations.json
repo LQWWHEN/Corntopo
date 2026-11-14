@@ -418,6 +418,21 @@
       "validation_gate_passed": false,
       "checkpoint_files": 0,
       "checkpoint_cleanup": "PASS"
+    },
+    {
+      "id": "021",
+      "proposal": "ITERATION_021.md",
+      "change": "Central-peripheral radial contrast moments for the polar SIA readout",
+      "budget_group": "sia_branch_and_joint_learning",
+      "proposal_id": "axial_direct_vector",
+      "tuning_round": 3,
+      "status": "cpu_audit_passed_pending_gpu_smoke",
+      "SIA_output": "vector",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "temporary_checkpoints": true,
+      "test_evaluated": false,
+      "tests_passed": 184
     }
   ],
   "artifact_policy": {
@@ -465,11 +480,12 @@
       ]
     },
     "axial_direct_vector": {
-      "used": 2,
+      "used": 3,
       "maximum": 5,
       "iterations": [
         "005",
-        "012"
+        "012",
+        "021"
       ]
     },
     "preoperative_vector_conditions": {
@@ -566,7 +582,7 @@
     }
   },
   "direction_counts": {
-    "sia_branch_and_joint_learning": 7,
+    "sia_branch_and_joint_learning": 8,
     "clinical_feature_selection": 1,
     "image_clinical_fusion": 4,
     "loss_function_design": 3,
@@ -575,14 +591,15 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "paused_by_user_after_iteration020",
-    "date": "2026-11-14",
+    "status": "single_iteration021_authorized_then_pause",
+    "date": "2026-11-15",
     "completed_through": "020",
     "private_summary_verified": true,
     "public_summary": "SUMMARY_001_020.md",
     "active_experiment_jobs": 0,
     "experiment_checkpoint_files": 0,
     "iteration021_started": false,
-    "resume_requires_user_request": true
+    "resume_requires_user_request": false,
+    "stop_after": "021"
   }
 }

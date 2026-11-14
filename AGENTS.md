@@ -31,7 +31,9 @@ proposal share its budget; do not rename a variant to reset its count.
 Commit each attempt to GitHub.
 Latest user stop condition (2026-11-14): finish iteration020 and its result audit,
 prepare a private summary report covering iterations001-020, then pause the goal.
-Do not start iteration021 unless the user later resumes the work.
+2026-11-15 update: the user authorized ONE new iteration021 after directory
+reorganization, including research, implementation, audit, 3 folds x 200 epochs
+and reporting. Stop after021; do not start022. The older pause remains historical.
 Completion record (2026-11-14): iterations001-020 and the private seventeen-page
 summary have passed final audit. The campaign is paused; there are no active
 experiment jobs or retained experiment checkpoints. See the qualitative public

@@ -100,6 +100,8 @@ def get_args(argv=None):
                    help='Axial direct FM-SIA velocity network; historical models retain UNet')
     p.add_argument('--image_local_residual', action='store_true',
                    help='Add a preoperative-mask mean-free two-scale local CNN to conditional FNO velocity')
+    p.add_argument('--sia_radial_contrast', action='store_true',
+                   help='Add central/peripheral feature-moment contrasts to the polar SIA readout')
     p.add_argument('--eye_frame', choices=['native','right'], default='native',
                    help='Optional right-eye coordinates with explicit preoperative eye condition')
     p.add_argument('--sia_magnitude_column', default='front_SIA_D')
@@ -157,6 +159,13 @@ def get_args(argv=None):
 
 
 def check_args(a):
+    if a.sia_radial_contrast and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
+            or a.image_backbone != 'fno' or a.eye_frame != 'native' or a.sia_feature_fusion != 'lab'
+            or a.sia_velocity_coupling or a.sia_spatial_conditioning or a.sia_rank_weight
+            or a.image_local_residual or a.image_gradient_weight or a.image_harmonic_weight
+            or a.augmentation != 'none' or a.reconstruction_domain != 'valid'
+            or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
+        raise ValueError('Radial readout requires independent native FRONT polar FNO and the parent objective')
     if a.image_local_residual and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
             or a.image_backbone != 'fno' or a.eye_frame != 'native' or a.sia_velocity_coupling
             or a.sia_spatial_conditioning or a.sia_rank_weight or a.image_gradient_weight
@@ -371,6 +380,9 @@ def build_model(args, stats=None):
             if getattr(args, 'image_local_residual', False):
                 from model.local_fno import LocalResidualPolarSIAFlowMatching
                 polar_class = LocalResidualPolarSIAFlowMatching
+            if getattr(args, 'sia_radial_contrast', False):
+                from model.radial_sia import RadialContrastPolarSIAFlowMatching
+                polar_class = RadialContrastPolarSIAFlowMatching
             return polar_class(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
                 sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
                 lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
@@ -445,6 +457,8 @@ def make_loader(dataset, args, device, shuffle=False, generator=None):
 
 def saved_config_value(config, key):
     """Recover historical defaults for checkpoints without newer options."""
+    if key == 'sia_radial_contrast' and key not in config:
+        return False
     if key == 'image_local_residual' and key not in config:
         return False
     if key == 'image_gradient_weight' and key not in config:
@@ -688,6 +702,7 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             sia_spatial_conditioning=getattr(args, 'sia_spatial_conditioning', False),
             image_gradient_weight=getattr(args, 'image_gradient_weight', 0.),
             image_local_residual=getattr(args, 'image_local_residual', False),
+            sia_radial_contrast=getattr(args, 'sia_radial_contrast', False),
             axis_protocol=dict(period_degrees=180, zero_epsilon_D=1e-8, stable_gt_threshold_D=.1,
                 undefined_prediction_penalty_degrees=90, vector_for_axis='mean predicted physical vector'),
             SIA_point_estimator=('deterministic preoperative-velocity-coupled magnitude/phase vector head' if getattr(args, 'sia_velocity_coupling', False)
