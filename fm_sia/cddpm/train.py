@@ -80,6 +80,8 @@ def get_args(argv=None):
                    help='Polar training axis loss: minimum GT magnitude in D; evaluation protocol is unchanged')
     p.add_argument('--image_harmonic_weight', type=float, default=0.,
                    help='Auxiliary annular angular-order 0–2 velocity-error energy; zero preserves the pixel objective')
+    p.add_argument('--image_gradient_weight', type=float, default=0.,
+                   help='Signed velocity-gradient MSE on valid adjacent pixel pairs; zero preserves the parent objective')
     p.add_argument('--sia_velocity_coupling', action='store_true',
                    help='Append preoperative-endpoint image-velocity descriptors to the polar SIA head')
     p.add_argument('--sia_spatial_conditioning', action='store_true',
@@ -153,6 +155,14 @@ def get_args(argv=None):
 
 
 def check_args(a):
+    if not math.isfinite(a.image_gradient_weight) or a.image_gradient_weight < 0:
+        raise ValueError('Invalid image gradient weight')
+    if a.image_gradient_weight and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
+            or a.image_backbone != 'fno' or a.image_loss_units != 'normalized' or a.eye_frame != 'native'
+            or a.sia_velocity_coupling or a.sia_spatial_conditioning or a.sia_rank_weight
+            or a.image_harmonic_weight or a.augmentation != 'none' or a.reconstruction_domain != 'valid'
+            or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
+        raise ValueError('Gradient objective requires independent native normalized FRONT polar FNO on valid pixels')
     if a.resume and not a.save_checkpoints:
         raise ValueError("--resume requires explicit --save_checkpoints")
     if a.validation_reference and a.validation_only:
@@ -353,6 +363,7 @@ def build_model(args, stats=None):
                 initial_phase=stats['sia']['polar_initial_phase'],lambda_axis=args.lambda_axis,
                 axis_min_magnitude=args.axis_loss_min_magnitude,
                 rank_weight=getattr(args, 'sia_rank_weight', 0.),
+                image_gradient_weight=getattr(args, 'image_gradient_weight', 0.),
                 rank_temperature=getattr(args, 'sia_rank_temperature', .2), **coupling_args)
         if getattr(args, 'sia_prediction', 'flow') == 'axial_direct':
             from model.axial_sia import AxialSIAFlowMatching
@@ -419,6 +430,8 @@ def make_loader(dataset, args, device, shuffle=False, generator=None):
 
 def saved_config_value(config, key):
     """Recover historical defaults for checkpoints without newer options."""
+    if key == 'image_gradient_weight' and key not in config:
+        return 0.
     if key == 'sia_spatial_conditioning' and key not in config:
         return False
     if key == 'spherical_shift_D' and key not in config:
@@ -656,6 +669,7 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             image_scale=stats['image'], sia_mode=getattr(args, 'sia_mode', 'vector'),
             sia_prediction=getattr(args, 'sia_prediction', 'flow'),
             sia_spatial_conditioning=getattr(args, 'sia_spatial_conditioning', False),
+            image_gradient_weight=getattr(args, 'image_gradient_weight', 0.),
             axis_protocol=dict(period_degrees=180, zero_epsilon_D=1e-8, stable_gt_threshold_D=.1,
                 undefined_prediction_penalty_degrees=90, vector_for_axis='mean predicted physical vector'),
             SIA_point_estimator=('deterministic preoperative-velocity-coupled magnitude/phase vector head' if getattr(args, 'sia_velocity_coupling', False)
