@@ -283,7 +283,7 @@
       "budget_group": "contrastive_autoregressive_integration",
       "proposal_id": "axial_metric_rank_contrast",
       "tuning_round": 1,
-      "status": "running_frozen_validation",
+      "status": "selected_for_saved_weight_test",
       "SIA_output": "vector",
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
@@ -293,7 +293,9 @@
       "source_commit": "2eee52c48fd9e700b16d03b92bd73bbdb23c4249",
       "smoke_exit_code": 0,
       "parameter_real_dofs": 31225283,
-      "validation_reload_metrics_compared": 37
+      "validation_reload_metrics_compared": 37,
+      "validation_gate_passed": true,
+      "audit": "PASS"
     },
     {
       "id": "016",
@@ -309,7 +311,8 @@
       "geometry_source_commit": "44f881b2fcc19ae405ae3134736bafbbe453a651",
       "tests_passed": 123,
       "temporary_checkpoints": true,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "40de7271309359749a16e1f86ad37611e5742f83"
     }
   ],
   "artifact_policy": {
