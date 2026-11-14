@@ -153,8 +153,8 @@ def check_args(a):
     if a.validation_reference and a.validation_only:
         raise ValueError('validation_reference is for a frozen test rerun, not validation_only')
     if a.eye_frame == 'right':
-        if a.model != 'fm_sia' or a.sia_prediction != 'axial_direct' or EYE_SIGN not in a.conditions:
-            raise ValueError('Right-eye frame requires axial_direct FM-SIA and pre_eye_sign')
+        if a.model != 'fm_sia' or a.sia_prediction not in ('axial_direct','polar_direct') or EYE_SIGN not in a.conditions:
+            raise ValueError('Right-eye frame requires axial/polar direct FM-SIA and pre_eye_sign')
         directional = [c for c in a.conditions if c != EYE_SIGN and
                        (c in PRE_VECTOR or any(w in c.lower() for w in ('axis','angle','meridian','location','eye','side','j0','j45')))]
         if directional or a.sia_feature_fusion != 'lab':
@@ -167,13 +167,13 @@ def check_args(a):
         raise ValueError('Harmonic objective requires normalized FRONT axial-direct FM-SIA with fixed balance')
     if a.sia_prediction == 'polar_direct':
         if (a.model != 'fm_sia' or a.sia_mode != 'vector' or a.loss_balance != 'fixed'
-                or a.eye_frame != 'native' or a.sia_feature_fusion != 'lab' or a.lambda_sia <= 0):
-            raise ValueError('Polar direct requires vector FM-SIA, native lab frame, fixed balance and magnitude loss')
+                or a.sia_feature_fusion != 'lab' or a.lambda_sia <= 0):
+            raise ValueError('Polar direct requires vector FM-SIA, lab features, fixed balance and magnitude loss')
         if (not math.isfinite(a.lambda_axis) or a.lambda_axis <= 0
                 or not math.isfinite(a.axis_loss_min_magnitude) or a.axis_loss_min_magnitude < 0):
             raise ValueError('Invalid polar axis objective')
     if a.sia_velocity_coupling:
-        if (a.sia_prediction != 'polar_direct' or a.image_backbone != 'fno'
+        if (a.sia_prediction != 'polar_direct' or a.image_backbone != 'fno' or a.eye_frame != 'native'
                 or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
             raise ValueError('Velocity coupling requires polar direct FRONT conditional-FNO FM-SIA')
         if not math.isfinite(a.endpoint_image_weight) or not 0 < a.endpoint_image_weight < 1:
@@ -181,7 +181,8 @@ def check_args(a):
     if not math.isfinite(a.sia_rank_weight) or a.sia_rank_weight < 0:
         raise ValueError('Invalid SIA rank-contrast weight')
     if a.sia_rank_weight:
-        if a.sia_prediction != 'polar_direct' or a.image_backbone != 'fno' or a.sia_velocity_coupling:
+        if (a.sia_prediction != 'polar_direct' or a.image_backbone != 'fno'
+                or a.sia_velocity_coupling or a.eye_frame != 'native'):
             raise ValueError('SIA rank contrast requires the independent polar-direct conditional FNO')
         if not math.isfinite(a.sia_rank_temperature) or a.sia_rank_temperature <= 0:
             raise ValueError('Invalid SIA rank-contrast temperature')
@@ -312,6 +313,13 @@ def build_model(args, stats=None):
         if getattr(args, 'sia_prediction', 'flow') == 'polar_direct':
             from model.polar_sia import PolarSIAFlowMatching
             polar_class, coupling_args = PolarSIAFlowMatching, {}
+            if getattr(args, 'eye_frame', 'native') == 'right':
+                from model.eye_polar import EyeFramePolarSIAFlowMatching
+                polar_class = EyeFramePolarSIAFlowMatching
+                eye_index = args.conditions.index(EYE_SIGN)
+                coupling_args.update(eye_index=eye_index,
+                    eye_mean=stats['clinical']['mean'][eye_index],
+                    eye_std=stats['clinical']['std'][eye_index])
             if getattr(args, 'sia_velocity_coupling', False):
                 from model.velocity_sia import VelocityPolarSIAFlowMatching
                 polar_class = VelocityPolarSIAFlowMatching
@@ -674,7 +682,10 @@ def fit_sia_stats(args, df, labels):
     columns = sia_target_columns(args)
     stats = feature_stats(df, labels, columns)
     if getattr(args, 'sia_prediction', 'flow') == 'polar_direct':
-        vector = df[df.label_index.isin(labels)][columns].to_numpy()
+        training = df[df.label_index.isin(labels)]
+        vector = training[columns].to_numpy(copy=True)
+        if getattr(args, 'eye_frame', 'native') == 'right':
+            vector[:, 1] *= training[EYE_SIGN].to_numpy()
         magnitude = np.linalg.norm(vector, axis=1)
         valid = (magnitude >= args.axis_loss_min_magnitude) & (magnitude > 1e-8)
         direction = (vector[valid]/magnitude[valid,None]).mean(0) if valid.any() else np.zeros(2)

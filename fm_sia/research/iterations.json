@@ -294,6 +294,22 @@
       "smoke_exit_code": 0,
       "parameter_real_dofs": 31225283,
       "validation_reload_metrics_compared": 37
+    },
+    {
+      "id": "016",
+      "proposal": "ITERATION_016.md",
+      "change": "Eye-conditioned canonical frame with the012 polar magnitude/phase readout",
+      "budget_group": "image_clinical_fusion",
+      "proposal_id": "laterality_canonical_frame",
+      "tuning_round": 3,
+      "status": "unit_audited_pending_gpu_smoke",
+      "SIA_output": "vector",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "geometry_source_commit": "44f881b2fcc19ae405ae3134736bafbbe453a651",
+      "tests_passed": 123,
+      "temporary_checkpoints": true,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -377,11 +393,12 @@
       ]
     },
     "laterality_canonical_frame": {
-      "used": 2,
+      "used": 3,
       "maximum": 5,
       "iterations": [
         "010",
-        "011"
+        "011",
+        "016"
       ]
     },
     "annular_low_order_velocity_loss": {
@@ -428,7 +445,7 @@
     "sia_branch_and_joint_learning": 6,
     "geometric_data_augmentation": 1,
     "clinical_feature_selection": 1,
-    "image_clinical_fusion": 3,
+    "image_clinical_fusion": 4,
     "loss_function_design": 2,
     "model_architecture": 1,
     "contrastive_autoregressive_integration": 1
