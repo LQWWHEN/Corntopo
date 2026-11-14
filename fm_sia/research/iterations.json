@@ -237,7 +237,7 @@
       "budget_group": "loss_function_design",
       "proposal_id": "annular_low_order_velocity_loss",
       "tuning_round": 1,
-      "status": "running_frozen_validation",
+      "status": "completed_negative_validation_no_test",
       "SIA_output": "vector",
       "parent": "010",
       "parent_source_commit": "44f881b2fcc19ae405ae3134736bafbbe453a651",
@@ -247,7 +247,11 @@
       "source_commit": "ab92f64f9d3203ef673122740bcae3ecf6a03f3f",
       "smoke_exit_code": 0,
       "parameter_real_dofs": 31225539,
-      "validation_reload_metrics_compared": 37
+      "validation_reload_metrics_compared": 37,
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "checkpoint_files": 0,
+      "checkpoint_cleanup": "PASS"
     },
     {
       "id": "014",
@@ -256,13 +260,17 @@
       "budget_group": "sia_branch_and_joint_learning",
       "proposal_id": "preoperative_velocity_sia_coupling",
       "tuning_round": 1,
-      "status": "unit_audited_pending_gpu_smoke",
+      "status": "running_frozen_validation",
       "SIA_output": "vector",
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "tests_passed": 99,
       "temporary_checkpoints": true,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "034ad4622765a62d5f900c063e86c09f6a96f4e2",
+      "smoke_exit_code": 0,
+      "parameter_real_dofs": 31227843,
+      "validation_reload_metrics_compared": 37
     }
   ],
   "artifact_policy": {
