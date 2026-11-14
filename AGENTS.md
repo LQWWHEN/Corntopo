@@ -29,6 +29,9 @@ improvement proposal, not a cap on an entire broad direction. Keep cumulative
 direction counts for history. Related hyperparameter variants of the same
 proposal share its budget; do not rename a variant to reset its count.
 Commit each attempt to GitHub.
+Latest user stop condition (2026-11-14): finish iteration020 and its result audit,
+prepare a private summary report covering iterations001-020, then pause the goal.
+Do not start iteration021 unless the user later resumes the work.
 Never publish private datasets, individual predictions/images, credentials,
 connection details or keys. Public iteration records contain methods only;
 quantitative patient-data results remain in the private experiment registry.
