@@ -23,13 +23,16 @@ def periodic_axis_loss(phase, target, minimum_magnitude):
 
 class PolarSIAFlowMatching(AxialSIAFlowMatching):
     def __init__(self, *args, initial_magnitude, initial_phase, lambda_axis=1.,
-                 axis_min_magnitude=.1, **kwargs):
+                 axis_min_magnitude=.1, rank_weight=0., rank_temperature=.2, **kwargs):
         super().__init__(*args, **kwargs)
         if (not all(math.isfinite(v) for v in (initial_magnitude, initial_phase, lambda_axis, axis_min_magnitude))
                 or initial_magnitude < 0 or lambda_axis <= 0 or axis_min_magnitude < 0):
             raise ValueError('Invalid polar initialization or axis objective')
         self.lambda_axis = lambda_axis
         self.axis_min_magnitude = axis_min_magnitude
+        if not math.isfinite(rank_weight) or rank_weight < 0 or not math.isfinite(rank_temperature) or rank_temperature <= 0:
+            raise ValueError('Invalid rank contrast weight or temperature')
+        self.rank_weight, self.rank_temperature = rank_weight, rank_temperature
         # Stable inverse softplus. The floor only handles an all-zero training median.
         magnitude = max(initial_magnitude, 1e-6)
         with torch.no_grad():
@@ -51,7 +54,11 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
         if t.shape != (batch,) or not torch.isfinite(t).all() or ((t < 0) | (t > 1)).any():
             raise ValueError('Invalid time')
         cond = self.condition_encoder(pre)
-        q, magnitude, phase = self.predict_polar(cond, clinical)
+        if self.rank_weight:
+            hidden = self.sia_readout[1](self.sia_readout[0](self.sia_features(cond, clinical)))
+            q, magnitude, phase = decode_polar(self.sia_readout[2](hidden))
+        else:
+            q, magnitude, phase = self.predict_polar(cond, clinical)
         target = sia_vector.to(pre)
         tau = t[:, None, None, None]
         velocity = self.unet((1-tau)*pre+tau*post, t, cond, clinical=clinical)
@@ -59,7 +66,12 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
         image_loss = self.image_loss_multiplier*normalized_image_loss
         magnitude_loss = F.l1_loss(magnitude/self.sia_ref, target.norm(dim=-1)/self.sia_ref)
         axis_loss = periodic_axis_loss(phase, target, self.axis_min_magnitude)
-        return dict(loss=image_loss+self.lambda_sia*magnitude_loss+self.lambda_axis*axis_loss,
+        output = dict(loss=image_loss+self.lambda_sia*magnitude_loss+self.lambda_axis*axis_loss,
                     loss_image=image_loss, loss_sia=magnitude_loss, loss_axis=axis_loss,
                     loss_image_normalized=normalized_image_loss,
                     velocity_pred=velocity, q_clean=q, sia_clean=magnitude, t=t)
+        if self.rank_weight:
+            from model.rank_contrast import axial_rank_contrast
+            auxiliary = axial_rank_contrast(hidden, target/self.sia_ref, self.rank_temperature)
+            output.update(loss=output['loss']+self.rank_weight*auxiliary, loss_rank_contrast=auxiliary)
+        return output

@@ -83,6 +83,10 @@ def get_args(argv=None):
                    help='Append preoperative-endpoint image-velocity descriptors to the polar SIA head')
     p.add_argument('--endpoint_image_weight', type=float, default=.5,
                    help='Image loss fraction at preoperative t=0 when velocity coupling is enabled')
+    p.add_argument('--sia_rank_weight', type=float, default=0.,
+                   help='Physical SIA metric rank-contrast weight on the existing polar hidden features')
+    p.add_argument('--sia_rank_temperature', type=float, default=.2,
+                   help='Cosine-similarity temperature for SIA rank contrast')
     p.add_argument('--sia_feature_fusion', choices=['lab','preop_frame'], default='lab',
                    help='Axial direct readout: lab moments or preoperative-axis-conditioned moments')
     p.add_argument('--image_loss_units', choices=['normalized','diopter'], default='normalized',
@@ -174,6 +178,13 @@ def check_args(a):
             raise ValueError('Velocity coupling requires polar direct FRONT conditional-FNO FM-SIA')
         if not math.isfinite(a.endpoint_image_weight) or not 0 < a.endpoint_image_weight < 1:
             raise ValueError('Endpoint image weight must be strictly between zero and one')
+    if not math.isfinite(a.sia_rank_weight) or a.sia_rank_weight < 0:
+        raise ValueError('Invalid SIA rank-contrast weight')
+    if a.sia_rank_weight:
+        if a.sia_prediction != 'polar_direct' or a.image_backbone != 'fno' or a.sia_velocity_coupling:
+            raise ValueError('SIA rank contrast requires the independent polar-direct conditional FNO')
+        if not math.isfinite(a.sia_rank_temperature) or a.sia_rank_temperature <= 0:
+            raise ValueError('Invalid SIA rank-contrast temperature')
     if a.image_backbone == 'fno' and (a.model != 'fm_sia' or a.sia_prediction not in ('axial_direct','polar_direct')):
         raise ValueError('Conditional FNO backbone requires a spatial-moment direct FM-SIA head')
     if a.image_backbone == 'fno' and (min(*a.fno_modes,a.fno_hidden_channels,a.fno_layers)<1
@@ -310,7 +321,8 @@ def build_model(args, stats=None):
                 lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
                 initial_magnitude=stats['sia']['polar_median_magnitude'],
                 initial_phase=stats['sia']['polar_initial_phase'],lambda_axis=args.lambda_axis,
-                axis_min_magnitude=args.axis_loss_min_magnitude, **coupling_args)
+                axis_min_magnitude=args.axis_loss_min_magnitude,
+                rank_weight=args.sia_rank_weight, rank_temperature=args.sia_rank_temperature, **coupling_args)
         if getattr(args, 'sia_prediction', 'flow') == 'axial_direct':
             from model.axial_sia import AxialSIAFlowMatching
             frame = getattr(args, 'sia_feature_fusion', 'lab')
@@ -382,6 +394,8 @@ def saved_config_value(config, key):
         return 0.
     if key not in config and key in ('sia_velocity_coupling','endpoint_image_weight'):
         return {'sia_velocity_coupling':False,'endpoint_image_weight':.5}[key]
+    if key not in config and key in ('sia_rank_weight','sia_rank_temperature'):
+        return {'sia_rank_weight':0.,'sia_rank_temperature':.2}[key]
     if key == 'sia_feature_fusion' and key not in config:
         return 'lab'
     if key == 'image_loss_units' and key not in config:

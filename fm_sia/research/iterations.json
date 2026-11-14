@@ -271,6 +271,21 @@
       "smoke_exit_code": 0,
       "parameter_real_dofs": 31227843,
       "validation_reload_metrics_compared": 37
+    },
+    {
+      "id": "015",
+      "proposal": "ITERATION_015.md",
+      "change": "Auxiliary rank contrast on existing SIA features using double-angle physical-vector distances",
+      "budget_group": "contrastive_autoregressive_integration",
+      "proposal_id": "axial_metric_rank_contrast",
+      "tuning_round": 1,
+      "status": "unit_audited_pending_gpu_smoke",
+      "SIA_output": "vector",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "tests_passed": 112,
+      "temporary_checkpoints": true,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -374,6 +389,13 @@
       "iterations": [
         "014"
       ]
+    },
+    "axial_metric_rank_contrast": {
+      "used": 1,
+      "maximum": 5,
+      "iterations": [
+        "015"
+      ]
     }
   },
   "historical_direction_budgets": {
@@ -400,6 +422,7 @@
     "clinical_feature_selection": 1,
     "image_clinical_fusion": 3,
     "loss_function_design": 2,
-    "model_architecture": 1
+    "model_architecture": 1,
+    "contrastive_autoregressive_integration": 1
   }
 }
