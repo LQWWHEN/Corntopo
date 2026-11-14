@@ -212,11 +212,30 @@
       "budget_group": "sia_branch_and_joint_learning",
       "proposal_id": "axial_direct_vector",
       "tuning_round": 2,
-      "status": "implemented_unit_audited_pending_smoke",
+      "status": "running_frozen_validation",
       "SIA_output": "vector",
       "parent": "009_strict_validation",
       "parent_source_commit": "9763c6f7fb7ca30f62e8b18b0e4f4c4c9af7abb7",
       "tests_passed": 78,
+      "temporary_checkpoints": true,
+      "test_evaluated": false,
+      "source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "smoke_exit_code": 0,
+      "parameter_real_dofs": 31225283,
+      "validation_reload_metrics_compared": 37
+    },
+    {
+      "id": "013",
+      "proposal": "ITERATION_013.md",
+      "change": "Additional valid-pixel annular low-order angular velocity error energy",
+      "budget_group": "loss_function_design",
+      "proposal_id": "annular_low_order_velocity_loss",
+      "tuning_round": 1,
+      "status": "implemented_unit_audited_pending_gpu_smoke",
+      "SIA_output": "vector",
+      "parent": "010",
+      "parent_source_commit": "44f881b2fcc19ae405ae3134736bafbbe453a651",
+      "tests_passed": 88,
       "temporary_checkpoints": true,
       "test_evaluated": false
     }
@@ -308,6 +327,13 @@
         "010",
         "011"
       ]
+    },
+    "annular_low_order_velocity_loss": {
+      "used": 1,
+      "maximum": 5,
+      "iterations": [
+        "013"
+      ]
     }
   },
   "historical_direction_budgets": {
@@ -333,7 +359,7 @@
     "geometric_data_augmentation": 1,
     "clinical_feature_selection": 1,
     "image_clinical_fusion": 3,
-    "loss_function_design": 1,
+    "loss_function_design": 2,
     "model_architecture": 1
   }
 }

@@ -26,11 +26,14 @@ def axial_moments(feature):
 class AxialSIAFlowMatching(JointFlowMatching):
     def __init__(self, condition_encoder, unet, sia_mean, sia_std, *, feature_fusion='lab',
                  clinical_vector_indices=None, clinical_vector_mean=None, clinical_vector_std=None,
-                 image_loss_units='normalized', image_scale=1., **kwargs):
+                 image_loss_units='normalized', image_scale=1., image_harmonic_weight=0., **kwargs):
         super().__init__(condition_encoder, unet, sia_mean, sia_std, sia_mode='vector', **kwargs)
         if image_loss_units not in ('normalized', 'diopter') or not math.isfinite(image_scale) or image_scale <= 0:
             raise ValueError('Invalid image loss units or training-fold image scale')
         self.image_loss_multiplier = (image_scale/self.sia_ref)**2 if image_loss_units == 'diopter' else 1.
+        if not math.isfinite(image_harmonic_weight) or image_harmonic_weight < 0:
+            raise ValueError('Image harmonic weight must be finite and nonnegative')
+        self.image_harmonic_weight = image_harmonic_weight
         if feature_fusion not in ('lab', 'preop_frame'):
             raise ValueError('Unknown axial feature fusion')
         self.feature_fusion = feature_fusion
@@ -80,12 +83,18 @@ class AxialSIAFlowMatching(JointFlowMatching):
         # A difference cancels the min-max offset. Convert velocity error back
         # to D before squaring; the reference D is shared with both SIA terms.
         image_loss = self.image_loss_multiplier*normalized_image_loss
+        extra_logs = {}
+        if self.image_harmonic_weight > 0:
+            from model.corneal_harmonics import annular_harmonic_loss
+            harmonic_loss = annular_harmonic_loss(velocity, post-pre, mask)
+            image_loss = image_loss+self.image_harmonic_weight*harmonic_loss
+            extra_logs['loss_image_harmonic'] = harmonic_loss
         vector_loss = F.huber_loss(q/self.sia_ref, target/self.sia_ref, delta=self.huber_delta)
         magnitude_loss = F.l1_loss(q.norm(dim=-1)/self.sia_ref, target.norm(dim=-1)/self.sia_ref)
         return dict(loss=image_loss+self.lambda_vector*vector_loss+self.lambda_sia*magnitude_loss,
                     loss_image=image_loss, loss_vector=vector_loss, loss_sia=magnitude_loss,
                     loss_image_normalized=normalized_image_loss,
-                    velocity_pred=velocity, q_clean=q, sia_clean=q.norm(dim=-1), t=t)
+                    velocity_pred=velocity, q_clean=q, sia_clean=q.norm(dim=-1), t=t, **extra_logs)
 
     @torch.no_grad()
     def sample(self, pre, clinical=None, noise=None, steps=None, method=None):

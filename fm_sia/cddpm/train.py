@@ -77,6 +77,8 @@ def get_args(argv=None):
     p.add_argument('--lambda_axis', type=float, default=1., help='Polar direct periodic phase loss weight')
     p.add_argument('--axis_loss_min_magnitude', type=float, default=.1,
                    help='Polar training axis loss: minimum GT magnitude in D; evaluation protocol is unchanged')
+    p.add_argument('--image_harmonic_weight', type=float, default=0.,
+                   help='Auxiliary annular angular-order 0–2 velocity-error energy; zero preserves the pixel objective')
     p.add_argument('--sia_feature_fusion', choices=['lab','preop_frame'], default='lab',
                    help='Axial direct readout: lab moments or preoperative-axis-conditioned moments')
     p.add_argument('--image_loss_units', choices=['normalized','diopter'], default='normalized',
@@ -149,6 +151,12 @@ def check_args(a):
                        (c in PRE_VECTOR or any(w in c.lower() for w in ('axis','angle','meridian','location','eye','side','j0','j45')))]
         if directional or a.sia_feature_fusion != 'lab':
             raise ValueError('Right-eye frame currently supports scalar clinical fields plus pre_eye_sign')
+    if not math.isfinite(a.image_harmonic_weight) or a.image_harmonic_weight < 0:
+        raise ValueError('Invalid image harmonic weight')
+    if a.image_harmonic_weight > 0 and (a.model != 'fm_sia' or a.sia_prediction != 'axial_direct'
+            or a.image_loss_units != 'normalized' or a.loss_balance != 'fixed'
+            or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
+        raise ValueError('Harmonic objective requires normalized FRONT axial-direct FM-SIA with fixed balance')
     if a.sia_prediction == 'polar_direct':
         if (a.model != 'fm_sia' or a.sia_mode != 'vector' or a.loss_balance != 'fixed'
                 or a.eye_frame != 'native' or a.sia_feature_fusion != 'lab' or a.lambda_sia <= 0):
@@ -311,6 +319,7 @@ def build_model(args, stats=None):
                 lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
                 image_loss_units=getattr(args, 'image_loss_units', 'normalized'),
                 image_scale=stats['image']['scale'] if getattr(args, 'image_loss_units', 'normalized') == 'diopter' else 1.,
+                image_harmonic_weight=getattr(args, 'image_harmonic_weight', 0.),
                 **frame_args)
         if direct_sia:
             from model.direct_sia import DirectSIAFlowMatching
@@ -354,6 +363,8 @@ def saved_config_value(config, key):
         return 'flow'
     if key not in config and key in ('lambda_axis','axis_loss_min_magnitude'):
         return {'lambda_axis':1.,'axis_loss_min_magnitude':.1}[key]
+    if key == 'image_harmonic_weight' and key not in config:
+        return 0.
     if key == 'sia_feature_fusion' and key not in config:
         return 'lab'
     if key == 'image_loss_units' and key not in config:
