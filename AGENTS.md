@@ -52,3 +52,8 @@ PSNR from mean RMSE. Keep validation and test tables separate.
 Every iteration report identifies the direct parent model and source version,
 the changes introduced in this round, and all cumulative changes from basic
 FM-SIA. Do not imply that unselected branches were inherited. Use MODEL_LINEAGE.md.
+
+2026-11-15 completion: iteration021 finished all three 200-epoch validation folds
+and result audit. Its SIA gates failed, so no test was run; temporary weights
+were cleaned. Its private report is complete and the task is paused.
+No iteration022 is authorized.
