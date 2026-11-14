@@ -308,7 +308,7 @@
       "budget_group": "image_clinical_fusion",
       "proposal_id": "laterality_canonical_frame",
       "tuning_round": 3,
-      "status": "running_frozen_validation",
+      "status": "selected_for_saved_weight_test",
       "SIA_output": "vector",
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
@@ -319,7 +319,9 @@
       "source_commit": "40de7271309359749a16e1f86ad37611e5742f83",
       "smoke_exit_code": 0,
       "parameter_real_dofs": 31225539,
-      "validation_reload_metrics_compared": 37
+      "validation_reload_metrics_compared": 37,
+      "validation_gate_passed": true,
+      "audit": "PASS"
     },
     {
       "id": "017",
