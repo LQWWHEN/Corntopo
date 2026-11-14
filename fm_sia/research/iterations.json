@@ -212,7 +212,7 @@
       "budget_group": "sia_branch_and_joint_learning",
       "proposal_id": "axial_direct_vector",
       "tuning_round": 2,
-      "status": "running_frozen_validation",
+      "status": "selected_for_saved_checkpoint_test",
       "SIA_output": "vector",
       "parent": "009_strict_validation",
       "parent_source_commit": "9763c6f7fb7ca30f62e8b18b0e4f4c4c9af7abb7",
@@ -222,7 +222,9 @@
       "source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "smoke_exit_code": 0,
       "parameter_real_dofs": 31225283,
-      "validation_reload_metrics_compared": 37
+      "validation_reload_metrics_compared": 37,
+      "audit": "PASS",
+      "validation_gate_passed": true
     },
     {
       "id": "013",
@@ -237,7 +239,8 @@
       "parent_source_commit": "44f881b2fcc19ae405ae3134736bafbbe453a651",
       "tests_passed": 88,
       "temporary_checkpoints": true,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "ab92f64f9d3203ef673122740bcae3ecf6a03f3f"
     }
   ],
   "artifact_policy": {
