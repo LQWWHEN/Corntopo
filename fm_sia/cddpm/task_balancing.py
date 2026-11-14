@@ -193,6 +193,12 @@ class MultiTaskBalancer:
 
 def build_task_balancer(args, model, device):
     method = getattr(args, 'loss_balance', 'fixed')
+    if getattr(args, 'sia_prediction', 'flow') == 'polar_direct':
+        if method != 'fixed':
+            raise ValueError('Polar direct currently uses its fixed magnitude/axis objective')
+        # No state-velocity/vector loss exists in this objective. Its explicit
+        # loss_axis and loss_sia terms are recorded by the standard trainer.
+        return None
     if args.model != 'fm_sia':
         if method != 'fixed':
             raise ValueError('Adaptive task balancing requires --model fm_sia')

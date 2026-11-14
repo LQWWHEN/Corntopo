@@ -204,6 +204,21 @@
       "parameter_real_dofs": 31225539,
       "checkpoint_files": 0,
       "checkpoint_cleanup": "PASS"
+    },
+    {
+      "id": "012",
+      "proposal": "ITERATION_012.md",
+      "change": "Physical SIA magnitude/phase readout with separate radial and periodic objectives",
+      "budget_group": "sia_branch_and_joint_learning",
+      "proposal_id": "axial_direct_vector",
+      "tuning_round": 2,
+      "status": "implemented_unit_audited_pending_smoke",
+      "SIA_output": "vector",
+      "parent": "009_strict_validation",
+      "parent_source_commit": "9763c6f7fb7ca30f62e8b18b0e4f4c4c9af7abb7",
+      "tests_passed": 78,
+      "temporary_checkpoints": true,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -251,10 +266,11 @@
       ]
     },
     "axial_direct_vector": {
-      "used": 1,
+      "used": 2,
       "maximum": 5,
       "iterations": [
-        "005"
+        "005",
+        "012"
       ]
     },
     "preoperative_vector_conditions": {
@@ -313,7 +329,7 @@
     }
   },
   "direction_counts": {
-    "sia_branch_and_joint_learning": 4,
+    "sia_branch_and_joint_learning": 5,
     "geometric_data_augmentation": 1,
     "clinical_feature_selection": 1,
     "image_clinical_fusion": 3,

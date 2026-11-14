@@ -72,8 +72,11 @@ def get_args(argv=None):
     p.add_argument('--sia_columns', nargs=2, default=['delta_front_X','delta_front_Y'])
     p.add_argument('--sia_mode', choices=['vector','scalar'], default='vector',
                    help='FM-SIA target: vector=DeltaX/DeltaY; scalar=direct magnitude in D')
-    p.add_argument('--sia_prediction', choices=['flow','direct','axial_direct'], default='flow',
-                   help='SIA flow, direct scalar, or spatial-moment direct vector head')
+    p.add_argument('--sia_prediction', choices=['flow','direct','axial_direct','polar_direct'], default='flow',
+                   help='SIA flow, direct scalar, Cartesian spatial-moment or polar vector head')
+    p.add_argument('--lambda_axis', type=float, default=1., help='Polar direct periodic phase loss weight')
+    p.add_argument('--axis_loss_min_magnitude', type=float, default=.1,
+                   help='Polar training axis loss: minimum GT magnitude in D; evaluation protocol is unchanged')
     p.add_argument('--sia_feature_fusion', choices=['lab','preop_frame'], default='lab',
                    help='Axial direct readout: lab moments or preoperative-axis-conditioned moments')
     p.add_argument('--image_loss_units', choices=['normalized','diopter'], default='normalized',
@@ -146,8 +149,15 @@ def check_args(a):
                        (c in PRE_VECTOR or any(w in c.lower() for w in ('axis','angle','meridian','location','eye','side','j0','j45')))]
         if directional or a.sia_feature_fusion != 'lab':
             raise ValueError('Right-eye frame currently supports scalar clinical fields plus pre_eye_sign')
-    if a.image_backbone == 'fno' and (a.model != 'fm_sia' or a.sia_prediction != 'axial_direct'):
-        raise ValueError('Conditional FNO backbone requires axial_direct FM-SIA')
+    if a.sia_prediction == 'polar_direct':
+        if (a.model != 'fm_sia' or a.sia_mode != 'vector' or a.loss_balance != 'fixed'
+                or a.eye_frame != 'native' or a.sia_feature_fusion != 'lab' or a.lambda_sia <= 0):
+            raise ValueError('Polar direct requires vector FM-SIA, native lab frame, fixed balance and magnitude loss')
+        if (not math.isfinite(a.lambda_axis) or a.lambda_axis <= 0
+                or not math.isfinite(a.axis_loss_min_magnitude) or a.axis_loss_min_magnitude < 0):
+            raise ValueError('Invalid polar axis objective')
+    if a.image_backbone == 'fno' and (a.model != 'fm_sia' or a.sia_prediction not in ('axial_direct','polar_direct')):
+        raise ValueError('Conditional FNO backbone requires a spatial-moment direct FM-SIA head')
     if a.image_backbone == 'fno' and (min(*a.fno_modes,a.fno_hidden_channels,a.fno_layers)<1
                                      or not math.isfinite(a.fno_domain_padding) or a.fno_domain_padding<0):
         raise ValueError('Invalid conditional FNO dimensions or padding')
@@ -254,7 +264,7 @@ def build_model(args, stats=None):
                 n_layers=args.fno_layers, hidden_channels=args.fno_hidden_channels, modes=args.fno_modes)
         return UnetNeuralOperator(in_channels=args.fno_in_channels, out_channels=args.fno_out_channels,
                                    hidden_channels=args.fno_hidden_channels)
-    direct_sia = args.model == 'fm_sia' and getattr(args, 'sia_prediction', 'flow') in ('direct','axial_direct')
+    direct_sia = args.model == 'fm_sia' and getattr(args, 'sia_prediction', 'flow') in ('direct','axial_direct','polar_direct')
     encoder = ConditionEncoder()
     if getattr(args, 'image_backbone', 'unet') == 'fno':
         from model.conditional_fno import ConditionalFNO
@@ -270,6 +280,14 @@ def build_model(args, stats=None):
     if args.model == 'fm_sia':
         if not stats or not stats.get('sia'):
             raise ValueError('FM-SIA requires saved/fitted training-fold SIA statistics')
+        if getattr(args, 'sia_prediction', 'flow') == 'polar_direct':
+            from model.polar_sia import PolarSIAFlowMatching
+            return PolarSIAFlowMatching(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
+                sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
+                lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
+                initial_magnitude=stats['sia']['polar_median_magnitude'],
+                initial_phase=stats['sia']['polar_initial_phase'],lambda_axis=args.lambda_axis,
+                axis_min_magnitude=args.axis_loss_min_magnitude)
         if getattr(args, 'sia_prediction', 'flow') == 'axial_direct':
             from model.axial_sia import AxialSIAFlowMatching
             frame = getattr(args, 'sia_feature_fusion', 'lab')
@@ -334,6 +352,8 @@ def saved_config_value(config, key):
         return True
     if key == 'sia_prediction' and key not in config:
         return 'flow'
+    if key not in config and key in ('lambda_axis','axis_loss_min_magnitude'):
+        return {'lambda_axis':1.,'axis_loss_min_magnitude':.1}[key]
     if key == 'sia_feature_fusion' and key not in config:
         return 'lab'
     if key == 'image_loss_units' and key not in config:
@@ -554,7 +574,8 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             sia_prediction=getattr(args, 'sia_prediction', 'flow'),
             axis_protocol=dict(period_degrees=180, zero_epsilon_D=1e-8, stable_gt_threshold_D=.1,
                 undefined_prediction_penalty_degrees=90, vector_for_axis='mean predicted physical vector'),
-            SIA_point_estimator=('deterministic preoperative-only spatial-moment vector head' if getattr(args, 'sia_prediction', 'flow') == 'axial_direct'
+            SIA_point_estimator=('deterministic preoperative-only magnitude/phase physical vector head' if getattr(args, 'sia_prediction', 'flow') == 'polar_direct'
+                                 else 'deterministic preoperative-only spatial-moment vector head' if getattr(args, 'sia_prediction', 'flow') == 'axial_direct'
                                  else 'deterministic preoperative-only magnitude head' if getattr(args, 'sia_prediction', 'flow') == 'direct'
                                  else 'mean of nonnegative projected scalar samples' if getattr(args, 'sia_mode', 'vector') == 'scalar'
                                  else 'mean of per-sample norms'),
@@ -606,6 +627,14 @@ def fit_sia_stats(args, df, labels):
         return None
     columns = sia_target_columns(args)
     stats = feature_stats(df, labels, columns)
+    if getattr(args, 'sia_prediction', 'flow') == 'polar_direct':
+        vector = df[df.label_index.isin(labels)][columns].to_numpy()
+        magnitude = np.linalg.norm(vector, axis=1)
+        valid = (magnitude >= args.axis_loss_min_magnitude) & (magnitude > 1e-8)
+        direction = (vector[valid]/magnitude[valid,None]).mean(0) if valid.any() else np.zeros(2)
+        phase = float(np.arctan2(direction[1],direction[0])) if np.linalg.norm(direction)>1e-12 else 0.
+        stats.update(polar_median_magnitude=float(np.median(magnitude)),polar_initial_phase=phase,
+                     polar_axis_training_count=int(valid.sum()))
     if getattr(args, 'sia_prediction', 'flow') == 'direct':
         stats['median'] = df[df.label_index.isin(labels)][columns].median().tolist()
     if getattr(args, 'eye_frame', 'native') == 'right':

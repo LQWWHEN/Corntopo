@@ -49,7 +49,7 @@ class AxialSIAFlowMatching(JointFlowMatching):
         with torch.no_grad():
             self.sia_readout[-1].bias.copy_(self.sia_mean)
 
-    def predict_sia(self, condition_features, clinical):
+    def sia_features(self, condition_features, clinical):
         if self.feature_fusion == 'preop_frame':
             pre_vector = clinical[:, self.clinical_vector_indices]*self.pre_vector_std+self.pre_vector_mean
             feature = preoperative_frame_moments(condition_features[-1], pre_vector)
@@ -58,7 +58,10 @@ class AxialSIAFlowMatching(JointFlowMatching):
         if self.unet.clinical_encoder is not None:
             embedding, _ = self.unet.clinical_encoder(clinical)
             feature = torch.cat((feature, embedding), dim=1)
-        return self.sia_readout(feature)
+        return feature
+
+    def predict_sia(self, condition_features, clinical):
+        return self.sia_readout(self.sia_features(condition_features, clinical))
 
     def forward(self, pre, post, sia_vector=None, clinical=None, mask=None, t=None,
                 noise=None, sia_magnitude=None):
