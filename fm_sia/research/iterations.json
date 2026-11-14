@@ -283,19 +283,23 @@
       "budget_group": "contrastive_autoregressive_integration",
       "proposal_id": "axial_metric_rank_contrast",
       "tuning_round": 1,
-      "status": "selected_for_saved_weight_test",
+      "status": "completed_mixed_frozen_test",
       "SIA_output": "vector",
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "tests_passed": 112,
       "temporary_checkpoints": true,
-      "test_evaluated": false,
+      "test_evaluated": true,
       "source_commit": "2eee52c48fd9e700b16d03b92bd73bbdb23c4249",
       "smoke_exit_code": 0,
       "parameter_real_dofs": 31225283,
       "validation_reload_metrics_compared": 37,
       "validation_gate_passed": true,
-      "audit": "PASS"
+      "audit": "PASS",
+      "checkpoint_cleanup": "PASS",
+      "checkpoint_files": 0,
+      "test_retraining": false,
+      "selection_commit": "75194c3c49ad16078d03b8ab9df4c056ef5276ac"
     },
     {
       "id": "016",
@@ -304,7 +308,7 @@
       "budget_group": "image_clinical_fusion",
       "proposal_id": "laterality_canonical_frame",
       "tuning_round": 3,
-      "status": "unit_audited_pending_gpu_smoke",
+      "status": "running_frozen_validation",
       "SIA_output": "vector",
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
@@ -312,7 +316,10 @@
       "tests_passed": 123,
       "temporary_checkpoints": true,
       "test_evaluated": false,
-      "source_commit": "40de7271309359749a16e1f86ad37611e5742f83"
+      "source_commit": "40de7271309359749a16e1f86ad37611e5742f83",
+      "smoke_exit_code": 0,
+      "parameter_real_dofs": 31225539,
+      "validation_reload_metrics_compared": 37
     }
   ],
   "artifact_policy": {
