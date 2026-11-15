@@ -507,6 +507,21 @@
       "checkpoint_cleanup": "PASS",
       "validation_reload_metrics_compared": 37,
       "parameter_real_dofs": 31438403
+    },
+    {
+      "id": "025",
+      "proposal": "ITERATION_025.md",
+      "change": "Preoperative hidden features predict concentration of doubled-phase von Mises objective",
+      "budget_group": "sia_branch_and_joint_learning",
+      "proposal_id": "axial_direct_vector",
+      "tuning_round": 4,
+      "status": "cpu_audited_gpu_smoke_running",
+      "SIA_output": "vector",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "temporary_checkpoints": true,
+      "test_evaluated": false,
+      "tests_passed": 238
     }
   ],
   "artifact_policy": {
@@ -554,12 +569,13 @@
       ]
     },
     "axial_direct_vector": {
-      "used": 3,
+      "used": 4,
       "maximum": 5,
       "iterations": [
         "005",
         "012",
-        "021"
+        "021",
+        "025"
       ]
     },
     "preoperative_vector_conditions": {
@@ -677,7 +693,7 @@
     }
   },
   "direction_counts": {
-    "sia_branch_and_joint_learning": 10,
+    "sia_branch_and_joint_learning": 11,
     "clinical_feature_selection": 1,
     "image_clinical_fusion": 5,
     "loss_function_design": 3,
@@ -686,7 +702,7 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "ongoing_iteration024_complete",
+    "status": "iteration025_implementation",
     "date": "2026-11-15",
     "completed_through": "024",
     "private_summary_verified": true,

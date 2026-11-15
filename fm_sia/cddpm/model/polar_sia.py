@@ -24,7 +24,8 @@ def periodic_axis_loss(phase, target, minimum_magnitude):
 class PolarSIAFlowMatching(AxialSIAFlowMatching):
     def __init__(self, *args, initial_magnitude, initial_phase, lambda_axis=1.,
                  axis_min_magnitude=.1, rank_weight=0., rank_temperature=.2,
-                 image_gradient_weight=0., axis_gradient_projection=False, **kwargs):
+                 image_gradient_weight=0., axis_gradient_projection=False,
+                 learned_axis_concentration=False, **kwargs):
         super().__init__(*args, **kwargs)
         if (not all(math.isfinite(v) for v in (initial_magnitude, initial_phase, lambda_axis, axis_min_magnitude))
                 or initial_magnitude < 0 or lambda_axis <= 0 or axis_min_magnitude < 0):
@@ -43,6 +44,10 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
         with torch.no_grad():
             self.sia_readout[-1].bias.copy_(self.sia_mean.new_tensor([
                 magnitude + math.log(-math.expm1(-magnitude)), initial_phase]))
+        self.axis_concentration_head = None
+        if learned_axis_concentration:
+            from model.axis_concentration import AxisConcentration
+            self.axis_concentration_head = AxisConcentration()
 
     def predict_polar(self, condition_features, clinical):
         return decode_polar(self.sia_readout(self.sia_features(condition_features, clinical)))
@@ -62,7 +67,7 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
         if t.shape != (batch,) or not torch.isfinite(t).all() or ((t < 0) | (t > 1)).any():
             raise ValueError('Invalid time')
         cond = self.condition_encoder(pre)
-        if self.rank_weight or self.axis_gradient_projection:
+        if self.rank_weight or self.axis_gradient_projection or self.axis_concentration_head is not None:
             hidden = self.sia_readout[1](self.sia_readout[0](self.sia_features(cond, clinical)))
             q, magnitude, phase = decode_polar(self.sia_readout[2](hidden))
         else:
@@ -80,6 +85,13 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
             extra_logs['loss_image_gradient'] = gradient_loss
         magnitude_loss = F.l1_loss(magnitude/self.sia_ref, target.norm(dim=-1)/self.sia_ref)
         axis_loss = periodic_axis_loss(phase, target, self.axis_min_magnitude)
+        if self.axis_concentration_head is not None:
+            from model.axis_concentration import concentration_axis_loss
+            concentration = self.axis_concentration_head(hidden)
+            axis_loss = concentration_axis_loss(phase, target, concentration, self.axis_min_magnitude)
+            extra_logs['axis_kappa_mean'] = concentration.detach().mean()
+            extra_logs['axis_kappa_min'] = concentration.detach().min()
+            extra_logs['axis_kappa_max'] = concentration.detach().max()
         output = dict(loss=image_loss+self.lambda_sia*magnitude_loss+self.lambda_axis*axis_loss,
                     loss_image=image_loss, loss_sia=magnitude_loss, loss_axis=axis_loss,
                     loss_image_normalized=normalized_image_loss,

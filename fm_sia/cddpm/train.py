@@ -159,12 +159,23 @@ def get_args(argv=None):
                    help='Project conflicting axis gradients at the SIA hidden state')
     p.add_argument('--sia_split_hidden', action='store_true',
                    help='Separate magnitude and phase hidden layers with matched initialization')
+    p.add_argument('--sia_learned_axis_concentration', action='store_true',
+                   help='Input-dependent concentration in the doubled-phase von Mises objective')
     args = p.parse_args(argv)
     check_args(args)
     return args
 
 
 def check_args(a):
+    if a.sia_learned_axis_concentration and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
+            or a.image_backbone != 'fno' or a.eye_frame != 'native' or a.sia_feature_fusion != 'lab'
+            or a.sia_split_hidden or a.sia_axis_gradient_projection or a.sia_clinical_moments
+            or a.sia_radial_contrast or a.sia_velocity_coupling or a.sia_spatial_conditioning
+            or a.sia_rank_weight or a.image_local_residual or a.image_gradient_weight
+            or a.image_harmonic_weight or a.augmentation != 'none' or a.loss_balance != 'fixed'
+            or a.image_loss_units != 'normalized' or a.reconstruction_domain != 'valid'
+            or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
+        raise ValueError('Learned concentration requires the independent native polar FNO parent objective')
     if a.sia_split_hidden and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
             or a.image_backbone != 'fno' or a.eye_frame != 'native' or a.sia_feature_fusion != 'lab'
             or a.sia_axis_gradient_projection or a.sia_clinical_moments or a.sia_radial_contrast
@@ -426,6 +437,7 @@ def build_model(args, stats=None):
                 initial_phase=stats['sia']['polar_initial_phase'],lambda_axis=args.lambda_axis,
                 axis_min_magnitude=args.axis_loss_min_magnitude,
                 axis_gradient_projection=getattr(args, 'sia_axis_gradient_projection', False),
+                learned_axis_concentration=getattr(args, 'sia_learned_axis_concentration', False),
                 rank_weight=getattr(args, 'sia_rank_weight', 0.),
                 image_gradient_weight=getattr(args, 'image_gradient_weight', 0.),
                 rank_temperature=getattr(args, 'sia_rank_temperature', .2), **coupling_args)
@@ -494,6 +506,8 @@ def make_loader(dataset, args, device, shuffle=False, generator=None):
 
 def saved_config_value(config, key):
     """Recover historical defaults for checkpoints without newer options."""
+    if key == 'sia_learned_axis_concentration' and key not in config:
+        return False
     if key == 'sia_split_hidden' and key not in config:
         return False
     if key == 'sia_axis_gradient_projection' and key not in config:
@@ -586,7 +600,7 @@ def train_one_epoch(model, loader, optimizer, device, ema=None, reconstruction_d
             ema.update(model)
         count = batch['input'].shape[0]; n += count
         for key, value in output.items():
-            if key.startswith(('loss', 'gradient_')):
+            if key.startswith(('loss', 'gradient_', 'axis_kappa_')):
                 totals[key] = totals.get(key, 0.0) + value.detach().item()*count
         for key, value in balance_logs.items():
             totals[key] = totals.get(key, 0.0) + value.detach().item()*count
@@ -749,6 +763,7 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             sia_clinical_moments=getattr(args, 'sia_clinical_moments', False),
             sia_axis_gradient_projection=getattr(args, 'sia_axis_gradient_projection', False),
             sia_split_hidden=getattr(args, 'sia_split_hidden', False),
+            sia_learned_axis_concentration=getattr(args, 'sia_learned_axis_concentration', False),
             axis_protocol=dict(period_degrees=180, zero_epsilon_D=1e-8, stable_gt_threshold_D=.1,
                 undefined_prediction_penalty_degrees=90, vector_for_axis='mean predicted physical vector'),
             SIA_point_estimator=('deterministic preoperative-velocity-coupled magnitude/phase vector head' if getattr(args, 'sia_velocity_coupling', False)
