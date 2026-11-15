@@ -157,12 +157,22 @@ def get_args(argv=None):
                    help='Clinical channel gains shared across SIA axial moments')
     p.add_argument('--sia_axis_gradient_projection', action='store_true',
                    help='Project conflicting axis gradients at the SIA hidden state')
+    p.add_argument('--sia_split_hidden', action='store_true',
+                   help='Separate magnitude and phase hidden layers with matched initialization')
     args = p.parse_args(argv)
     check_args(args)
     return args
 
 
 def check_args(a):
+    if a.sia_split_hidden and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
+            or a.image_backbone != 'fno' or a.eye_frame != 'native' or a.sia_feature_fusion != 'lab'
+            or a.sia_axis_gradient_projection or a.sia_clinical_moments or a.sia_radial_contrast
+            or a.sia_velocity_coupling or a.sia_spatial_conditioning or a.sia_rank_weight
+            or a.image_local_residual or a.image_gradient_weight or a.image_harmonic_weight
+            or a.augmentation != 'none' or a.loss_balance != 'fixed' or a.image_loss_units != 'normalized'
+            or a.reconstruction_domain != 'valid' or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
+        raise ValueError('Split hidden readout requires the independent native polar FNO parent objective')
     if a.sia_axis_gradient_projection and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
             or a.image_backbone != 'fno' or a.eye_frame != 'native' or a.sia_feature_fusion != 'lab'
             or a.sia_clinical_moments or a.sia_radial_contrast or a.sia_velocity_coupling
@@ -406,6 +416,9 @@ def build_model(args, stats=None):
             if getattr(args, 'sia_clinical_moments', False):
                 from model.clinical_moments import ClinicalMomentPolarSIAFlowMatching
                 polar_class = ClinicalMomentPolarSIAFlowMatching
+            if getattr(args, 'sia_split_hidden', False):
+                from model.split_polar import SplitPolarSIAFlowMatching
+                polar_class = SplitPolarSIAFlowMatching
             return polar_class(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
                 sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
                 lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
@@ -481,6 +494,8 @@ def make_loader(dataset, args, device, shuffle=False, generator=None):
 
 def saved_config_value(config, key):
     """Recover historical defaults for checkpoints without newer options."""
+    if key == 'sia_split_hidden' and key not in config:
+        return False
     if key == 'sia_axis_gradient_projection' and key not in config:
         return False
     if key == 'sia_clinical_moments' and key not in config:
@@ -733,6 +748,7 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             sia_radial_contrast=getattr(args, 'sia_radial_contrast', False),
             sia_clinical_moments=getattr(args, 'sia_clinical_moments', False),
             sia_axis_gradient_projection=getattr(args, 'sia_axis_gradient_projection', False),
+            sia_split_hidden=getattr(args, 'sia_split_hidden', False),
             axis_protocol=dict(period_degrees=180, zero_epsilon_D=1e-8, stable_gt_threshold_D=.1,
                 undefined_prediction_penalty_degrees=90, vector_for_axis='mean predicted physical vector'),
             SIA_point_estimator=('deterministic preoperative-velocity-coupled magnitude/phase vector head' if getattr(args, 'sia_velocity_coupling', False)
