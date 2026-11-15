@@ -493,13 +493,20 @@
       "budget_group": "sia_branch_and_joint_learning",
       "proposal_id": "polar_task_specific_hidden",
       "tuning_round": 1,
-      "status": "cpu_audited_gpu_smoke_running",
+      "status": "completed_negative_validation_no_test",
       "SIA_output": "vector",
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "temporary_checkpoints": true,
       "test_evaluated": false,
-      "tests_passed": 225
+      "tests_passed": 225,
+      "source_commit": "8ccb119e4bf2a368d1b505f1f1fc977bb8b3fa11",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "checkpoint_files": 0,
+      "checkpoint_cleanup": "PASS",
+      "validation_reload_metrics_compared": 37,
+      "parameter_real_dofs": 31438403
     }
   ],
   "artifact_policy": {
@@ -679,9 +686,9 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "iteration024_implementation",
+    "status": "ongoing_iteration024_complete",
     "date": "2026-11-15",
-    "completed_through": "023",
+    "completed_through": "024",
     "private_summary_verified": true,
     "public_summary": "SUMMARY_001_020.md",
     "active_experiment_jobs": 0,
