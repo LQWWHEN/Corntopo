@@ -471,13 +471,20 @@
       "budget_group": "sia_branch_and_joint_learning",
       "proposal_id": "radial_priority_axis_gradient",
       "tuning_round": 1,
-      "status": "cpu_audited_gpu_smoke_running",
+      "status": "completed_negative_validation_no_test",
       "SIA_output": "vector",
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "temporary_checkpoints": true,
       "test_evaluated": false,
-      "tests_passed": 212
+      "tests_passed": 212,
+      "source_commit": "eab9e56c279415987e501983ac3c942a456add7d",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "checkpoint_files": 0,
+      "checkpoint_cleanup": "PASS",
+      "validation_reload_metrics_compared": 37,
+      "parameter_real_dofs": 31225283
     }
   ],
   "artifact_policy": {
@@ -650,9 +657,9 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "iteration023_implementation",
+    "status": "ongoing_iteration023_complete",
     "date": "2026-11-15",
-    "completed_through": "022",
+    "completed_through": "023",
     "private_summary_verified": true,
     "public_summary": "SUMMARY_001_020.md",
     "active_experiment_jobs": 0,
@@ -661,6 +668,6 @@
     "resume_requires_user_request": false,
     "stop_after": null,
     "private_iteration021_report_verified": true,
-    "iteration022_started": false
+    "iteration022_started": true
   }
 }
