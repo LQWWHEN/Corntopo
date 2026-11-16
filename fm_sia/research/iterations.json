@@ -862,7 +862,7 @@
         }
       ],
       "all_variants_start_from_base_config": true,
-      "status": "closed_selected_test_pending",
+      "status": "completed",
       "reserved_trials": [
         "016_1",
         "016_2",
@@ -878,7 +878,9 @@
         "016_5"
       ],
       "group_closed": true,
-      "selected_id": "016_2"
+      "selected_id": "016_2",
+      "remaining_checkpoints": 0,
+      "report_pages": 6
     },
     "tuning_from_015": {
       "base_iteration": "015",
@@ -972,7 +974,9 @@
       "validation_gate_passed": false,
       "report_pages": 5,
       "test_evaluated": false,
-      "checkpoint_state": "cleaned"
+      "checkpoint_state": "cleaned",
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "016_2",
@@ -985,7 +989,7 @@
       "change": {
         "lambda_sia": 1.5
       },
-      "status": "validation_passed_awaiting_group_selection",
+      "status": "completed_test_once",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -998,8 +1002,10 @@
       "audit": "PASS",
       "validation_gate_passed": true,
       "report_pages": 5,
-      "test_evaluated": false,
-      "checkpoint_state": "temporary_pending_group_decision"
+      "test_evaluated": true,
+      "checkpoint_state": "cleaned",
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "016_3",
@@ -1026,7 +1032,9 @@
       "validation_gate_passed": false,
       "report_pages": 5,
       "test_evaluated": false,
-      "checkpoint_state": "cleaned"
+      "checkpoint_state": "cleaned",
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "016_4",
@@ -1056,7 +1064,9 @@
       "validation_gate_passed": false,
       "report_pages": 5,
       "test_evaluated": false,
-      "checkpoint_state": "cleaned"
+      "checkpoint_state": "cleaned",
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "016_5",
@@ -1085,7 +1095,9 @@
       "validation_gate_passed": false,
       "report_pages": 5,
       "test_evaluated": false,
-      "checkpoint_state": "cleaned"
+      "checkpoint_state": "cleaned",
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "020_1",

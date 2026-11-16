@@ -8,7 +8,10 @@
   ],
   "selection_partition": "validation",
   "decision_sha256": "8401caf31a21072a9d5795bf6e998d15045a69d7021b7f22b9e9b0ff2512187a",
-  "test_status": "NOT_STARTED",
+  "test_status": "COMPLETED_AUDITED",
   "policy": "TUNING_POLICY_026.md",
-  "note": "One saved-weight test after all five trials; no further tuning in this group"
+  "note": "One saved-weight test after all five trials; no further tuning in this group",
+  "checkpoint_state": "all_group_checkpoints_cleaned",
+  "report": "TUNING_GROUP_016.md",
+  "outcome": "Image gains over parent016; SIA regression; no complete-task joint improvement"
 }
