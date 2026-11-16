@@ -711,12 +711,12 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "tuning_016_1_preparing",
+    "status": "tuning_016_1_training",
     "date": "2026-11-15",
     "completed_through": "025",
     "private_summary_verified": true,
     "public_summary": "SUMMARY_001_020.md",
-    "active_experiment_jobs": 0,
+    "active_experiment_jobs": 1,
     "experiment_checkpoint_files": 0,
     "iteration021_started": true,
     "resume_requires_user_request": false,
@@ -838,7 +838,7 @@
       "base_iteration": "016",
       "base_source_commit": "40de7271309359749a16e1f86ad37611e5742f83",
       "initial_experiment_count": 1,
-      "hyperparameter_trials_used": 0,
+      "hyperparameter_trials_used": 1,
       "maximum": 5,
       "planned_first_three": [
         {
@@ -852,8 +852,12 @@
         }
       ],
       "all_variants_start_from_base_config": true,
-      "status": "first_trial_preparing",
+      "status": "running",
       "reserved_trials": [
+        "016_1",
+        "016_2"
+      ],
+      "trials": [
         "016_1"
       ]
     },
@@ -935,7 +939,7 @@
       "change": {
         "lr": 5e-05
       },
-      "status": "audited_pending_training",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -943,7 +947,26 @@
       ],
       "cpu_tests": 244,
       "gpu_reload_metrics": 37,
-      "parameter_real_dofs": 31225539
+      "parameter_real_dofs": 31225539,
+      "source_commit": "f45b602f4e3519ba959d5835e07f44e8a48a0bee"
+    },
+    {
+      "id": "016_2",
+      "parent": "016",
+      "parent_source_commit": "40de7271309359749a16e1f86ad37611e5742f83",
+      "proposal": "TUNING_016_2.md",
+      "config": "configs/tuning/016_2.json",
+      "group": "tuning_from_016",
+      "trial": 2,
+      "change": {
+        "lambda_sia": 1.5
+      },
+      "status": "preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
     }
   ]
 }
