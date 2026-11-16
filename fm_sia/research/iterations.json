@@ -711,7 +711,7 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "tuning_016_2_training",
+    "status": "tuning_016_3_training",
     "date": "2026-11-15",
     "completed_through": "025",
     "private_summary_verified": true,
@@ -838,7 +838,7 @@
       "base_iteration": "016",
       "base_source_commit": "40de7271309359749a16e1f86ad37611e5742f83",
       "initial_experiment_count": 1,
-      "hyperparameter_trials_used": 2,
+      "hyperparameter_trials_used": 3,
       "maximum": 5,
       "planned_first_three": [
         {
@@ -860,7 +860,8 @@
       ],
       "trials": [
         "016_1",
-        "016_2"
+        "016_2",
+        "016_3"
       ]
     },
     "tuning_from_015": {
@@ -968,7 +969,7 @@
       "change": {
         "lambda_sia": 1.5
       },
-      "status": "training",
+      "status": "validation_passed_awaiting_group_selection",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -977,7 +978,12 @@
       "source_commit": "9b5d9b87adddf7a57e13db4c11b176300efa959e",
       "cpu_tests": 244,
       "cpu_tests_reused_from": "016_1",
-      "gpu_reload_metrics": 37
+      "gpu_reload_metrics": 37,
+      "audit": "PASS",
+      "validation_gate_passed": true,
+      "report_pages": 5,
+      "test_evaluated": false,
+      "checkpoint_state": "temporary_pending_group_decision"
     },
     {
       "id": "016_3",
@@ -990,12 +996,16 @@
       "change": {
         "lambda_axis": 0.5
       },
-      "status": "preregistered_not_started",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
         "SIA_axis"
-      ]
+      ],
+      "source_commit": "9b5d9b87adddf7a57e13db4c11b176300efa959e",
+      "cpu_tests": 244,
+      "cpu_tests_reused_from": "016_1",
+      "gpu_reload_metrics": 37
     }
   ]
 }
