@@ -800,7 +800,8 @@
       "status": "preregistered_not_started",
       "reserved_trials": [
         "010_1",
-        "010_2"
+        "010_2",
+        "010_3"
       ]
     },
     "tuning_from_012": {
@@ -1356,6 +1357,27 @@
       "trial": 2,
       "change": {
         "lambda_sia": 1.5
+      },
+      "operational_change": {
+        "save_checkpoints": true
+      },
+      "status": "preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "010_3",
+      "parent": "010",
+      "parent_source_commit": "44f881b2fcc19ae405ae3134736bafbbe453a651",
+      "proposal": "TUNING_010_3.md",
+      "config": "configs/tuning/010_3.json",
+      "group": "tuning_from_010",
+      "trial": 3,
+      "change": {
+        "lambda_vector": 0.5
       },
       "operational_change": {
         "save_checkpoints": true
