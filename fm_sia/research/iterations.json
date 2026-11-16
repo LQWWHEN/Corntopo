@@ -861,7 +861,8 @@
       "reserved_trials": [
         "016_1",
         "016_2",
-        "016_3"
+        "016_3",
+        "016_4"
       ],
       "trials": [
         "016_1",
@@ -1011,6 +1012,27 @@
       "cpu_tests": 244,
       "cpu_tests_reused_from": "016_1",
       "gpu_reload_metrics": 37
+    },
+    {
+      "id": "016_4",
+      "parent": "016",
+      "parent_source_commit": "40de7271309359749a16e1f86ad37611e5742f83",
+      "configuration_parent": "016_2",
+      "configuration_parent_source_commit": "9b5d9b87adddf7a57e13db4c11b176300efa959e",
+      "proposal": "TUNING_016_4.md",
+      "config": "configs/tuning/016_4.json",
+      "group": "tuning_from_016",
+      "trial": 4,
+      "change": {
+        "lambda_sia": 1.5,
+        "lr": 7.5e-05
+      },
+      "status": "adaptive_preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
     }
   ]
 }
