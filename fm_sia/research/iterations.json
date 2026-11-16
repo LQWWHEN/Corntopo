@@ -711,7 +711,7 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "tuning_016_4_training",
+    "status": "tuning_016_5_training",
     "date": "2026-11-16",
     "completed_through": "025",
     "private_summary_verified": true,
@@ -727,7 +727,7 @@
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
     "temporary_checkpoint_trials": [
       "016_2",
-      "016_4"
+      "016_5"
     ]
   },
   "budget_policy_before_20261116": {
@@ -843,7 +843,7 @@
       "base_iteration": "016",
       "base_source_commit": "40de7271309359749a16e1f86ad37611e5742f83",
       "initial_experiment_count": 1,
-      "hyperparameter_trials_used": 4,
+      "hyperparameter_trials_used": 5,
       "maximum": 5,
       "planned_first_three": [
         {
@@ -869,7 +869,8 @@
         "016_1",
         "016_2",
         "016_3",
-        "016_4"
+        "016_4",
+        "016_5"
       ]
     },
     "tuning_from_015": {
@@ -1034,7 +1035,7 @@
         "lambda_sia": 1.5,
         "lr": 7.5e-05
       },
-      "status": "training",
+      "status": "completed_negative_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1043,7 +1044,12 @@
       "source_commit": "04c16575b689f728bacdbd67188056da7931e7df",
       "cpu_tests": 244,
       "cpu_tests_reused_from": "016_1",
-      "gpu_reload_metrics": 37
+      "gpu_reload_metrics": 37,
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "report_pages": 5,
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "016_5",
@@ -1058,12 +1064,16 @@
       "change": {
         "lambda_sia": 2.0
       },
-      "status": "adaptive_preregistered_not_started",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
         "SIA_axis"
-      ]
+      ],
+      "source_commit": "04c16575b689f728bacdbd67188056da7931e7df",
+      "cpu_tests": 244,
+      "cpu_tests_reused_from": "016_1",
+      "gpu_reload_metrics": 37
     }
   ]
 }
