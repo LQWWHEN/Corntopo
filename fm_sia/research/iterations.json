@@ -817,7 +817,10 @@
         }
       ],
       "all_variants_start_from_base_config": true,
-      "status": "planned_not_started"
+      "status": "preregistered_not_started",
+      "reserved_trials": [
+        "012_1"
+      ]
     },
     "tuning_from_020": {
       "base_iteration": "020",
@@ -1163,6 +1166,24 @@
       "trial": 3,
       "change": {
         "lambda_sia": 1.5
+      },
+      "status": "preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "012_1",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "proposal": "TUNING_012_1.md",
+      "config": "configs/tuning/012_1.json",
+      "group": "tuning_from_012",
+      "trial": 1,
+      "change": {
+        "lr": 5e-05
       },
       "status": "preregistered_not_started",
       "outputs": [
