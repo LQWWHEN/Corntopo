@@ -828,7 +828,7 @@
       "base_iteration": "020",
       "base_source_commit": "e87e9c84be6c9141fb94e23e7edb0aefe57158d7",
       "initial_experiment_count": 1,
-      "hyperparameter_trials_used": 3,
+      "hyperparameter_trials_used": 4,
       "maximum": 5,
       "planned_first_three": [
         {
@@ -1259,12 +1259,16 @@
       "change": {
         "lambda_sia": 2.0
       },
-      "status": "adaptive_preregistered_not_started",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
         "SIA_axis"
-      ]
+      ],
+      "source_commit": "3636144b1f966efca13a2ff4734b759faf17fa26",
+      "audit": "PASS",
+      "tests_passed": 244,
+      "validation_reload_metrics_compared": 37
     },
     {
       "id": "020_5",
