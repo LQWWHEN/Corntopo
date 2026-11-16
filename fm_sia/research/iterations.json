@@ -842,7 +842,7 @@
         }
       ],
       "all_variants_start_from_base_config": true,
-      "status": "running",
+      "status": "closed_no_eligible_candidate_report_pending",
       "reserved_trials": [
         "020_1",
         "020_2",
@@ -854,7 +854,9 @@
         "020_1",
         "020_2",
         "020_3"
-      ]
+      ],
+      "group_closed": true,
+      "selected_id": null
     },
     "tuning_from_016": {
       "base_iteration": "016",
@@ -1288,7 +1290,7 @@
         "lambda_sia": 1.5,
         "lambda_axis": 0.5
       },
-      "status": "training",
+      "status": "completed_negative_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1297,7 +1299,11 @@
       "source_commit": "a5bbae8b91131d3061a0b422ad10f7f5a2b91a9b",
       "audit": "PASS",
       "tests_passed": 244,
-      "validation_reload_metrics_compared": 37
+      "validation_reload_metrics_compared": 37,
+      "validation_gate_passed": false,
+      "report_pages": 5,
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned"
     }
   ]
 }
