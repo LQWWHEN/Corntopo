@@ -1,0 +1,14 @@
+{
+  "group": "tuning_from_016",
+  "group_closed": true,
+  "trial_count": 5,
+  "selected_id": "016_2",
+  "eligible_trials": [
+    "016_2"
+  ],
+  "selection_partition": "validation",
+  "decision_sha256": "8401caf31a21072a9d5795bf6e998d15045a69d7021b7f22b9e9b0ff2512187a",
+  "test_status": "NOT_STARTED",
+  "policy": "TUNING_POLICY_026.md",
+  "note": "One saved-weight test after all five trials; no further tuning in this group"
+}

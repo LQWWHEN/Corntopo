@@ -862,7 +862,7 @@
         }
       ],
       "all_variants_start_from_base_config": true,
-      "status": "running",
+      "status": "closed_selected_test_pending",
       "reserved_trials": [
         "016_1",
         "016_2",
@@ -876,7 +876,9 @@
         "016_3",
         "016_4",
         "016_5"
-      ]
+      ],
+      "group_closed": true,
+      "selected_id": "016_2"
     },
     "tuning_from_015": {
       "base_iteration": "015",
@@ -1069,7 +1071,7 @@
       "change": {
         "lambda_sia": 2.0
       },
-      "status": "training",
+      "status": "completed_negative_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1078,7 +1080,12 @@
       "source_commit": "04c16575b689f728bacdbd67188056da7931e7df",
       "cpu_tests": 244,
       "cpu_tests_reused_from": "016_1",
-      "gpu_reload_metrics": 37
+      "gpu_reload_metrics": 37,
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "report_pages": 5,
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "020_1",
