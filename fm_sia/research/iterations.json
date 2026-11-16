@@ -515,13 +515,20 @@
       "budget_group": "sia_branch_and_joint_learning",
       "proposal_id": "axial_direct_vector",
       "tuning_round": 4,
-      "status": "cpu_audited_gpu_smoke_running",
+      "status": "completed_negative_validation_no_test",
       "SIA_output": "vector",
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "temporary_checkpoints": true,
       "test_evaluated": false,
-      "tests_passed": 238
+      "tests_passed": 238,
+      "source_commit": "bdcf93f86bf847a177ba9021f787ddcaa167e9de",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "checkpoint_files": 0,
+      "checkpoint_cleanup": "PASS",
+      "validation_reload_metrics_compared": 37,
+      "parameter_real_dofs": 31225412
     }
   ],
   "artifact_policy": {
@@ -704,9 +711,9 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "iteration025_implementation",
+    "status": "ongoing_iteration025_complete",
     "date": "2026-11-15",
-    "completed_through": "024",
+    "completed_through": "025",
     "private_summary_verified": true,
     "public_summary": "SUMMARY_001_020.md",
     "active_experiment_jobs": 0,
