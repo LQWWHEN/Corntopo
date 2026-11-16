@@ -846,7 +846,9 @@
       "reserved_trials": [
         "020_1",
         "020_2",
-        "020_3"
+        "020_3",
+        "020_4",
+        "020_5"
       ],
       "trials": [
         "020_1",
@@ -1174,7 +1176,7 @@
       "change": {
         "lambda_sia": 1.5
       },
-      "status": "training",
+      "status": "completed_negative_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1184,7 +1186,11 @@
       "audit": "PASS",
       "tests_passed": 244,
       "cpu_test_reuse_from": "016_1",
-      "gpu_reload_metrics": 37
+      "gpu_reload_metrics": 37,
+      "validation_gate_passed": false,
+      "report_pages": 5,
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "012_1",
@@ -1234,6 +1240,47 @@
         "lambda_axis": 0.5
       },
       "status": "preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "020_4",
+      "parent": "020",
+      "parent_source_commit": "e87e9c84be6c9141fb94e23e7edb0aefe57158d7",
+      "configuration_parent": "020_3",
+      "configuration_parent_source_commit": "fe887dba8b9a7791f9ad6fc9446de1280491e024",
+      "proposal": "TUNING_020_4.md",
+      "config": "configs/tuning/020_4.json",
+      "group": "tuning_from_020",
+      "trial": 4,
+      "change": {
+        "lambda_sia": 2.0
+      },
+      "status": "adaptive_preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "020_5",
+      "parent": "020",
+      "parent_source_commit": "e87e9c84be6c9141fb94e23e7edb0aefe57158d7",
+      "configuration_parent": "020_3",
+      "configuration_parent_source_commit": "fe887dba8b9a7791f9ad6fc9446de1280491e024",
+      "proposal": "TUNING_020_5.md",
+      "config": "configs/tuning/020_5.json",
+      "group": "tuning_from_020",
+      "trial": 5,
+      "change": {
+        "lambda_sia": 1.5,
+        "lambda_axis": 0.5
+      },
+      "status": "adaptive_preregistered_not_started",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
