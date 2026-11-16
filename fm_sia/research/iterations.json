@@ -538,12 +538,14 @@
     "private_results": "private experiment registry, outside public repository"
   },
   "budget_policy": {
-    "scope": "concrete_improvement_proposal",
-    "maximum_tuning_rounds": 5,
-    "direction_counts": "historical_tracking_only",
-    "same_proposal_variants_share_budget": true,
-    "deterministic_frozen_rerun_is_not_new_configuration": true,
-    "updated_by_user": "2026-11-13"
+    "scope": "concrete_model_objective_experiment_group",
+    "maximum_hyperparameter_trials": 5,
+    "initial_scheme_experiment_counted_separately": true,
+    "direction_attempt_limit": null,
+    "first_batch_trials": 3,
+    "additional_trials": "up to five total per group; validation only",
+    "updated_by_user": "2026-11-16",
+    "historical_successful_schemes_included": true
   },
   "proposal_budgets": {
     "gradnorm": {
@@ -714,5 +716,200 @@
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true
+  },
+  "budget_policy_before_20261116": {
+    "scope": "concrete_improvement_proposal",
+    "maximum_tuning_rounds": 5,
+    "direction_counts": "historical_tracking_only",
+    "same_proposal_variants_share_budget": true,
+    "deterministic_frozen_rerun_is_not_new_configuration": true,
+    "updated_by_user": "2026-11-13"
+  },
+  "hyperparameter_experiment_groups": {
+    "tuning_from_005": {
+      "base_iteration": "005",
+      "base_source_commit": "8da6116491a8fccfe324bdf6d61e98a051173ae1",
+      "initial_experiment_count": 1,
+      "hyperparameter_trials_used": 0,
+      "maximum": 5,
+      "planned_first_three": [
+        {
+          "lr": 5e-05
+        },
+        {
+          "lambda_sia": 1.5
+        },
+        {
+          "lambda_vector": 0.5
+        }
+      ],
+      "all_variants_start_from_base_config": true,
+      "status": "planned_not_started"
+    },
+    "tuning_from_009": {
+      "base_iteration": "009",
+      "base_source_commit": "8b5b1453efcab7b5c837bb1096cd9976897d1b92",
+      "initial_experiment_count": 1,
+      "hyperparameter_trials_used": 0,
+      "maximum": 5,
+      "planned_first_three": [
+        {
+          "lr": 5e-05
+        },
+        {
+          "lambda_sia": 1.5
+        },
+        {
+          "lambda_vector": 0.5
+        }
+      ],
+      "all_variants_start_from_base_config": true,
+      "status": "planned_not_started"
+    },
+    "tuning_from_010": {
+      "base_iteration": "010",
+      "base_source_commit": "44f881b2fcc19ae405ae3134736bafbbe453a651",
+      "initial_experiment_count": 1,
+      "hyperparameter_trials_used": 0,
+      "maximum": 5,
+      "planned_first_three": [
+        {
+          "lr": 5e-05
+        },
+        {
+          "lambda_sia": 1.5
+        },
+        {
+          "lambda_vector": 0.5
+        }
+      ],
+      "all_variants_start_from_base_config": true,
+      "status": "planned_not_started"
+    },
+    "tuning_from_012": {
+      "base_iteration": "012",
+      "base_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "initial_experiment_count": 1,
+      "hyperparameter_trials_used": 0,
+      "maximum": 5,
+      "planned_first_three": [
+        {
+          "lr": 5e-05
+        },
+        {
+          "lambda_sia": 1.5
+        },
+        {
+          "lambda_axis": 0.5
+        }
+      ],
+      "all_variants_start_from_base_config": true,
+      "status": "planned_not_started"
+    },
+    "tuning_from_020": {
+      "base_iteration": "020",
+      "base_source_commit": "e87e9c84be6c9141fb94e23e7edb0aefe57158d7",
+      "initial_experiment_count": 1,
+      "hyperparameter_trials_used": 0,
+      "maximum": 5,
+      "planned_first_three": [
+        {
+          "lr": 5e-05
+        },
+        {
+          "lr": 0.0002
+        },
+        {
+          "lambda_sia": 1.5
+        }
+      ],
+      "all_variants_start_from_base_config": true,
+      "status": "planned_not_started"
+    },
+    "tuning_from_016": {
+      "base_iteration": "016",
+      "base_source_commit": "40de7271309359749a16e1f86ad37611e5742f83",
+      "initial_experiment_count": 1,
+      "hyperparameter_trials_used": 0,
+      "maximum": 5,
+      "planned_first_three": [
+        {
+          "lr": 5e-05
+        },
+        {
+          "lambda_sia": 1.5
+        },
+        {
+          "lambda_axis": 0.5
+        }
+      ],
+      "all_variants_start_from_base_config": true,
+      "status": "planned_not_started"
+    },
+    "tuning_from_015": {
+      "base_iteration": "015",
+      "base_source_commit": "2eee52c48fd9e700b16d03b92bd73bbdb23c4249",
+      "initial_experiment_count": 1,
+      "hyperparameter_trials_used": 0,
+      "maximum": 5,
+      "planned_first_three": [
+        {
+          "sia_rank_weight": 0.025
+        },
+        {
+          "sia_rank_weight": 0.05
+        },
+        {
+          "lr": 5e-05
+        }
+      ],
+      "all_variants_start_from_base_config": true,
+      "status": "planned_not_started"
+    },
+    "tuning_from_019": {
+      "base_iteration": "019",
+      "base_source_commit": "b04d597aa0865c6ba004f1726affa16495a1e884",
+      "initial_experiment_count": 1,
+      "hyperparameter_trials_used": 0,
+      "maximum": 5,
+      "planned_first_three": [
+        {
+          "image_gradient_weight": 0.0625
+        },
+        {
+          "image_gradient_weight": 0.125
+        },
+        {
+          "lr": 5e-05
+        }
+      ],
+      "all_variants_start_from_base_config": true,
+      "status": "planned_not_started"
+    },
+    "tuning_from_021": {
+      "base_iteration": "021",
+      "base_source_commit": "fdc4cc7ba1615ce1d8b4c983737d45cd93cba85a",
+      "initial_experiment_count": 1,
+      "hyperparameter_trials_used": 0,
+      "maximum": 5,
+      "planned_first_three": [
+        {
+          "lr": 5e-05
+        },
+        {
+          "lambda_sia": 1.5
+        },
+        {
+          "lambda_axis": 0.5
+        }
+      ],
+      "all_variants_start_from_base_config": true,
+      "status": "planned_not_started"
+    }
+  },
+  "pre026_tuning_review": {
+    "status": "planned_not_started",
+    "policy": "TUNING_POLICY_026.md",
+    "training_started": false
   }
 }

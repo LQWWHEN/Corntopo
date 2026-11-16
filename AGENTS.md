@@ -59,3 +59,5 @@ were cleaned. Its private report is complete and the task is paused.
 No iteration022 is authorized.
 
 2026-11-15新指令：用户明确要求“从022开始继续迭代任务”。长期迭代已恢复；此前021后暂停记录为历史状态。022已完成，后续各轮状态见公开索引和私有动态上下文。继续遵守既有协议、最多5轮方案预算及checkpoint清理规则。
+
+2026-11-16用户更新：研究方向尝试次数不限；每个具体方案（实验组）初始实验单列，最多5次超参数实验，同组学习率/损失权重变体共享预算。历史预算仅留档。历史过门槛且取得提升的方案也安排调参；PSNR、SSIM纳入正式筛选。026前回顾和计划见repo/fm_sia/research/TUNING_POLICY_026.md及私有tuning_review_pre026。当前不启动训练。
