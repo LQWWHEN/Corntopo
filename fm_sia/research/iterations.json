@@ -855,7 +855,8 @@
       "status": "running",
       "reserved_trials": [
         "016_1",
-        "016_2"
+        "016_2",
+        "016_3"
       ],
       "trials": [
         "016_1"
@@ -960,6 +961,24 @@
       "trial": 2,
       "change": {
         "lambda_sia": 1.5
+      },
+      "status": "preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "016_3",
+      "parent": "016",
+      "parent_source_commit": "40de7271309359749a16e1f86ad37611e5742f83",
+      "proposal": "TUNING_016_3.md",
+      "config": "configs/tuning/016_3.json",
+      "group": "tuning_from_016",
+      "trial": 3,
+      "change": {
+        "lambda_axis": 0.5
       },
       "status": "preregistered_not_started",
       "outputs": [
