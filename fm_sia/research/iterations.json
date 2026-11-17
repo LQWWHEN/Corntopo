@@ -934,7 +934,10 @@
         }
       ],
       "all_variants_start_from_base_config": true,
-      "status": "planned_not_started"
+      "status": "preregistered_not_started",
+      "reserved_trials": [
+        "015_1"
+      ]
     },
     "tuning_from_019": {
       "base_iteration": "019",
@@ -1494,6 +1497,24 @@
       "checkpoint_state": "cleaned",
       "group_closed": true,
       "checkpoint_files": 0
+    },
+    {
+      "id": "015_1",
+      "parent": "015",
+      "parent_source_commit": "2eee52c48fd9e700b16d03b92bd73bbdb23c4249",
+      "proposal": "TUNING_015_1.md",
+      "config": "configs/tuning/015_1.json",
+      "group": "tuning_from_015",
+      "trial": 1,
+      "change": {
+        "sia_rank_weight": 0.025
+      },
+      "status": "preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
     }
   ]
 }
