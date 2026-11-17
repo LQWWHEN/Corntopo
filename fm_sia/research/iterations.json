@@ -943,7 +943,7 @@
         }
       ],
       "all_variants_start_from_base_config": true,
-      "status": "selection_frozen_no_eligible_candidate",
+      "status": "completed",
       "reserved_trials": [
         "015_1",
         "015_2",
@@ -952,7 +952,9 @@
         "015_5"
       ],
       "group_closed": true,
-      "selected_id": null
+      "selected_id": null,
+      "remaining_checkpoints": 0,
+      "report_pages": 4
     },
     "tuning_from_019": {
       "base_iteration": "019",
@@ -1561,7 +1563,9 @@
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
       "validation_gate_passed": false,
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "015_2",
@@ -1587,7 +1591,9 @@
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
       "validation_gate_passed": false,
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "015_3",
@@ -1613,7 +1619,9 @@
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
       "validation_gate_passed": false,
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "009_1",
@@ -1704,7 +1712,9 @@
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
       "validation_gate_passed": false,
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "015_5",
@@ -1720,7 +1730,7 @@
         "sia_rank_weight": 0.025,
         "lr": 7.5e-05
       },
-      "status": "training",
+      "status": "completed_negative_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1731,7 +1741,11 @@
       "tests_passed": 244,
       "gpu_reload_metrics": 37,
       "test_evaluated": false,
-      "checkpoint_state": "temporary_during_training"
+      "checkpoint_state": "cleaned",
+      "validation_gate_passed": false,
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     }
   ]
 }
