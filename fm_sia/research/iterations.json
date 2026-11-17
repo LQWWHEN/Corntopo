@@ -984,7 +984,8 @@
       "status": "preregistered_not_started",
       "reserved_trials": [
         "019_1",
-        "019_2"
+        "019_2",
+        "019_3"
       ]
     },
     "tuning_from_021": {
@@ -1938,6 +1939,24 @@
       "trial": 2,
       "change": {
         "image_gradient_weight": 0.125
+      },
+      "status": "preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "019_3",
+      "parent": "019",
+      "parent_source_commit": "b04d597aa0865c6ba004f1726affa16495a1e884",
+      "proposal": "TUNING_019_3.md",
+      "config": "configs/tuning/019_3.json",
+      "group": "tuning_from_019",
+      "trial": 3,
+      "change": {
+        "lr": 5e-05
       },
       "status": "preregistered_not_started",
       "outputs": [
