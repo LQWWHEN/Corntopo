@@ -981,7 +981,10 @@
         }
       ],
       "all_variants_start_from_base_config": true,
-      "status": "planned_not_started"
+      "status": "preregistered_not_started",
+      "reserved_trials": [
+        "019_1"
+      ]
     },
     "tuning_from_021": {
       "base_iteration": "021",
@@ -1905,6 +1908,24 @@
       "tests_passed": 244,
       "gpu_reload_metrics": 37,
       "checkpoint_state": "temporary_during_training"
+    },
+    {
+      "id": "019_1",
+      "parent": "019",
+      "parent_source_commit": "b04d597aa0865c6ba004f1726affa16495a1e884",
+      "proposal": "TUNING_019_1.md",
+      "config": "configs/tuning/019_1.json",
+      "group": "tuning_from_019",
+      "trial": 1,
+      "change": {
+        "image_gradient_weight": 0.0625
+      },
+      "status": "preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
     }
   ]
 }
