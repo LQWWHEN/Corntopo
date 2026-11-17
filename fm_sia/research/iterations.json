@@ -779,7 +779,8 @@
       "all_variants_start_from_base_config": true,
       "status": "preregistered_not_started",
       "reserved_trials": [
-        "009_1"
+        "009_1",
+        "009_2"
       ]
     },
     "tuning_from_010": {
@@ -1609,6 +1610,27 @@
       "trial": 1,
       "change": {
         "lr": 5e-05
+      },
+      "operational_change": {
+        "save_checkpoints": true
+      },
+      "status": "preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "009_2",
+      "parent": "009",
+      "parent_source_commit": "9763c6f7fb7ca30f62e8b18b0e4f4c4c9af7abb7",
+      "proposal": "TUNING_009_2.md",
+      "config": "configs/tuning/009_2.json",
+      "group": "tuning_from_009",
+      "trial": 2,
+      "change": {
+        "lambda_sia": 1.5
       },
       "operational_change": {
         "save_checkpoints": true
