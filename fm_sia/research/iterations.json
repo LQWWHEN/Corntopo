@@ -936,7 +936,8 @@
       "all_variants_start_from_base_config": true,
       "status": "preregistered_not_started",
       "reserved_trials": [
-        "015_1"
+        "015_1",
+        "015_2"
       ]
     },
     "tuning_from_019": {
@@ -1508,6 +1509,24 @@
       "trial": 1,
       "change": {
         "sia_rank_weight": 0.025
+      },
+      "status": "preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "015_2",
+      "parent": "015",
+      "parent_source_commit": "2eee52c48fd9e700b16d03b92bd73bbdb23c4249",
+      "proposal": "TUNING_015_2.md",
+      "config": "configs/tuning/015_2.json",
+      "group": "tuning_from_015",
+      "trial": 2,
+      "change": {
+        "sia_rank_weight": 0.05
       },
       "status": "preregistered_not_started",
       "outputs": [
