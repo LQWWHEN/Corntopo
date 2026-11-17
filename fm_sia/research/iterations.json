@@ -768,7 +768,7 @@
       "base_iteration": "009",
       "base_source_commit": "8b5b1453efcab7b5c837bb1096cd9976897d1b92",
       "initial_experiment_count": 1,
-      "hyperparameter_trials_used": 1,
+      "hyperparameter_trials_used": 5,
       "maximum": 5,
       "planned_first_three": [
         {
@@ -782,14 +782,18 @@
         }
       ],
       "all_variants_start_from_base_config": true,
-      "status": "running",
+      "status": "completed",
       "reserved_trials": [
         "009_1",
         "009_2",
         "009_3",
         "009_4",
         "009_5"
-      ]
+      ],
+      "group_closed": true,
+      "selected_id": null,
+      "remaining_checkpoints": 0,
+      "report_pages": 4
     },
     "tuning_from_010": {
       "base_iteration": "010",
@@ -1662,7 +1666,9 @@
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
       "validation_gate_passed": false,
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "009_2",
@@ -1691,7 +1697,9 @@
       "audit": "PASS",
       "validation_gate_passed": false,
       "report_pages": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "009_3",
@@ -1720,7 +1728,9 @@
       "audit": "PASS",
       "validation_gate_passed": false,
       "report_pages": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "015_4",
@@ -1882,7 +1892,9 @@
       "audit": "PASS",
       "validation_gate_passed": false,
       "report_pages": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "009_5",
@@ -1913,7 +1925,9 @@
       "audit": "PASS",
       "validation_gate_passed": false,
       "report_pages": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "019_1",
