@@ -1015,7 +1015,8 @@
       "all_variants_start_from_base_config": true,
       "status": "preregistered_not_started",
       "reserved_trials": [
-        "021_1"
+        "021_1",
+        "021_2"
       ]
     }
   },
@@ -2004,6 +2005,24 @@
       "trial": 1,
       "change": {
         "lr": 5e-05
+      },
+      "status": "preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "021_2",
+      "parent": "021",
+      "parent_source_commit": "fdc4cc7ba1615ce1d8b4c983737d45cd93cba85a",
+      "proposal": "TUNING_021_2.md",
+      "config": "configs/tuning/021_2.json",
+      "group": "tuning_from_021",
+      "trial": 2,
+      "change": {
+        "lambda_sia": 1.5
       },
       "status": "preregistered_not_started",
       "outputs": [
