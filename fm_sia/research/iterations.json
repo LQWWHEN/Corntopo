@@ -797,12 +797,16 @@
         }
       ],
       "all_variants_start_from_base_config": true,
-      "status": "running",
+      "status": "completed",
       "reserved_trials": [
         "010_1",
         "010_2",
         "010_3"
-      ]
+      ],
+      "group_closed": true,
+      "selected_id": null,
+      "remaining_checkpoints": 0,
+      "report_pages": 4
     },
     "tuning_from_012": {
       "base_iteration": "012",
@@ -1397,7 +1401,9 @@
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
       "validation_gate_passed": false,
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "010_2",
@@ -1426,7 +1432,9 @@
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
       "validation_gate_passed": false,
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "010_3",
@@ -1455,7 +1463,9 @@
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
       "validation_gate_passed": false,
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "012_4",

@@ -8,5 +8,8 @@
   "decision_sha256": "67cb2f1b8236becd60833f5974a08b143daccced070b1019d8d96eebacc6f3ef",
   "test_status": "NOT_EVALUATED_NO_ELIGIBLE_CANDIDATE",
   "policy": "TUNING_POLICY_026.md",
-  "note": "All three validation trials failed joint eligibility and complete near-threshold criteria; close without fourth/fifth trial or test"
+  "note": "All three validation trials failed joint eligibility and complete near-threshold criteria; close without fourth/fifth trial or test",
+  "checkpoint_state": "all_group_checkpoints_cleaned",
+  "report": "TUNING_GROUP_010.md",
+  "outcome": "No eligible or near-threshold candidate after three trials; no test"
 }
