@@ -1637,7 +1637,7 @@
       "operational_change": {
         "save_checkpoints": true
       },
-      "status": "training",
+      "status": "completed_negative_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1648,7 +1648,9 @@
       "tests_passed": 244,
       "gpu_reload_metrics": 37,
       "test_evaluated": false,
-      "checkpoint_state": "temporary_during_training"
+      "checkpoint_state": "cleaned",
+      "validation_gate_passed": false,
+      "report_pages": 5
     },
     {
       "id": "009_2",
@@ -1664,12 +1666,16 @@
       "operational_change": {
         "save_checkpoints": true
       },
-      "status": "preregistered_not_started",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
         "SIA_axis"
-      ]
+      ],
+      "source_commit": "3e6618cfd8df22b5fa2ffd4ccb9c950cd71cd678",
+      "tests_passed": 244,
+      "gpu_reload_metrics": 37,
+      "checkpoint_state": "temporary_training"
     },
     {
       "id": "009_3",
