@@ -826,7 +826,9 @@
       "reserved_trials": [
         "012_1",
         "012_2",
-        "012_3"
+        "012_3",
+        "012_4",
+        "012_5"
       ],
       "trials": [
         "012_1",
@@ -1275,7 +1277,7 @@
       "change": {
         "lambda_axis": 0.5
       },
-      "status": "training",
+      "status": "completed_negative_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1283,7 +1285,12 @@
       ],
       "source_commit": "de0569a71dcf6d545a50f9bef6fdbae473874388",
       "tests_passed": 244,
-      "validation_reload_metrics_compared": 37
+      "validation_reload_metrics_compared": 37,
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "report_pages": 5,
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "020_4",
@@ -1403,6 +1410,47 @@
         "save_checkpoints": true
       },
       "status": "preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "012_4",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "configuration_parent": "012_3",
+      "configuration_parent_source_commit": "de0569a71dcf6d545a50f9bef6fdbae473874388",
+      "proposal": "TUNING_012_4.md",
+      "config": "configs/tuning/012_4.json",
+      "group": "tuning_from_012",
+      "trial": 4,
+      "change": {
+        "lambda_axis": 0.75
+      },
+      "status": "adaptive_preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "012_5",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "configuration_parent": "012_3",
+      "configuration_parent_source_commit": "de0569a71dcf6d545a50f9bef6fdbae473874388",
+      "proposal": "TUNING_012_5.md",
+      "config": "configs/tuning/012_5.json",
+      "group": "tuning_from_012",
+      "trial": 5,
+      "change": {
+        "lambda_axis": 0.5,
+        "lr": 7.5e-05
+      },
+      "status": "adaptive_preregistered_not_started",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
