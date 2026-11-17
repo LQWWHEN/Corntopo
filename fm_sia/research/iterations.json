@@ -943,14 +943,16 @@
         }
       ],
       "all_variants_start_from_base_config": true,
-      "status": "running",
+      "status": "selection_frozen_no_eligible_candidate",
       "reserved_trials": [
         "015_1",
         "015_2",
         "015_3",
         "015_4",
         "015_5"
-      ]
+      ],
+      "group_closed": true,
+      "selected_id": null
     },
     "tuning_from_019": {
       "base_iteration": "019",
