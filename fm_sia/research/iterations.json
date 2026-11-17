@@ -808,7 +808,7 @@
       "base_iteration": "012",
       "base_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "initial_experiment_count": 1,
-      "hyperparameter_trials_used": 4,
+      "hyperparameter_trials_used": 5,
       "maximum": 5,
       "planned_first_three": [
         {
@@ -834,7 +834,8 @@
         "012_1",
         "012_2",
         "012_3",
-        "012_4"
+        "012_4",
+        "012_5"
       ]
     },
     "tuning_from_020": {
@@ -1430,7 +1431,7 @@
       "change": {
         "lambda_axis": 0.75
       },
-      "status": "training",
+      "status": "completed_negative_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1438,7 +1439,12 @@
       ],
       "source_commit": "a11125bcf39679b0063f2fae35cf215a4a79781f",
       "tests_passed": 244,
-      "validation_reload_metrics_compared": 37
+      "validation_reload_metrics_compared": 37,
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "report_pages": 5,
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "012_5",
@@ -1454,12 +1460,15 @@
         "lambda_axis": 0.5,
         "lr": 7.5e-05
       },
-      "status": "adaptive_preregistered_not_started",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
         "SIA_axis"
-      ]
+      ],
+      "source_commit": "68096cf6b72ad6ea6549246d4df830ae80bbe53d",
+      "tests_passed": 244,
+      "validation_reload_metrics_compared": 37
     }
   ]
 }
