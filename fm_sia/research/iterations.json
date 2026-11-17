@@ -777,7 +777,10 @@
         }
       ],
       "all_variants_start_from_base_config": true,
-      "status": "planned_not_started"
+      "status": "preregistered_not_started",
+      "reserved_trials": [
+        "009_1"
+      ]
     },
     "tuning_from_010": {
       "base_iteration": "010",
@@ -1588,6 +1591,27 @@
       "trial": 3,
       "change": {
         "lr": 5e-05
+      },
+      "status": "preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "009_1",
+      "parent": "009",
+      "parent_source_commit": "9763c6f7fb7ca30f62e8b18b0e4f4c4c9af7abb7",
+      "proposal": "TUNING_009_1.md",
+      "config": "configs/tuning/009_1.json",
+      "group": "tuning_from_009",
+      "trial": 1,
+      "change": {
+        "lr": 5e-05
+      },
+      "operational_change": {
+        "save_checkpoints": true
       },
       "status": "preregistered_not_started",
       "outputs": [
