@@ -743,7 +743,7 @@
       "base_iteration": "005",
       "base_source_commit": "8da6116491a8fccfe324bdf6d61e98a051173ae1",
       "initial_experiment_count": 1,
-      "hyperparameter_trials_used": 0,
+      "hyperparameter_trials_used": 1,
       "maximum": 5,
       "planned_first_three": [
         {
@@ -757,11 +757,14 @@
         }
       ],
       "all_variants_start_from_base_config": true,
-      "status": "preregistered_not_started",
+      "status": "running",
       "reserved_trials": [
         "005_1",
         "005_2",
         "005_3"
+      ],
+      "trials": [
+        "005_1"
       ]
     },
     "tuning_from_009": {
@@ -1809,12 +1812,17 @@
         "save_checkpoints": true,
         "validation_only": true
       },
-      "status": "preregistered_not_started",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
         "SIA_axis"
-      ]
+      ],
+      "source_commit": "e787efdb8bfc2ee5f16845e7831202bf8ceac333",
+      "tests_passed": 244,
+      "gpu_reload_metrics": 37,
+      "checkpoint_state": "temporary_during_training",
+      "test_evaluated": false
     },
     {
       "id": "005_2",
