@@ -13,7 +13,7 @@ def decode_polar(raw):
     return vector, magnitude, phase
 
 
-def periodic_axis_loss(phase, target, minimum_magnitude, arc_distance=False):
+def periodic_axis_loss(phase, target, minimum_magnitude, arc_distance=False, reliability_scale=0.):
     magnitude = target.norm(dim=-1)
     valid = (magnitude >= minimum_magnitude) & (magnitude > 1e-8)
     target_phase = torch.atan2(target[:, 1], target[:, 0])
@@ -23,7 +23,13 @@ def periodic_axis_loss(phase, target, minimum_magnitude, arc_distance=False):
         error = torch.atan2(delta.sin(), delta.cos()).abs() * (2 / math.pi)
     else:
         error = 1 - torch.cos(delta)
-    return error[valid].mean() if valid.any() else phase.sum()*0
+    if not valid.any():
+        return phase.sum()*0
+    if reliability_scale:
+        stable = magnitude[valid].clamp(max=reliability_scale)
+        weights = (stable / stable.max()).square()
+        return (weights * error[valid]).sum() / weights.sum()
+    return error[valid].mean()
 
 
 def radial_quartiles(median, offsets):
@@ -42,13 +48,15 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
     def __init__(self, *args, initial_magnitude, initial_phase, lambda_axis=1.,
                  axis_min_magnitude=.1, rank_weight=0., rank_temperature=.2,
                  image_gradient_weight=0., axis_gradient_projection=False,
-                 learned_axis_concentration=False, axis_arc_distance=False, quartile_weight=0., **kwargs):
+                 learned_axis_concentration=False, axis_arc_distance=False, quartile_weight=0.,
+                 axis_reliability_scale=0., **kwargs):
         super().__init__(*args, **kwargs)
         if (not all(math.isfinite(v) for v in (initial_magnitude, initial_phase, lambda_axis, axis_min_magnitude))
                 or initial_magnitude < 0 or lambda_axis <= 0 or axis_min_magnitude < 0):
             raise ValueError('Invalid polar initialization or axis objective')
         self.lambda_axis = lambda_axis
         self.axis_arc_distance = axis_arc_distance
+        self.axis_reliability_scale = axis_reliability_scale
         self.quartile_weight = quartile_weight
         self.quartile_head = None
         if quartile_weight:
@@ -115,7 +123,8 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
             auxiliary = quartile_loss(quartiles / self.sia_ref, target.norm(dim=-1) / self.sia_ref)
             extra_logs.update(loss_radial_median=magnitude_loss, loss_radial_quartiles=auxiliary)
             magnitude_loss = magnitude_loss + self.quartile_weight * auxiliary
-        axis_loss = periodic_axis_loss(phase, target, self.axis_min_magnitude, self.axis_arc_distance)
+        axis_loss = periodic_axis_loss(phase, target, self.axis_min_magnitude, self.axis_arc_distance,
+                                       self.axis_reliability_scale)
         if self.axis_concentration_head is not None:
             from model.axis_concentration import concentration_axis_loss
             concentration = self.axis_concentration_head(hidden)

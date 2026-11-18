@@ -165,19 +165,26 @@ def get_args(argv=None):
                    help='Use normalized shortest doubled-phase arc distance for stable axes')
     p.add_argument('--sia_quartile_weight', type=float, default=0.,
                    help='Weight of ordered lower/upper magnitude quartile supervision')
+    p.add_argument('--axis_reliability_scale', type=float, default=0.,
+                   help='Saturation magnitude in D for squared stable-axis supervision weights')
     args = p.parse_args(argv)
     check_args(args)
     return args
 
 
 def check_args(a):
+    if not math.isfinite(a.axis_reliability_scale) or a.axis_reliability_scale < 0:
+        raise ValueError('Axis reliability scale must be finite and nonnegative')
+    if a.axis_reliability_scale and (a.sia_axis_arc_distance or a.sia_quartile_weight or
+            a.sia_learned_axis_concentration or a.axis_reliability_scale <= a.axis_loss_min_magnitude):
+        raise ValueError('Reliability weighting requires the parent objective and a scale above the stability cutoff')
     if not math.isfinite(a.sia_quartile_weight) or a.sia_quartile_weight < 0:
         raise ValueError('Magnitude quartile weight must be finite and nonnegative')
     if a.sia_quartile_weight and (a.sia_axis_arc_distance or a.sia_learned_axis_concentration):
         raise ValueError('The quartile experiment uses the parent cosine axis objective')
     if a.sia_axis_arc_distance and a.sia_learned_axis_concentration:
         raise ValueError('Choose a single axis objective')
-    if (a.sia_learned_axis_concentration or a.sia_axis_arc_distance or a.sia_quartile_weight) and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
+    if (a.sia_learned_axis_concentration or a.sia_axis_arc_distance or a.sia_quartile_weight or a.axis_reliability_scale) and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
             or a.image_backbone != 'fno' or a.eye_frame != 'native' or a.sia_feature_fusion != 'lab'
             or a.sia_split_hidden or a.sia_axis_gradient_projection or a.sia_clinical_moments
             or a.sia_radial_contrast or a.sia_velocity_coupling or a.sia_spatial_conditioning
@@ -450,6 +457,7 @@ def build_model(args, stats=None):
                 learned_axis_concentration=getattr(args, 'sia_learned_axis_concentration', False),
                 axis_arc_distance=getattr(args, 'sia_axis_arc_distance', False),
                 quartile_weight=getattr(args, 'sia_quartile_weight', 0.),
+                axis_reliability_scale=getattr(args, 'axis_reliability_scale', 0.),
                 rank_weight=getattr(args, 'sia_rank_weight', 0.),
                 image_gradient_weight=getattr(args, 'image_gradient_weight', 0.),
                 rank_temperature=getattr(args, 'sia_rank_temperature', .2), **coupling_args)
@@ -518,7 +526,7 @@ def make_loader(dataset, args, device, shuffle=False, generator=None):
 
 def saved_config_value(config, key):
     """Recover historical defaults for checkpoints without newer options."""
-    if key == 'sia_quartile_weight' and key not in config:
+    if key in ('sia_quartile_weight', 'axis_reliability_scale') and key not in config:
         return 0.
     if key in ('sia_learned_axis_concentration', 'sia_axis_arc_distance') and key not in config:
         return False
@@ -780,6 +788,7 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             sia_learned_axis_concentration=getattr(args, 'sia_learned_axis_concentration', False),
             sia_axis_arc_distance=getattr(args, 'sia_axis_arc_distance', False),
             sia_quartile_weight=getattr(args, 'sia_quartile_weight', 0.),
+            axis_reliability_scale=getattr(args, 'axis_reliability_scale', 0.),
             axis_protocol=dict(period_degrees=180, zero_epsilon_D=1e-8, stable_gt_threshold_D=.1,
                 undefined_prediction_penalty_degrees=90, vector_for_axis='mean predicted physical vector'),
             SIA_point_estimator=('deterministic preoperative-velocity-coupled magnitude/phase vector head' if getattr(args, 'sia_velocity_coupling', False)
