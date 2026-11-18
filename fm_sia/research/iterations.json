@@ -1029,7 +1029,9 @@
       "reserved_trials": [
         "021_1",
         "021_2",
-        "021_3"
+        "021_3",
+        "021_4",
+        "021_5"
       ],
       "group_closed": false
     }
@@ -2127,7 +2129,7 @@
       "change": {
         "lambda_axis": 0.5
       },
-      "status": "training",
+      "status": "completed_negative_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -2137,7 +2139,10 @@
       "tests_passed": 244,
       "gpu_reload_metrics": 37,
       "test_evaluated": false,
-      "checkpoint_state": "temporary_during_training"
+      "checkpoint_state": "cleaned",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "report_pages": 5
     },
     {
       "id": "019_4",
@@ -2199,6 +2204,47 @@
       "report_pages": 5,
       "group_closed": true,
       "checkpoint_files": 0
+    },
+    {
+      "id": "021_4",
+      "parent": "021",
+      "parent_source_commit": "fdc4cc7ba1615ce1d8b4c983737d45cd93cba85a",
+      "configuration_parent": "021_2",
+      "configuration_parent_source_commit": "3808ac71e7f28ce06336d9e6ad6e4218d081ed4a",
+      "proposal": "TUNING_021_4.md",
+      "config": "configs/tuning/021_4.json",
+      "group": "tuning_from_021",
+      "trial": 4,
+      "change": {
+        "lambda_sia": 2.0
+      },
+      "status": "adaptive_preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "021_5",
+      "parent": "021",
+      "parent_source_commit": "fdc4cc7ba1615ce1d8b4c983737d45cd93cba85a",
+      "configuration_parent": "021_2",
+      "configuration_parent_source_commit": "3808ac71e7f28ce06336d9e6ad6e4218d081ed4a",
+      "proposal": "TUNING_021_5.md",
+      "config": "configs/tuning/021_5.json",
+      "group": "tuning_from_021",
+      "trial": 5,
+      "change": {
+        "lambda_sia": 1.5,
+        "lambda_axis": 1.25
+      },
+      "status": "adaptive_preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
     }
   ]
 }
