@@ -980,7 +980,7 @@
       "base_iteration": "019",
       "base_source_commit": "b04d597aa0865c6ba004f1726affa16495a1e884",
       "initial_experiment_count": 1,
-      "hyperparameter_trials_used": 3,
+      "hyperparameter_trials_used": 4,
       "maximum": 5,
       "planned_first_three": [
         {
@@ -2121,12 +2121,17 @@
       "change": {
         "image_gradient_weight": 0.03125
       },
-      "status": "adaptive_preregistered_not_started",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
         "SIA_axis"
-      ]
+      ],
+      "source_commit": "e6fdeca7f9b102fd962886c8879582cc55d982f0",
+      "tests_passed": 244,
+      "gpu_reload_metrics": 37,
+      "test_evaluated": false,
+      "checkpoint_state": "temporary_during_training"
     },
     {
       "id": "019_5",
