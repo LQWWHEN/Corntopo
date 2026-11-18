@@ -2275,5 +2275,7 @@
       "group_closed": true,
       "checkpoint_files": 0
     }
-  ]
+  ],
+  "campaign_status": "paused_before_iteration026_by_user",
+  "latest_user_scope": "2026-11-18: summarize completed supplemental tuning and pause before026; resume requires a new request"
 }
