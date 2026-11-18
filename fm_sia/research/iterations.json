@@ -529,6 +529,24 @@
       "checkpoint_cleanup": "PASS",
       "validation_reload_metrics_compared": 37,
       "parameter_real_dofs": 31225412
+    },
+    {
+      "id": "026",
+      "proposal": "ITERATION_026.md",
+      "config": "configs/iteration026.json",
+      "proposal_id": "stable_axis_arc_distance",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "change": "Normalized shortest-arc loss for stable doubled-angle targets",
+      "status": "implemented_pretraining_audit",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -2276,6 +2294,6 @@
       "checkpoint_files": 0
     }
   ],
-  "campaign_status": "paused_before_iteration026_by_user",
-  "latest_user_scope": "2026-11-18: summarize completed supplemental tuning and pause before026; resume requires a new request"
+  "campaign_status": "active_iteration026_pretraining",
+  "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }

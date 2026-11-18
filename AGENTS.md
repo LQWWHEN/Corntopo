@@ -23,7 +23,7 @@ engineering checks. Keep metrics, predictions, plots, logs, configs, commits and
 Do not save a disguised weight snapshot in an archive or other extension.
 
 Keep the frozen first 3 of 10 patient folds, 200 epochs, no EMA, and the existing
-data-quality policy unless the user changes them. Inspect training at 30-minute
+data-quality policy unless the user changes them. Inspect training at 60-minute
 intervals. The latest user budget is at most 5 tuning trials per concrete
 improvement proposal, not a cap on an entire broad direction. Keep cumulative
 direction counts for history. Related hyperparameter variants of the same
@@ -67,3 +67,5 @@ No iteration022 is authorized.
 2026-11-16命名更新：超参数实验采用基础方案编号加组内序号，如016_1、016_2；与新方案迭代编号分开。当前授权开始补充超参数实验，完成后继续长期迭代；026保留给下一新方案。每实验组最多5次调参，方向不限。
 
 2026-11-18最新用户指令：汇总本批补充超参数实验，先不要开始026。九组共41次调参已完成，所有组关闭、无活动训练且实验权重清零；当前暂停于026之前。此前“继续026”的计划暂不执行，须用户新指令恢复。
+
+2026-11-19：用户恢复长期迭代，从026继续；每60分钟检查训练。每轮指标表逐指标最优加粗、次优加下划线。

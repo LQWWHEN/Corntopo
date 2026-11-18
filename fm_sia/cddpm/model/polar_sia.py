@@ -13,11 +13,16 @@ def decode_polar(raw):
     return vector, magnitude, phase
 
 
-def periodic_axis_loss(phase, target, minimum_magnitude):
+def periodic_axis_loss(phase, target, minimum_magnitude, arc_distance=False):
     magnitude = target.norm(dim=-1)
     valid = (magnitude >= minimum_magnitude) & (magnitude > 1e-8)
     target_phase = torch.atan2(target[:, 1], target[:, 0])
-    error = 1 - torch.cos(phase - target_phase)
+    delta = phase - target_phase
+    if arc_distance:
+        # Match the cosine loss range [0, 2] on the shortest doubled-phase arc.
+        error = torch.atan2(delta.sin(), delta.cos()).abs() * (2 / math.pi)
+    else:
+        error = 1 - torch.cos(delta)
     return error[valid].mean() if valid.any() else phase.sum()*0
 
 
@@ -25,12 +30,13 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
     def __init__(self, *args, initial_magnitude, initial_phase, lambda_axis=1.,
                  axis_min_magnitude=.1, rank_weight=0., rank_temperature=.2,
                  image_gradient_weight=0., axis_gradient_projection=False,
-                 learned_axis_concentration=False, **kwargs):
+                 learned_axis_concentration=False, axis_arc_distance=False, **kwargs):
         super().__init__(*args, **kwargs)
         if (not all(math.isfinite(v) for v in (initial_magnitude, initial_phase, lambda_axis, axis_min_magnitude))
                 or initial_magnitude < 0 or lambda_axis <= 0 or axis_min_magnitude < 0):
             raise ValueError('Invalid polar initialization or axis objective')
         self.lambda_axis = lambda_axis
+        self.axis_arc_distance = axis_arc_distance
         self.axis_gradient_projection = axis_gradient_projection
         self.axis_min_magnitude = axis_min_magnitude
         if not math.isfinite(image_gradient_weight) or image_gradient_weight < 0:
@@ -84,7 +90,7 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
             image_loss = image_loss+self.image_gradient_weight*gradient_loss
             extra_logs['loss_image_gradient'] = gradient_loss
         magnitude_loss = F.l1_loss(magnitude/self.sia_ref, target.norm(dim=-1)/self.sia_ref)
-        axis_loss = periodic_axis_loss(phase, target, self.axis_min_magnitude)
+        axis_loss = periodic_axis_loss(phase, target, self.axis_min_magnitude, self.axis_arc_distance)
         if self.axis_concentration_head is not None:
             from model.axis_concentration import concentration_axis_loss
             concentration = self.axis_concentration_head(hidden)
