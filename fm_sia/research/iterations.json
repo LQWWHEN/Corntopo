@@ -980,7 +980,7 @@
       "base_iteration": "019",
       "base_source_commit": "b04d597aa0865c6ba004f1726affa16495a1e884",
       "initial_experiment_count": 1,
-      "hyperparameter_trials_used": 2,
+      "hyperparameter_trials_used": 3,
       "maximum": 5,
       "planned_first_three": [
         {
@@ -2011,7 +2011,7 @@
       "change": {
         "image_gradient_weight": 0.125
       },
-      "status": "training",
+      "status": "completed_negative_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -2021,7 +2021,10 @@
       "tests_passed": 244,
       "gpu_reload_metrics": 37,
       "test_evaluated": false,
-      "checkpoint_state": "temporary_during_training"
+      "checkpoint_state": "cleaned",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "report_pages": 5
     },
     {
       "id": "019_3",
@@ -2034,12 +2037,17 @@
       "change": {
         "lr": 5e-05
       },
-      "status": "preregistered_not_started",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
         "SIA_axis"
-      ]
+      ],
+      "source_commit": "9320947063d3b9a0c04b81e5801224931dd3d03a",
+      "tests_passed": 244,
+      "gpu_reload_metrics": 37,
+      "test_evaluated": false,
+      "checkpoint_state": "temporary_during_training"
     },
     {
       "id": "021_1",
