@@ -1,0 +1,12 @@
+{
+  "group": "tuning_from_021",
+  "group_closed": true,
+  "trial_count": 5,
+  "selected_id": null,
+  "eligible_trials": [],
+  "selection_partition": "validation",
+  "decision_sha256": "0428007fdc3f5bca17f417702949b1cebf822f6ad7ff587d86eea7aa6f566b16",
+  "test_status": "NOT_EVALUATED_NO_ELIGIBLE_CANDIDATE",
+  "policy": "TUNING_POLICY_026.md",
+  "note": "All five validation trials failed joint eligibility; no test; five-trial budget exhausted"
+}
