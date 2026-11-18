@@ -743,7 +743,7 @@
       "base_iteration": "005",
       "base_source_commit": "8da6116491a8fccfe324bdf6d61e98a051173ae1",
       "initial_experiment_count": 1,
-      "hyperparameter_trials_used": 2,
+      "hyperparameter_trials_used": 3,
       "maximum": 5,
       "planned_first_three": [
         {
@@ -765,7 +765,8 @@
       ],
       "trials": [
         "005_1",
-        "005_2"
+        "005_2",
+        "005_3"
       ]
     },
     "tuning_from_009": {
@@ -1849,7 +1850,7 @@
         "save_checkpoints": true,
         "validation_only": true
       },
-      "status": "training",
+      "status": "completed_negative_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1858,8 +1859,11 @@
       "source_commit": "ee50759795417037014a439bd61f7c89dda73016",
       "tests_passed": 244,
       "gpu_reload_metrics": 37,
-      "checkpoint_state": "temporary_during_training",
-      "test_evaluated": false
+      "checkpoint_state": "cleaned",
+      "test_evaluated": false,
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "report_pages": 5
     },
     {
       "id": "005_3",
@@ -1877,12 +1881,17 @@
         "save_checkpoints": true,
         "validation_only": true
       },
-      "status": "preregistered_not_started",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
         "SIA_axis"
-      ]
+      ],
+      "source_commit": "f57767362f87b91883067809a9aa95d500acfd77",
+      "tests_passed": 244,
+      "gpu_reload_metrics": 37,
+      "checkpoint_state": "temporary_during_training",
+      "test_evaluated": false
     },
     {
       "id": "009_4",
