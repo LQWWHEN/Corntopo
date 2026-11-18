@@ -558,6 +558,25 @@
       "checkpoint_files": 0,
       "checkpoint_cleanup": "PASS",
       "report_pages": 4
+    },
+    {
+      "id": "027",
+      "rank_initial_with_tuning": true,
+      "proposal": "ITERATION_027.md",
+      "config": "configs/iteration027.json",
+      "proposal_id": "omit_tabular_kmax",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "change": "Remove the tabular Kmax input while retaining the full preoperative FRONT map",
+      "status": "registered_before_formal_training",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -2305,6 +2324,6 @@
       "checkpoint_files": 0
     }
   ],
-  "campaign_status": "ongoing_after_026",
+  "campaign_status": "ongoing_iteration027",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
