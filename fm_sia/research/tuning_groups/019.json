@@ -8,5 +8,8 @@
   "decision_sha256": "5d149c648ef160cfd8f9a7132fd811571c4768fa69942be5f16c5223581a8ce6",
   "test_status": "NOT_EVALUATED_NO_ELIGIBLE_CANDIDATE",
   "policy": "TUNING_POLICY_026.md",
-  "note": "All five validation trials failed joint eligibility; no test; five-trial budget exhausted"
+  "note": "All five validation trials failed joint eligibility; no test; five-trial budget exhausted",
+  "checkpoint_state": "all_group_checkpoints_cleaned",
+  "report": "TUNING_GROUP_019.md",
+  "outcome": "No joint eligible candidate after five validation trials; no test"
 }
