@@ -539,7 +539,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Normalized shortest-arc loss for stable doubled-angle targets",
-      "status": "local_engineering_audit_passed_before_formal_training",
+      "status": "completed_negative_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -551,7 +551,13 @@
       "source_commit": "037ec21a692c8857c41dca1a7ae09b66969fa9eb",
       "local_fm_tests_passed": 242,
       "local_cgan_tests_passed": 19,
-      "local_smoke_reload_metrics": 37
+      "local_smoke_reload_metrics": 37,
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "group_closed": true,
+      "checkpoint_files": 0,
+      "checkpoint_cleanup": "PASS",
+      "report_pages": 4
     }
   ],
   "artifact_policy": {
@@ -2299,6 +2305,6 @@
       "checkpoint_files": 0
     }
   ],
-  "campaign_status": "active_iteration026_pretraining",
+  "campaign_status": "ongoing_after_026",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
