@@ -1,0 +1,12 @@
+{
+  "group": "tuning_from_005",
+  "group_closed": true,
+  "trial_count": 3,
+  "selected_id": null,
+  "eligible_trials": [],
+  "selection_partition": "validation",
+  "decision_sha256": "f519646876ad3c60d7fc02531b9d82163c3dfb470a3556fd7c760ff00daec437",
+  "test_status": "NOT_EVALUATED_NO_ELIGIBLE_CANDIDATE",
+  "policy": "TUNING_POLICY_026.md",
+  "note": "All three validation trials failed joint eligibility and complete near-threshold criteria; close without fourth/fifth trial or test"
+}
