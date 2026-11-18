@@ -594,7 +594,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Ordered lower and upper magnitude quartiles supervised with pinball loss",
-      "status": "implemented_targeted_audit_passed",
+      "status": "completed_negative_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -602,7 +602,14 @@
       ],
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "c23fb8cce68dd130ef280134e87e2514cf49fce5",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "group_closed": true,
+      "checkpoint_files": 0,
+      "checkpoint_cleanup": "PASS",
+      "report_pages": 4
     }
   ],
   "artifact_policy": {
@@ -2350,6 +2357,6 @@
       "checkpoint_files": 0
     }
   ],
-  "campaign_status": "ongoing_iteration028",
+  "campaign_status": "ongoing_after_028",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
