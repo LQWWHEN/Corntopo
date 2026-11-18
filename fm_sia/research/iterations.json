@@ -620,7 +620,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Normalized capped squared target magnitude weights in stable-axis cosine loss",
-      "status": "implemented_targeted_audit_passed",
+      "status": "near_validation_qualified_for_tuning",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -628,7 +628,12 @@
       ],
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "151c2455918daed57a9d9cf9b1b31951623c15cb",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "checkpoint_files": 0,
+      "checkpoint_cleanup": "PASS"
     }
   ],
   "artifact_policy": {
@@ -1137,6 +1142,29 @@
       "selected_id": null,
       "remaining_checkpoints": 0,
       "report_pages": 4
+    },
+    "tuning_from_029": {
+      "parent_id": "029",
+      "parent_source_commit": "151c2455918daed57a9d9cf9b1b31951623c15cb",
+      "planned_first_three": [
+        {
+          "lambda_sia": 1.25
+        },
+        {
+          "axis_reliability_scale": 0.2
+        },
+        {
+          "axis_reliability_scale": 0.4
+        }
+      ],
+      "maximum": 5,
+      "hyperparameter_trials_used": 0,
+      "status": "preregistered",
+      "reserved_trials": [
+        "029_1",
+        "029_2",
+        "029_3"
+      ]
     }
   },
   "pre026_tuning_review": {
@@ -2374,8 +2402,62 @@
       "report_pages": 5,
       "group_closed": true,
       "checkpoint_files": 0
+    },
+    {
+      "id": "029_1",
+      "parent": "029",
+      "parent_source_commit": "151c2455918daed57a9d9cf9b1b31951623c15cb",
+      "proposal": "TUNING_029_1.md",
+      "config": "configs/tuning/029_1.json",
+      "group": "tuning_from_029",
+      "trial": 1,
+      "change": {
+        "lambda_sia": 1.25
+      },
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "029_2",
+      "parent": "029",
+      "parent_source_commit": "151c2455918daed57a9d9cf9b1b31951623c15cb",
+      "proposal": "TUNING_029_2.md",
+      "config": "configs/tuning/029_2.json",
+      "group": "tuning_from_029",
+      "trial": 2,
+      "change": {
+        "axis_reliability_scale": 0.2
+      },
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "029_3",
+      "parent": "029",
+      "parent_source_commit": "151c2455918daed57a9d9cf9b1b31951623c15cb",
+      "proposal": "TUNING_029_3.md",
+      "config": "configs/tuning/029_3.json",
+      "group": "tuning_from_029",
+      "trial": 3,
+      "change": {
+        "axis_reliability_scale": 0.4
+      },
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
     }
   ],
-  "campaign_status": "ongoing_iteration029",
+  "campaign_status": "ongoing_tuning_029",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
