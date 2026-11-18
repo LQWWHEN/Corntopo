@@ -532,6 +532,7 @@
     },
     {
       "id": "026",
+      "rank_initial_with_tuning": true,
       "proposal": "ITERATION_026.md",
       "config": "configs/iteration026.json",
       "proposal_id": "stable_axis_arc_distance",

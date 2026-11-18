@@ -34,3 +34,17 @@ def test_group_ties_use_preregistered_order():
 
 def test_nonfinite_metrics_rejected():
     with pytest.raises(ValueError): trial(1, PSNR=float('nan'))
+
+def test_initial_trial_competes_after_five_tuning_trials():
+    candidates = [trial(n, PSNR=32.06) for n in range(1, 6)]
+    result = module.select_group(candidates + [trial(0, PSNR=32.08)], True)
+    assert result['selected_trial'] == 0
+    assert result['ordered_trials'] == list(range(6))
+    result = module.select_group(candidates + [trial(0)], True)
+    assert result['selected_trial'] == 1
+    assert 0 not in result['ranks']
+
+@pytest.mark.parametrize('numbers', [[0, 1, 2], [0, 0, 1, 2, 3], [1, 2, 3, 4, 5, 6]])
+def test_initial_trial_is_separate_from_tuning_budget(numbers):
+    with pytest.raises(ValueError):
+        module.select_group([trial(n) for n in numbers], True)

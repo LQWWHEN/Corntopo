@@ -23,8 +23,10 @@ def select_group(trials, group_closed=False):
     """Rank eligible completed trials; a caller must explicitly close the group."""
     if not group_closed:
         raise ValueError('Finish and freeze the group before test selection')
-    if not 3 <= len(trials) <= 5 or len({t['trial'] for t in trials}) != len(trials):
-        raise ValueError('Expected three to five distinct registered trials')
+    numbers = [t['trial'] for t in trials]
+    tuning_count = len(numbers) - numbers.count(0)  # Zero denotes the initial experiment.
+    if not 3 <= tuning_count <= 5 or len(set(numbers)) != len(numbers):
+        raise ValueError('Expected three to five tuning trials and at most one initial experiment')
     if any(t['audit'] != 'PASS' for t in trials):
         raise ValueError('Every trial needs a completed validation audit')
     eligible = [t for t in trials if t['eligible_for_group_selection']]
