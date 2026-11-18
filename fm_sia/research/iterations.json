@@ -998,7 +998,9 @@
       "reserved_trials": [
         "019_1",
         "019_2",
-        "019_3"
+        "019_3",
+        "019_4",
+        "019_5"
       ],
       "group_closed": false
     },
@@ -2037,7 +2039,7 @@
       "change": {
         "lr": 5e-05
       },
-      "status": "training",
+      "status": "completed_negative_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -2047,7 +2049,10 @@
       "tests_passed": 244,
       "gpu_reload_metrics": 37,
       "test_evaluated": false,
-      "checkpoint_state": "temporary_during_training"
+      "checkpoint_state": "cleaned",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "report_pages": 5
     },
     {
       "id": "021_1",
@@ -2097,6 +2102,47 @@
         "lambda_axis": 0.5
       },
       "status": "preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "019_4",
+      "parent": "019",
+      "parent_source_commit": "b04d597aa0865c6ba004f1726affa16495a1e884",
+      "configuration_parent": "019_1",
+      "configuration_parent_source_commit": "98170fe53ab3068bb333ec835eff702dd14bc004",
+      "proposal": "TUNING_019_4.md",
+      "config": "configs/tuning/019_4.json",
+      "group": "tuning_from_019",
+      "trial": 4,
+      "change": {
+        "image_gradient_weight": 0.03125
+      },
+      "status": "adaptive_preregistered_not_started",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "019_5",
+      "parent": "019",
+      "parent_source_commit": "b04d597aa0865c6ba004f1726affa16495a1e884",
+      "configuration_parent": "019_1",
+      "configuration_parent_source_commit": "98170fe53ab3068bb333ec835eff702dd14bc004",
+      "proposal": "TUNING_019_5.md",
+      "config": "configs/tuning/019_5.json",
+      "group": "tuning_from_019",
+      "trial": 5,
+      "change": {
+        "image_gradient_weight": 0.0625,
+        "lr": 7.5e-05
+      },
+      "status": "adaptive_preregistered_not_started",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
