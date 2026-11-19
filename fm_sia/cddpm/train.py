@@ -96,7 +96,7 @@ def get_args(argv=None):
                    help='Axial direct readout: lab moments or preoperative-axis-conditioned moments')
     p.add_argument('--image_loss_units', choices=['normalized','diopter'], default='normalized',
                    help='Axial direct FRONT velocity loss: normalized pixels or physical D / sia_ref')
-    p.add_argument('--image_backbone', choices=['unet','fno','uno'], default='unet',
+    p.add_argument('--image_backbone', choices=['unet','fno','uno','fno_pyramid_control'], default='unet',
                    help='Axial direct FM-SIA velocity network; historical models retain UNet')
     p.add_argument('--image_local_residual', action='store_true',
                    help='Add a preoperative-mask mean-free two-scale local CNN to conditional FNO velocity')
@@ -297,7 +297,10 @@ def check_args(a):
         raise ValueError('Conditional FNO backbone requires a spatial-moment direct FM-SIA head')
     if a.image_backbone == 'uno' and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct' or a.fno_layers != 4):
         raise ValueError('Conditional U-shaped operator requires polar-direct FM-SIA and four operator layers')
-    if a.image_backbone in ('fno','uno') and (min(*a.fno_modes,a.fno_hidden_channels,a.fno_layers)<1
+    if a.image_backbone == 'fno_pyramid_control' and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
+            or a.eye_frame != 'native' or a.fno_layers != 4 or a.fusion_method != 'film'):
+        raise ValueError('Pyramid control requires a four-layer native polar-direct FNO with clinical FiLM')
+    if a.image_backbone in ('fno','uno','fno_pyramid_control') and (min(*a.fno_modes,a.fno_hidden_channels,a.fno_layers)<1
                                      or not math.isfinite(a.fno_domain_padding) or a.fno_domain_padding<0):
         raise ValueError('Invalid conditional FNO dimensions or padding')
     if a.image_loss_units == 'diopter' and (a.model != 'fm_sia' or a.sia_prediction != 'axial_direct'
@@ -415,9 +418,12 @@ def build_model(args, stats=None):
     direct_sia = args.model == 'fm_sia' and getattr(args, 'sia_prediction', 'flow') in ('direct','axial_direct','polar_direct')
     encoder = ConditionEncoder()
     image_backbone = getattr(args, 'image_backbone', 'unet')
-    if image_backbone in ('fno', 'uno'):
+    if image_backbone in ('fno', 'uno', 'fno_pyramid_control'):
         from model.conditional_fno import ConditionalFNO
         fno_class = ConditionalFNO
+        if image_backbone == 'fno_pyramid_control':
+            from model.pyramid_control import PyramidControlledFNO
+            fno_class = PyramidControlledFNO
         if getattr(args, 'image_local_residual', False):
             from model.local_fno import LocalResidualFNO
             fno_class = LocalResidualFNO
@@ -437,6 +443,9 @@ def build_model(args, stats=None):
         if getattr(args, 'sia_prediction', 'flow') == 'polar_direct':
             from model.polar_sia import PolarSIAFlowMatching
             polar_class, coupling_args = PolarSIAFlowMatching, {}
+            if image_backbone == 'fno_pyramid_control':
+                from model.pyramid_control import PyramidControlledPolarSIA
+                polar_class = PyramidControlledPolarSIA
             if getattr(args, 'sia_aperture_moments', False):
                 from model.aperture_sia import AperturePolarSIAFlowMatching
                 polar_class = AperturePolarSIAFlowMatching

@@ -671,7 +671,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Replace the fixed-grid velocity operator with a four-block U-shaped operator, keeping the 012 conditioning and polar head",
-      "status": "queued_after_030_first_three",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -691,6 +691,26 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Replace clinical FiLM in the fixed-grid velocity condition with identity-initialized spatial-to-field cross-attention",
+      "status": "staged_pending_prior_experiments",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false,
+      "source_commit": "73b857e60b4c4985c873905002ea6b0ad5ca4175"
+    },
+    {
+      "id": "033",
+      "rank_initial_with_tuning": true,
+      "proposal": "ITERATION_033.md",
+      "config": "configs/iteration033.json",
+      "proposal_id": "aperture_centered_multiscale_image_control",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "change": "Inject measured-aperture-centered preoperative shape contrasts coarse to fine into the four hidden Fourier blocks",
       "status": "preregistered_source_audited",
       "outputs": [
         "postoperative_image",
@@ -882,19 +902,19 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "030_group_complete_031_waiting_for_phase_report",
+    "status": "training_031_032_staged_033_preregistered",
     "date": "2026-11-19",
     "completed_through": "030",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 0,
-    "experiment_checkpoint_files": 0,
+    "active_experiment_jobs": 1,
+    "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "031",
+    "next_new_proposal": "032",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
     "temporary_checkpoint_trials": []
   },
@@ -2798,6 +2818,6 @@
       "checkpoint_files": 0
     }
   ],
-  "campaign_status": "030_group_complete_031_waiting_for_phase_report",
+  "campaign_status": "training_031_032_staged_033_preregistered",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
