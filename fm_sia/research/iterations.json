@@ -671,7 +671,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Replace the fixed-grid velocity operator with a four-block U-shaped operator, keeping the 012 conditioning and polar head",
-      "status": "training",
+      "status": "completed_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -680,7 +680,10 @@
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
-      "source_commit": "9357181d595a692763596134898430eb2e29445c"
+      "source_commit": "9357181d595a692763596134898430eb2e29445c",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "checkpoint_files": 0
     },
     {
       "id": "032",
