@@ -658,7 +658,9 @@
       "source_commit": "ea93565bfb8a20a7b1c14293bfee57f9bde7e6d6",
       "near_eligible": true,
       "validation_gate_passed": false,
-      "checkpoint_files": 0
+      "checkpoint_files": 0,
+      "group_closed": true,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "031",
@@ -880,13 +882,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "frozen_030_test_selection",
+    "status": "030_group_complete_031_waiting_for_phase_report",
     "date": "2026-11-19",
-    "completed_through": "030_initial",
+    "completed_through": "030",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
     "active_experiment_jobs": 0,
-    "experiment_checkpoint_files": null,
+    "experiment_checkpoint_files": 0,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -1265,7 +1267,7 @@
       "maximum": 5,
       "hyperparameter_trials_used": 5,
       "group_closed": true,
-      "status": "selection_frozen",
+      "status": "completed",
       "planned_final_two": [
         {
           "lambda_sia": 0.9
@@ -1274,7 +1276,9 @@
           "lambda_axis": 1.25
         }
       ],
-      "selected_id": null
+      "selected_id": null,
+      "test_evaluated": false,
+      "checkpoint_files": 0
     }
   },
   "pre026_tuning_review": {
@@ -2677,7 +2681,9 @@
       "source_commit": "ad55ef7fad60b14d8ada944e55804455407d9a1d",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "030_2",
@@ -2703,7 +2709,9 @@
       "source_commit": "ad55ef7fad60b14d8ada944e55804455407d9a1d",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "030_3",
@@ -2729,7 +2737,9 @@
       "source_commit": "ad55ef7fad60b14d8ada944e55804455407d9a1d",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "parent": "030",
@@ -2755,7 +2765,9 @@
       "source_commit": "18e48f6d9774b77c299af1eef85f3a6f7a23dd54",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "parent": "030",
@@ -2781,9 +2793,11 @@
       "source_commit": "18e48f6d9774b77c299af1eef85f3a6f7a23dd54",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     }
   ],
-  "campaign_status": "frozen_030_test_selection",
+  "campaign_status": "030_group_complete_031_waiting_for_phase_report",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
