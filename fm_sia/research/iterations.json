@@ -646,7 +646,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Coverage-weight and center the SIA quadrupole readout on each preoperative valid aperture",
-      "status": "formal_validation_training",
+      "status": "near_validation_qualified_for_tuning",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -655,7 +655,10 @@
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
-      "source_commit": "ea93565bfb8a20a7b1c14293bfee57f9bde7e6d6"
+      "source_commit": "ea93565bfb8a20a7b1c14293bfee57f9bde7e6d6",
+      "near_eligible": true,
+      "validation_gate_passed": false,
+      "checkpoint_files": 0
     }
   ],
   "artifact_policy": {
@@ -838,13 +841,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "iteration030_validation_training",
+    "status": "030_initial_archived_031_design",
     "date": "2026-11-19",
-    "completed_through": "029",
+    "completed_through": "030_initial",
     "private_summary_verified": true,
     "public_summary": "SUMMARY_001_020.md",
-    "active_experiment_jobs": 1,
-    "experiment_checkpoint_files": null,
+    "active_experiment_jobs": 0,
+    "experiment_checkpoint_files": 0,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -852,9 +855,7 @@
     "iteration022_started": true,
     "next_new_proposal": "031",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": [
-      "030"
-    ]
+    "temporary_checkpoint_trials": []
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -1200,6 +1201,30 @@
       "selected_id": "029_5",
       "remaining_checkpoints": 0,
       "report_pages": 5
+    },
+    "tuning_from_030": {
+      "parent_id": "030",
+      "parent_source_commit": "ea93565bfb8a20a7b1c14293bfee57f9bde7e6d6",
+      "planned_first_three": [
+        {
+          "lambda_sia": 0.8
+        },
+        {
+          "lambda_axis": 0.75
+        },
+        {
+          "lr": 7.5e-05
+        }
+      ],
+      "reserved_trials": [
+        "030_1",
+        "030_2",
+        "030_3"
+      ],
+      "maximum": 5,
+      "hyperparameter_trials_used": 0,
+      "group_closed": false,
+      "status": "preregistered"
     }
   },
   "pre026_tuning_review": {
@@ -2577,8 +2602,62 @@
       "report_pages": 4,
       "group_closed": true,
       "checkpoint_files": 0
+    },
+    {
+      "id": "030_1",
+      "parent": "030",
+      "parent_source_commit": "ea93565bfb8a20a7b1c14293bfee57f9bde7e6d6",
+      "group": "tuning_from_030",
+      "trial": 1,
+      "change": {
+        "lambda_sia": 0.8
+      },
+      "proposal": "TUNING_030_1.md",
+      "config": "configs/tuning/030_1.json",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "030_2",
+      "parent": "030",
+      "parent_source_commit": "ea93565bfb8a20a7b1c14293bfee57f9bde7e6d6",
+      "group": "tuning_from_030",
+      "trial": 2,
+      "change": {
+        "lambda_axis": 0.75
+      },
+      "proposal": "TUNING_030_2.md",
+      "config": "configs/tuning/030_2.json",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "030_3",
+      "parent": "030",
+      "parent_source_commit": "ea93565bfb8a20a7b1c14293bfee57f9bde7e6d6",
+      "group": "tuning_from_030",
+      "trial": 3,
+      "change": {
+        "lr": 7.5e-05
+      },
+      "proposal": "TUNING_030_3.md",
+      "config": "configs/tuning/030_3.json",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
     }
   ],
-  "campaign_status": "training_iteration030",
+  "campaign_status": "preregistered_030_tuning",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
