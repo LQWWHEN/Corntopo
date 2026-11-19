@@ -34,10 +34,21 @@ class ClinicalConditionEncoder(nn.Module):
         return global_embedding, feature_tokens
 
 
+def radial_contrast(image):
+    """A tapered centre-to-periphery contrast with zero mean on the image grid."""
+    h, w = image.shape[-2:]
+    y = (torch.arange(h, device=image.device, dtype=image.dtype) + .5) * (2 / h) - 1
+    x = (torch.arange(w, device=image.device, dtype=image.dtype) + .5) * (2 / w) - 1
+    radius_sq = y[:, None].square() + x.square()
+    taper = (1 - radius_sq).clamp_min(0)
+    centre = (taper * radius_sq).sum() / taper.sum().clamp_min(torch.finfo(image.dtype).eps)
+    return 3 * taper * (centre - radius_sq)
+
+
 class ClinicalFusion(nn.Module):
     """Fuse tabular condition with a low-resolution image feature map."""
 
-    METHODS = ("concat", "add", "self_attention", "cross_attention", "film")
+    METHODS = ("concat", "add", "self_attention", "cross_attention", "film", "radial_film")
 
     def __init__(self, channels, embed_dim, method, num_heads=4):
         super().__init__()
@@ -48,10 +59,14 @@ class ClinicalFusion(nn.Module):
             self.projection = nn.Conv2d(channels + embed_dim, channels, 1)
         elif method == "add":
             self.projection = nn.Linear(embed_dim, channels)
-        elif method == "film":
+        elif method in ("film", "radial_film"):
             self.affine = nn.Linear(embed_dim, channels * 2)
             nn.init.zeros_(self.affine.weight)
             nn.init.zeros_(self.affine.bias)
+            if method == "radial_film":
+                with torch.random.fork_rng(devices=[]):
+                    self.radial_affine = nn.Linear(embed_dim, channels * 2, bias=False)
+                nn.init.zeros_(self.radial_affine.weight)
         else:
             if channels % num_heads:
                 raise ValueError("Attention channels must be divisible by num_heads")
@@ -67,9 +82,14 @@ class ClinicalFusion(nn.Module):
             return image + self.projection(torch.cat((image, broadcast), dim=1))
         if self.method == "add":
             return image + self.projection(global_embedding)[:, :, None, None]
-        if self.method == "film":
-            gamma, beta = self.affine(global_embedding).chunk(2, dim=1)
-            return image * (1 + gamma[:, :, None, None]) + beta[:, :, None, None]
+        if self.method in ("film", "radial_film"):
+            gamma, beta = self.affine(global_embedding)[:, :, None, None].chunk(2, dim=1)
+            if self.method == "radial_film":
+                gain, shift = self.radial_affine(global_embedding)[:, :, None, None].chunk(2, dim=1)
+                basis = radial_contrast(image)
+                gamma = gamma + gain * basis
+                beta = beta + shift * basis
+            return image * (1 + gamma) + beta
 
         spatial = image.flatten(2).transpose(1, 2)
         query = self.image_norm(spatial)
