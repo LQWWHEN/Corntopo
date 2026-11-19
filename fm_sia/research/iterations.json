@@ -763,7 +763,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Add a zero-initialized smooth radial gain and offset to the image-side clinical FiLM of 012",
-      "status": "training",
+      "status": "near_validation_qualified_for_tuning",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -771,7 +771,11 @@
       ],
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "checkpoint_files": 0,
+      "source_commit": "6850a5dd2dc9497eac4546bff5b75716d9db8712"
     },
     {
       "id": "036",
@@ -973,7 +977,7 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_035_036_preregistered",
+    "status": "tuning_035_036_staged",
     "date": "2026-11-20",
     "completed_through": "034",
     "private_summary_verified": true,
@@ -1370,6 +1374,32 @@
       "selected_id": null,
       "test_evaluated": false,
       "checkpoint_files": 0
+    },
+    "tuning_from_035": {
+      "parent_id": "035",
+      "parent_source_commit": "6850a5dd2dc9497eac4546bff5b75716d9db8712",
+      "planned_first_three": [
+        {
+          "lambda_sia": 1.25
+        },
+        {
+          "lambda_axis": 0.75
+        },
+        {
+          "lr": 7.5e-05
+        }
+      ],
+      "reserved_trials": [
+        "035_1",
+        "035_2",
+        "035_3",
+        "035_4",
+        "035_5"
+      ],
+      "maximum": 5,
+      "hyperparameter_trials_used": 0,
+      "group_closed": false,
+      "status": "first_three_preregistered"
     }
   },
   "pre026_tuning_review": {
@@ -2887,8 +2917,65 @@
       "report_pages": 4,
       "group_closed": true,
       "checkpoint_files": 0
+    },
+    {
+      "id": "035_1",
+      "parent": "035",
+      "parent_source_commit": "6850a5dd2dc9497eac4546bff5b75716d9db8712",
+      "group": "tuning_from_035",
+      "trial": 1,
+      "change": {
+        "lambda_sia": 1.25
+      },
+      "proposal": "TUNING_035_1.md",
+      "config": "configs/tuning/035_1.json",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "test_evaluated": false
+    },
+    {
+      "id": "035_2",
+      "parent": "035",
+      "parent_source_commit": "6850a5dd2dc9497eac4546bff5b75716d9db8712",
+      "group": "tuning_from_035",
+      "trial": 2,
+      "change": {
+        "lambda_axis": 0.75
+      },
+      "proposal": "TUNING_035_2.md",
+      "config": "configs/tuning/035_2.json",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "test_evaluated": false
+    },
+    {
+      "id": "035_3",
+      "parent": "035",
+      "parent_source_commit": "6850a5dd2dc9497eac4546bff5b75716d9db8712",
+      "group": "tuning_from_035",
+      "trial": 3,
+      "change": {
+        "lr": 7.5e-05
+      },
+      "proposal": "TUNING_035_3.md",
+      "config": "configs/tuning/035_3.json",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "test_evaluated": false
     }
   ],
-  "campaign_status": "training_035_036_preregistered",
+  "campaign_status": "tuning_035_036_staged",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
