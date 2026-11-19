@@ -652,7 +652,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 1,
+      "tuning_trials_used": 2,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "ea93565bfb8a20a7b1c14293bfee57f9bde7e6d6",
@@ -2679,12 +2679,20 @@
       },
       "proposal": "TUNING_030_2.md",
       "config": "configs/tuning/030_2.json",
-      "status": "training",
+      "status": "completed_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
         "SIA_axis"
-      ]
+      ],
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "source_commit": "ad55ef7fad60b14d8ada944e55804455407d9a1d",
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned",
+      "report_pages": 4
     },
     {
       "id": "030_3",
