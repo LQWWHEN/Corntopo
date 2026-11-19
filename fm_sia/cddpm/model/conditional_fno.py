@@ -2,7 +2,7 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-from neuralop.models import FNO, UNO
+from neuralop.models import FNO
 from model.no import OperatorModule
 from model.unet import ClinicalConditionEncoder, ClinicalFusion, TimeEmbedding
 
@@ -24,19 +24,11 @@ class ConditionalFNO(OperatorModule):
                        hidden_channels=hidden_channels,n_layers=n_layers,
                        domain_padding=domain_padding,domain_padding_mode='symmetric')
         if u_shaped:
+            from model.u_velocity_operator import UVelocityOperator
             # Preserve the parent's random stream for the SIA readout built afterwards.
             del self.fno
-            coarse_modes = tuple(max(1, n // 2) for n in modes)
             with torch.random.fork_rng(devices=[]):
-                self.fno = UNO(
-                    in_channels=65, out_channels=1, hidden_channels=hidden_channels,
-                    lifting_channels=2 * hidden_channels, projection_channels=2 * hidden_channels,
-                    n_layers=4, uno_out_channels=[hidden_channels] * 4,
-                    uno_n_modes=[tuple(modes), coarse_modes, coarse_modes, tuple(modes)],
-                    uno_scalings=[[1, 1], [.5, .5], [2, 2], [1, 1]],
-                    horizontal_skips_map={3: 0}, channel_mlp_skip="linear",
-                    domain_padding=domain_padding, domain_padding_mode="symmetric",
-                )
+                self.fno = UVelocityOperator(modes, hidden_channels, domain_padding)
 
     def prepare_condition(self, condition_features, clinical=None):
         """Reuse the same preoperative representation across all ODE time steps."""

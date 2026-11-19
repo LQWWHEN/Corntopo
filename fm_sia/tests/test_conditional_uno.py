@@ -100,3 +100,21 @@ def test_saved_run_and_preoperative_sampling(tmp_path):
 def test_four_scale_stages_required():
     with pytest.raises(ValueError, match="four operator layers"):
         arguments(layers=3)
+
+
+def test_rectangular_grid_avoids_bicubic_backward(monkeypatch):
+    from torch.nn import functional as F
+    from model.u_velocity_operator import UVelocityOperator
+
+    original = F.interpolate
+    def supported(*args, **kwargs):
+        assert kwargs.get("mode") != "bicubic"
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(F, "interpolate", supported)
+    op = UVelocityOperator((4, 4), 8, .05)
+    x = torch.randn(1, 65, 29, 33, requires_grad=True)
+    y = op(x)
+    assert y.shape == (1, 1, 29, 33)
+    y.square().mean().backward()
+    assert torch.isfinite(x.grad).all() and x.grad.abs().sum() > 0
