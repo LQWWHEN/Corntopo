@@ -96,7 +96,7 @@ def get_args(argv=None):
                    help='Axial direct readout: lab moments or preoperative-axis-conditioned moments')
     p.add_argument('--image_loss_units', choices=['normalized','diopter'], default='normalized',
                    help='Axial direct FRONT velocity loss: normalized pixels or physical D / sia_ref')
-    p.add_argument('--image_backbone', choices=['unet','fno'], default='unet',
+    p.add_argument('--image_backbone', choices=['unet','fno','uno'], default='unet',
                    help='Axial direct FM-SIA velocity network; historical models retain UNet')
     p.add_argument('--image_local_residual', action='store_true',
                    help='Add a preoperative-mask mean-free two-scale local CNN to conditional FNO velocity')
@@ -292,7 +292,9 @@ def check_args(a):
             raise ValueError('Invalid SIA rank-contrast temperature')
     if a.image_backbone == 'fno' and (a.model != 'fm_sia' or a.sia_prediction not in ('axial_direct','polar_direct')):
         raise ValueError('Conditional FNO backbone requires a spatial-moment direct FM-SIA head')
-    if a.image_backbone == 'fno' and (min(*a.fno_modes,a.fno_hidden_channels,a.fno_layers)<1
+    if a.image_backbone == 'uno' and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct' or a.fno_layers != 4):
+        raise ValueError('Conditional U-shaped operator requires polar-direct FM-SIA and four operator layers')
+    if a.image_backbone in ('fno','uno') and (min(*a.fno_modes,a.fno_hidden_channels,a.fno_layers)<1
                                      or not math.isfinite(a.fno_domain_padding) or a.fno_domain_padding<0):
         raise ValueError('Invalid conditional FNO dimensions or padding')
     if a.image_loss_units == 'diopter' and (a.model != 'fm_sia' or a.sia_prediction != 'axial_direct'
@@ -409,7 +411,8 @@ def build_model(args, stats=None):
                                    hidden_channels=args.fno_hidden_channels)
     direct_sia = args.model == 'fm_sia' and getattr(args, 'sia_prediction', 'flow') in ('direct','axial_direct','polar_direct')
     encoder = ConditionEncoder()
-    if getattr(args, 'image_backbone', 'unet') == 'fno':
+    image_backbone = getattr(args, 'image_backbone', 'unet')
+    if image_backbone in ('fno', 'uno'):
         from model.conditional_fno import ConditionalFNO
         fno_class = ConditionalFNO
         if getattr(args, 'image_local_residual', False):
@@ -417,7 +420,8 @@ def build_model(args, stats=None):
             fno_class = LocalResidualFNO
         unet = fno_class(clinical_dim=len(args.conditions),clinical_embed_dim=args.clinical_embed_dim,
             fusion_method=args.fusion_method,modes=args.fno_modes,hidden_channels=args.fno_hidden_channels,
-            n_layers=args.fno_layers,domain_padding=args.fno_domain_padding)
+            n_layers=args.fno_layers,domain_padding=args.fno_domain_padding,
+            u_shaped=image_backbone == 'uno')
     else:
         unet = ConditionalUNet(discrete=args.model not in ('fm','fm_sia'), clinical_dim=len(args.conditions),
             clinical_embed_dim=args.clinical_embed_dim, fusion_method=args.fusion_method,

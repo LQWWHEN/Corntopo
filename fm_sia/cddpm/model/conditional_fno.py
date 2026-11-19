@@ -2,14 +2,15 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-from neuralop.models import FNO
+from neuralop.models import FNO, UNO
 from model.no import OperatorModule
 from model.unet import ClinicalConditionEncoder, ClinicalFusion, TimeEmbedding
 
 
 class ConditionalFNO(OperatorModule):
     def __init__(self, clinical_dim=0, clinical_embed_dim=128, fusion_method='none',
-                 modes=(32,32), hidden_channels=64, n_layers=4, domain_padding=.05):
+                 modes=(32,32), hidden_channels=64, n_layers=4, domain_padding=.05,
+                 u_shaped=False):
         super().__init__()
         self.sia_interaction = None
         self.time_emb = TimeEmbedding(discrete=False)
@@ -22,6 +23,20 @@ class ConditionalFNO(OperatorModule):
         self.fno = FNO(n_modes=tuple(modes),in_channels=65,out_channels=1,
                        hidden_channels=hidden_channels,n_layers=n_layers,
                        domain_padding=domain_padding,domain_padding_mode='symmetric')
+        if u_shaped:
+            # Preserve the parent's random stream for the SIA readout built afterwards.
+            del self.fno
+            coarse_modes = tuple(max(1, n // 2) for n in modes)
+            with torch.random.fork_rng(devices=[]):
+                self.fno = UNO(
+                    in_channels=65, out_channels=1, hidden_channels=hidden_channels,
+                    lifting_channels=2 * hidden_channels, projection_channels=2 * hidden_channels,
+                    n_layers=4, uno_out_channels=[hidden_channels] * 4,
+                    uno_n_modes=[tuple(modes), coarse_modes, coarse_modes, tuple(modes)],
+                    uno_scalings=[[1, 1], [.5, .5], [2, 2], [1, 1]],
+                    horizontal_skips_map={3: 0}, channel_mlp_skip="linear",
+                    domain_padding=domain_padding, domain_padding_mode="symmetric",
+                )
 
     def prepare_condition(self, condition_features, clinical=None):
         """Reuse the same preoperative representation across all ODE time steps."""
