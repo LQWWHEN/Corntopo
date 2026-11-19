@@ -626,7 +626,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 2,
+      "tuning_trials_used": 3,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "151c2455918daed57a9d9cf9b1b31951623c15cb",
@@ -816,24 +816,21 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "tuning_016_5_training",
-    "date": "2026-11-16",
-    "completed_through": "025",
+    "status": "preregistered_029_final_two",
+    "date": "2026-11-19",
+    "completed_through": "028",
     "private_summary_verified": true,
     "public_summary": "SUMMARY_001_020.md",
-    "active_experiment_jobs": 1,
-    "experiment_checkpoint_files": null,
+    "active_experiment_jobs": 0,
+    "experiment_checkpoint_files": 0,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "026",
+    "next_new_proposal": "030",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": [
-      "016_2",
-      "016_5"
-    ]
+    "temporary_checkpoint_trials": []
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -1158,12 +1155,23 @@
         }
       ],
       "maximum": 5,
-      "hyperparameter_trials_used": 2,
-      "status": "preregistered",
+      "hyperparameter_trials_used": 3,
+      "status": "preregistered_final_two",
       "reserved_trials": [
         "029_1",
         "029_2",
-        "029_3"
+        "029_3",
+        "029_4",
+        "029_5"
+      ],
+      "group_closed": false,
+      "planned_final_two": [
+        {
+          "lambda_sia": 0.8
+        },
+        {
+          "axis_reliability_scale": 0.25
+        }
       ]
     }
   },
@@ -2466,12 +2474,56 @@
       "change": {
         "axis_reliability_scale": 0.4
       },
-      "status": "preregistered",
+      "status": "completed_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
         "SIA_axis"
-      ]
+      ],
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "source_commit": "8d99eaee9810b31cb9b1599c8995b54e51052d48",
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned",
+      "report_pages": 4
+    },
+    {
+      "parent": "029",
+      "parent_source_commit": "151c2455918daed57a9d9cf9b1b31951623c15cb",
+      "group": "tuning_from_029",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "id": "029_4",
+      "proposal": "TUNING_029_4.md",
+      "config": "configs/tuning/029_4.json",
+      "trial": 4,
+      "change": {
+        "lambda_sia": 0.8
+      },
+      "status": "preregistered"
+    },
+    {
+      "parent": "029",
+      "parent_source_commit": "151c2455918daed57a9d9cf9b1b31951623c15cb",
+      "group": "tuning_from_029",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "id": "029_5",
+      "proposal": "TUNING_029_5.md",
+      "config": "configs/tuning/029_5.json",
+      "trial": 5,
+      "change": {
+        "axis_reliability_scale": 0.25
+      },
+      "status": "preregistered"
     }
   ],
   "campaign_status": "ongoing_tuning_029",
