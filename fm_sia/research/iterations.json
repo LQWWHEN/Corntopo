@@ -626,7 +626,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 4,
+      "tuning_trials_used": 5,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "151c2455918daed57a9d9cf9b1b31951623c15cb",
@@ -835,12 +835,12 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "029_final_tuning_030_accepted",
+    "status": "frozen_029_test_selection",
     "date": "2026-11-19",
     "completed_through": "028",
     "private_summary_verified": true,
     "public_summary": "SUMMARY_001_020.md",
-    "active_experiment_jobs": 1,
+    "active_experiment_jobs": 0,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
@@ -1176,8 +1176,8 @@
         }
       ],
       "maximum": 5,
-      "hyperparameter_trials_used": 4,
-      "status": "preregistered_final_two",
+      "hyperparameter_trials_used": 5,
+      "status": "selection_frozen",
       "reserved_trials": [
         "029_1",
         "029_2",
@@ -1185,7 +1185,7 @@
         "029_4",
         "029_5"
       ],
-      "group_closed": false,
+      "group_closed": true,
       "planned_final_two": [
         {
           "lambda_sia": 0.8
@@ -1193,7 +1193,8 @@
         {
           "axis_reliability_scale": 0.25
         }
-      ]
+      ],
+      "selected_id": "029_5"
     }
   },
   "pre026_tuning_review": {
@@ -2552,9 +2553,17 @@
       "change": {
         "axis_reliability_scale": 0.25
       },
-      "status": "preregistered"
+      "status": "qualified_pending_group_selection",
+      "validation_gate_passed": true,
+      "near_eligible": true,
+      "eligible_for_group_selection": true,
+      "audit": "PASS",
+      "source_commit": "6fb087b7226ef3b109375f87b57dacd2fa73108a",
+      "test_evaluated": false,
+      "checkpoint_state": "held_for_group_selection",
+      "report_pages": 4
     }
   ],
-  "campaign_status": "ongoing_tuning_029",
+  "campaign_status": "frozen_029_test_selection",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
