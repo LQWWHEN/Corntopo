@@ -772,6 +772,25 @@
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
       "test_evaluated": false
+    },
+    {
+      "id": "036",
+      "rank_initial_with_tuning": true,
+      "proposal": "ITERATION_036.md",
+      "config": "configs/iteration036.json",
+      "proposal_id": "blur_unet_velocity",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "change": "Replace the Fourier velocity core with a three-scale low-pass convolutional U-Net at the fixed 012 conditioning interface",
+      "status": "preregistered_source_audited",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -949,12 +968,12 @@
     "clinical_feature_selection": 1,
     "image_clinical_fusion": 6,
     "loss_function_design": 3,
-    "model_architecture": 3,
+    "model_architecture": 4,
     "contrastive_autoregressive_integration": 1,
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_035",
+    "status": "training_035_036_preregistered",
     "date": "2026-11-20",
     "completed_through": "034",
     "private_summary_verified": true,
@@ -2870,6 +2889,6 @@
       "checkpoint_files": 0
     }
   ],
-  "campaign_status": "training_035",
+  "campaign_status": "training_035_036_preregistered",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
