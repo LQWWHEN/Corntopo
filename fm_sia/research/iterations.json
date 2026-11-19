@@ -694,7 +694,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Replace clinical FiLM in the fixed-grid velocity condition with identity-initialized spatial-to-field cross-attention",
-      "status": "staged_pending_prior_experiments",
+      "status": "completed_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -703,7 +703,10 @@
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
-      "source_commit": "73b857e60b4c4985c873905002ea6b0ad5ca4175"
+      "source_commit": "73b857e60b4c4985c873905002ea6b0ad5ca4175",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "checkpoint_files": 0
     },
     {
       "id": "033",
