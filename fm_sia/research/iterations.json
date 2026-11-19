@@ -769,7 +769,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 2,
+      "tuning_trials_used": 3,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "validation_gate_passed": false,
@@ -1397,7 +1397,7 @@
         "035_5"
       ],
       "maximum": 5,
-      "hyperparameter_trials_used": 2,
+      "hyperparameter_trials_used": 3,
       "group_closed": false,
       "status": "first_three_preregistered"
     }
@@ -2981,13 +2981,20 @@
       },
       "proposal": "TUNING_035_3.md",
       "config": "configs/tuning/035_3.json",
-      "status": "preregistered",
+      "status": "completed_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "test_evaluated": false
+      "test_evaluated": false,
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "source_commit": "a5a620978b2663e45579904fd9409afbd5cb5420",
+      "checkpoint_state": "cleaned",
+      "report_pages": 4
     }
   ],
   "campaign_status": "tuning_035_036_staged",
