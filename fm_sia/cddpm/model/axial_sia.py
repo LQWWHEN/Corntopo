@@ -66,6 +66,9 @@ class AxialSIAFlowMatching(JointFlowMatching):
     def predict_sia(self, condition_features, clinical):
         return self.sia_readout(self.sia_features(condition_features, clinical))
 
+    def sia_mask_argument(self, pre_mask):
+        return {}
+
     def forward(self, pre, post, sia_vector=None, clinical=None, mask=None, t=None,
                 noise=None, sia_magnitude=None):
         batch = pre.shape[0]
@@ -97,12 +100,12 @@ class AxialSIAFlowMatching(JointFlowMatching):
                     velocity_pred=velocity, q_clean=q, sia_clean=q.norm(dim=-1), t=t, **extra_logs)
 
     @torch.no_grad()
-    def sample(self, pre, clinical=None, noise=None, steps=None, method=None):
+    def sample(self, pre, clinical=None, noise=None, steps=None, method=None, pre_mask=None):
         steps = self.sample_steps if steps is None else steps
         if steps < 1:
             raise ValueError('steps must be positive')
         cond = self.condition_encoder(pre)
-        q = self.predict_sia(cond, clinical)
+        q = self.predict_sia(cond, clinical, **self.sia_mask_argument(pre_mask))
         image_cond = self.unet.prepare_condition(cond, clinical) if hasattr(self.unet, 'prepare_condition') else cond
         def field(state, time):
             t = pre.new_full((pre.shape[0],), time)

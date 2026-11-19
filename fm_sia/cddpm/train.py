@@ -167,12 +167,21 @@ def get_args(argv=None):
                    help='Weight of ordered lower/upper magnitude quartile supervision')
     p.add_argument('--axis_reliability_scale', type=float, default=0.,
                    help='Saturation magnitude in D for squared stable-axis supervision weights')
+    p.add_argument('--sia_aperture_moments', action='store_true',
+                   help='Center quadrupole readout on each measured preoperative aperture')
     args = p.parse_args(argv)
     check_args(args)
     return args
 
 
 def check_args(a):
+    if a.sia_aperture_moments and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
+            or a.image_backbone != 'fno' or a.eye_frame != 'native' or a.sia_feature_fusion != 'lab'
+            or a.sia_rank_weight or a.sia_axis_gradient_projection or a.sia_learned_axis_concentration
+            or a.sia_quartile_weight or a.sia_radial_contrast or a.sia_clinical_moments
+            or a.sia_split_hidden or a.image_local_residual or a.sia_velocity_coupling
+            or a.sia_spatial_conditioning or a.input_maps != ['FRONT']):
+        raise ValueError('Aperture moments require the native polar FNO readout with one FRONT input')
     if not math.isfinite(a.axis_reliability_scale) or a.axis_reliability_scale < 0:
         raise ValueError('Axis reliability scale must be finite and nonnegative')
     if a.axis_reliability_scale and (a.sia_axis_arc_distance or a.sia_quartile_weight or
@@ -421,6 +430,9 @@ def build_model(args, stats=None):
         if getattr(args, 'sia_prediction', 'flow') == 'polar_direct':
             from model.polar_sia import PolarSIAFlowMatching
             polar_class, coupling_args = PolarSIAFlowMatching, {}
+            if getattr(args, 'sia_aperture_moments', False):
+                from model.aperture_sia import AperturePolarSIAFlowMatching
+                polar_class = AperturePolarSIAFlowMatching
             if getattr(args, 'eye_frame', 'native') == 'right':
                 from model.eye_polar import EyeFramePolarSIAFlowMatching
                 polar_class = EyeFramePolarSIAFlowMatching
@@ -528,7 +540,7 @@ def saved_config_value(config, key):
     """Recover historical defaults for checkpoints without newer options."""
     if key in ('sia_quartile_weight', 'axis_reliability_scale') and key not in config:
         return 0.
-    if key in ('sia_learned_axis_concentration', 'sia_axis_arc_distance') and key not in config:
+    if key in ('sia_learned_axis_concentration', 'sia_axis_arc_distance', 'sia_aperture_moments') and key not in config:
         return False
     if key == 'sia_split_hidden' and key not in config:
         return False
@@ -782,6 +794,7 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
             image_gradient_weight=getattr(args, 'image_gradient_weight', 0.),
             image_local_residual=getattr(args, 'image_local_residual', False),
             sia_radial_contrast=getattr(args, 'sia_radial_contrast', False),
+            sia_aperture_moments=getattr(args, 'sia_aperture_moments', False),
             sia_clinical_moments=getattr(args, 'sia_clinical_moments', False),
             sia_axis_gradient_projection=getattr(args, 'sia_axis_gradient_projection', False),
             sia_split_hidden=getattr(args, 'sia_split_hidden', False),

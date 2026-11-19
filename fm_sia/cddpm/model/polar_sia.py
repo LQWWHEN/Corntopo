@@ -105,7 +105,7 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
             hidden = self.sia_readout[1](self.sia_readout[0](self.sia_features(cond, clinical)))
             q, magnitude, phase = decode_polar(self.sia_readout[2](hidden))
         else:
-            q, magnitude, phase = self.predict_polar(cond, clinical)
+            q, magnitude, phase = self.predict_polar(cond, clinical, **self.sia_mask_argument(pre_mask))
         target = sia_vector.to(pre)
         tau = t[:, None, None, None]
         velocity = self.image_velocity((1-tau)*pre+tau*post, t, cond, clinical, pre_mask)

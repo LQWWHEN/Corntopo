@@ -634,6 +634,25 @@
       "near_eligible": true,
       "checkpoint_files": 0,
       "checkpoint_cleanup": "PASS"
+    },
+    {
+      "id": "030",
+      "rank_initial_with_tuning": true,
+      "proposal": "ITERATION_030.md",
+      "config": "configs/iteration030.json",
+      "proposal_id": "preoperative_aperture_centered_moments",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "change": "Coverage-weight and center the SIA quadrupole readout on each preoperative valid aperture",
+      "status": "accepted_waiting_for_029_closure",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -816,13 +835,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "preregistered_029_final_two",
+    "status": "029_final_tuning_030_accepted",
     "date": "2026-11-19",
     "completed_through": "028",
     "private_summary_verified": true,
     "public_summary": "SUMMARY_001_020.md",
-    "active_experiment_jobs": 0,
-    "experiment_checkpoint_files": 0,
+    "active_experiment_jobs": 1,
+    "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -830,7 +849,9 @@
     "iteration022_started": true,
     "next_new_proposal": "030",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": []
+    "temporary_checkpoint_trials": [
+      "029_5"
+    ]
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
