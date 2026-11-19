@@ -669,6 +669,26 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Replace the fixed-grid velocity operator with a four-block U-shaped operator, keeping the 012 conditioning and polar head",
+      "status": "queued_after_030_first_three",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false,
+      "source_commit": "9357181d595a692763596134898430eb2e29445c"
+    },
+    {
+      "id": "032",
+      "rank_initial_with_tuning": true,
+      "proposal": "ITERATION_032.md",
+      "config": "configs/iteration032.json",
+      "proposal_id": "identity_initialized_spatial_clinical_attention",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "change": "Replace clinical FiLM in the fixed-grid velocity condition with identity-initialized spatial-to-field cross-attention",
       "status": "preregistered_source_audited",
       "outputs": [
         "postoperative_image",
@@ -860,7 +880,7 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "030_tuning_031_source_audited",
+    "status": "030_tuning_031_queued_032_preregistered",
     "date": "2026-11-19",
     "completed_through": "030_initial",
     "private_summary_verified": true,
@@ -1241,7 +1261,7 @@
         "030_3"
       ],
       "maximum": 5,
-      "hyperparameter_trials_used": 1,
+      "hyperparameter_trials_used": 2,
       "group_closed": false,
       "status": "first_three_running"
     }
@@ -2659,7 +2679,7 @@
       },
       "proposal": "TUNING_030_2.md",
       "config": "configs/tuning/030_2.json",
-      "status": "preregistered",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -2685,6 +2705,6 @@
       ]
     }
   ],
-  "campaign_status": "030_tuning_031_source_audited",
+  "campaign_status": "030_tuning_031_queued_032_preregistered",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }

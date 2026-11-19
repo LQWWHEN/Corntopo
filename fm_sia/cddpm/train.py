@@ -68,7 +68,7 @@ def get_args(argv=None):
     p.add_argument('--objective', default='grad')
     p.add_argument('--conditions', nargs='+', default=[])
     p.add_argument('--targets', nargs='+', default=[], help='Legacy extra fields; SIA uses the selected mode-specific label columns')
-    p.add_argument('--fusion_method', choices=['none','concat','add','self_attention','cross_attention','film'], default='none')
+    p.add_argument('--fusion_method', choices=['none','concat','add','self_attention','cross_attention','film','cross_attention_zero'], default='none')
     p.add_argument('--clinical_embed_dim', type=int, default=128)
     p.add_argument('--sia_columns', nargs=2, default=['delta_front_X','delta_front_Y'])
     p.add_argument('--sia_mode', choices=['vector','scalar'], default='vector',
@@ -175,6 +175,9 @@ def get_args(argv=None):
 
 
 def check_args(a):
+    if a.fusion_method == 'cross_attention_zero' and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
+                                                       or a.image_backbone != 'fno'):
+        raise ValueError('Zero-initialized clinical cross-attention requires a polar-direct conditional FNO')
     if a.sia_aperture_moments and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
             or a.image_backbone != 'fno' or a.eye_frame != 'native' or a.sia_feature_fusion != 'lab'
             or a.sia_rank_weight or a.sia_axis_gradient_projection or a.sia_learned_axis_concentration

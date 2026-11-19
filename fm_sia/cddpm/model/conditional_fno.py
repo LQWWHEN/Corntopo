@@ -16,8 +16,15 @@ class ConditionalFNO(OperatorModule):
         self.time_emb = TimeEmbedding(discrete=False)
         self.clinical_encoder = (ClinicalConditionEncoder(clinical_dim,clinical_embed_dim)
                                  if fusion_method != 'none' else None)
-        self.clinical_fusion = (ClinicalFusion(64,clinical_embed_dim,fusion_method)
+        parent_fusion = 'film' if fusion_method == 'cross_attention_zero' else fusion_method
+        self.clinical_fusion = (ClinicalFusion(64,clinical_embed_dim,parent_fusion)
                                 if fusion_method != 'none' else None)
+        if fusion_method == 'cross_attention_zero':
+            # Match the original FiLM identity and all subsequent shared parameter initializations.
+            with torch.random.fork_rng(devices=[]):
+                self.clinical_fusion = ClinicalFusion(64, clinical_embed_dim, 'cross_attention')
+                nn.init.zeros_(self.clinical_fusion.attention.out_proj.weight)
+                nn.init.zeros_(self.clinical_fusion.attention.out_proj.bias)
         self.time_projection = nn.Linear(512,64)
         self.condition_projection = nn.ModuleList(nn.Conv2d(c,16,1) for c in (128,256,512,512))
         self.fno = FNO(n_modes=tuple(modes),in_channels=65,out_channels=1,
