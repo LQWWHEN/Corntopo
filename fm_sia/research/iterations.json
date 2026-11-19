@@ -717,6 +717,25 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Inject measured-aperture-centered preoperative shape contrasts coarse to fine into the four hidden Fourier blocks",
+      "status": "training",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
+    },
+    {
+      "id": "034",
+      "rank_initial_with_tuning": true,
+      "proposal": "ITERATION_034.md",
+      "config": "configs/iteration034.json",
+      "proposal_id": "axis_factorized_fourier_velocity",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "change": "Replace four dense two-dimensional spectral kernels with independent row and column transforms in the fixed-grid 012 velocity",
       "status": "preregistered_source_audited",
       "outputs": [
         "postoperative_image",
@@ -903,14 +922,14 @@
     "clinical_feature_selection": 1,
     "image_clinical_fusion": 5,
     "loss_function_design": 3,
-    "model_architecture": 2,
+    "model_architecture": 3,
     "contrastive_autoregressive_integration": 1,
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_031_032_staged_033_preregistered",
-    "date": "2026-11-19",
-    "completed_through": "030",
+    "status": "training_033_034_preregistered",
+    "date": "2026-11-20",
+    "completed_through": "032",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
     "active_experiment_jobs": 1,
@@ -920,7 +939,7 @@
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "032",
+    "next_new_proposal": "034",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
     "temporary_checkpoint_trials": []
   },
@@ -2824,6 +2843,6 @@
       "checkpoint_files": 0
     }
   ],
-  "campaign_status": "training_031_032_staged_033_preregistered",
+  "campaign_status": "training_033_034_preregistered",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
