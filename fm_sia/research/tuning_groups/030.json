@@ -1,0 +1,12 @@
+{
+  "group": "tuning_from_030",
+  "group_closed": true,
+  "trial_count": 5,
+  "selected_id": null,
+  "eligible_trials": [],
+  "selection_partition": "validation",
+  "decision_sha256": "8fd5d0b97ece29e965403df95b528b4d702d0af0dd189abb2fd508d6cbf05c95",
+  "test_status": "NOT_STARTED",
+  "policy": "TUNING_POLICY_026.md",
+  "note": "Initial experiment and five tuning trials ranked together before test"
+}
