@@ -8,7 +8,10 @@
   ],
   "selection_partition": "validation",
   "decision_sha256": "bc11a81725fd524102d9031c0333fc120b4ac5b11d7d9d6748dad9b11a645f9a",
-  "test_status": "NOT_STARTED",
+  "test_status": "COMPLETED_AUDITED",
   "policy": "TUNING_POLICY_026.md",
-  "note": "Initial experiment and five tuning trials ranked together before test"
+  "note": "Initial experiment and five tuning trials ranked together before test",
+  "checkpoint_state": "all_group_checkpoints_cleaned",
+  "report": "TUNING_GROUP_029.md",
+  "outcome": "Image MAE and RMSE improved versus 012 on test; SIA magnitude and stable axis errors increased"
 }

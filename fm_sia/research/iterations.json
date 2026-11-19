@@ -620,7 +620,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Normalized capped squared target magnitude weights in stable-axis cosine loss",
-      "status": "near_validation_qualified_for_tuning",
+      "status": "completed_group_tested_selected_variant",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -633,7 +633,9 @@
       "validation_gate_passed": false,
       "near_eligible": true,
       "checkpoint_files": 0,
-      "checkpoint_cleanup": "PASS"
+      "checkpoint_cleanup": "PASS",
+      "group_closed": true,
+      "selected_group_variant": "029_5"
     },
     {
       "id": "030",
@@ -644,7 +646,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Coverage-weight and center the SIA quadrupole readout on each preoperative valid aperture",
-      "status": "accepted_waiting_for_029_closure",
+      "status": "formal_validation_training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -652,7 +654,8 @@
       ],
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "ea93565bfb8a20a7b1c14293bfee57f9bde7e6d6"
     }
   ],
   "artifact_policy": {
@@ -835,22 +838,22 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "frozen_029_test_selection",
+    "status": "iteration030_validation_training",
     "date": "2026-11-19",
-    "completed_through": "028",
+    "completed_through": "029",
     "private_summary_verified": true,
     "public_summary": "SUMMARY_001_020.md",
-    "active_experiment_jobs": 0,
+    "active_experiment_jobs": 1,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "030",
+    "next_new_proposal": "031",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
     "temporary_checkpoint_trials": [
-      "029_5"
+      "030"
     ]
   },
   "budget_policy_before_20261116": {
@@ -1177,7 +1180,7 @@
       ],
       "maximum": 5,
       "hyperparameter_trials_used": 5,
-      "status": "selection_frozen",
+      "status": "completed",
       "reserved_trials": [
         "029_1",
         "029_2",
@@ -1194,7 +1197,9 @@
           "axis_reliability_scale": 0.25
         }
       ],
-      "selected_id": "029_5"
+      "selected_id": "029_5",
+      "remaining_checkpoints": 0,
+      "report_pages": 5
     }
   },
   "pre026_tuning_review": {
@@ -2457,7 +2462,9 @@
       "source_commit": "8d99eaee9810b31cb9b1599c8995b54e51052d48",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "029_2",
@@ -2483,7 +2490,9 @@
       "source_commit": "8d99eaee9810b31cb9b1599c8995b54e51052d48",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "029_3",
@@ -2509,7 +2518,9 @@
       "source_commit": "8d99eaee9810b31cb9b1599c8995b54e51052d48",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "parent": "029",
@@ -2535,7 +2546,9 @@
       "source_commit": "6fb087b7226ef3b109375f87b57dacd2fa73108a",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "parent": "029",
@@ -2553,17 +2566,19 @@
       "change": {
         "axis_reliability_scale": 0.25
       },
-      "status": "qualified_pending_group_selection",
+      "status": "completed_test_once",
       "validation_gate_passed": true,
       "near_eligible": true,
       "eligible_for_group_selection": true,
       "audit": "PASS",
       "source_commit": "6fb087b7226ef3b109375f87b57dacd2fa73108a",
-      "test_evaluated": false,
-      "checkpoint_state": "held_for_group_selection",
-      "report_pages": 4
+      "test_evaluated": true,
+      "checkpoint_state": "cleaned",
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     }
   ],
-  "campaign_status": "frozen_029_test_selection",
+  "campaign_status": "training_iteration030",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
