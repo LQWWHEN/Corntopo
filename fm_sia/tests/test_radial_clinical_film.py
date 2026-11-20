@@ -7,6 +7,7 @@ import torch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "cddpm"))
 pytest.importorskip("neuralop")
 from model.unet import ClinicalFusion, radial_contrast
+from model.meridional_fusion import meridional_contrast
 from predict import load_checkpoint
 from train import PIPELINE_VERSION, build_model, forward_batch, sample_batch
 from test_zero_clinical_attention import STATS, arguments
@@ -31,13 +32,29 @@ def test_clinical_contrast_is_radial_and_zero_mean():
     torch.testing.assert_close((out[1] - image[1])[0], 3 * radial_contrast(image))
 
 
-def test_matched_parent_training_and_preoperative_reload(tmp_path):
+def test_meridional_field_transforms_with_features_and_ignores_isotropic_offsets():
+    axis = torch.linspace(-1, 1, 23)
+    x, y = axis[None, :], axis[:, None]
+    images = torch.stack((x.square() - y.square(), 2*x*y, x.square() + y.square()))[:, None]
+    field = meridional_contrast(images)
+    torch.testing.assert_close(field[:2].mean((-2, -1)), torch.zeros(2, 1), atol=1e-6, rtol=0)
+    assert field[0, 0, 11, 18] > 0 and field[1, 0, 15, 15] > 0
+    assert torch.count_nonzero(field[:, :, 0, 0]) == 0
+    torch.testing.assert_close(field[2], torch.zeros_like(field[2]), atol=1e-6, rtol=0)
+    torch.testing.assert_close(meridional_contrast(images + 2), field)
+    torch.testing.assert_close(meridional_contrast(images.rot90(1, (-2, -1))), field.rot90(1, (-2, -1)))
+    torch.testing.assert_close(meridional_contrast(images.flip((-1,))), field.flip((-1,)))
+
+
+@pytest.mark.parametrize(("method", "projection"), [("radial_film", "radial_affine"),
+                                                    ("meridional_film", "direction_affine")])
+def test_matched_parent_training_and_preoperative_reload(tmp_path, method, projection):
     torch.set_num_threads(1)
     torch.manual_seed(35)
     parent = build_model(arguments("film"), STATS).eval()
     rng = torch.get_rng_state()
     torch.manual_seed(35)
-    args = arguments("radial_film")
+    args = arguments(method)
     model = build_model(args, STATS).eval()
     assert torch.equal(rng, torch.get_rng_state())
     candidate_state = model.state_dict()
@@ -56,11 +73,11 @@ def test_matched_parent_training_and_preoperative_reload(tmp_path):
             for k, expected in reference.items():
                 torch.testing.assert_close(losses[k], expected, rtol=0, atol=0)
     losses["loss"].backward()
-    radial_weight = model.unet.clinical_fusion.radial_affine.weight
-    for grad in radial_weight.grad.chunk(2):
+    spatial_weight = getattr(model.unet.clinical_fusion, projection).weight
+    for grad in spatial_weight.grad.chunk(2):
         assert torch.isfinite(grad).all() and grad.abs().sum() > 0
     with torch.no_grad():
-        radial_weight.add_(radial_weight.grad, alpha=-.03)
+        spatial_weight.add_(spatial_weight.grad, alpha=-.03)
     for key in ("target", "mask_post", "sia_vector"):
         del batch[key]
     calls = []

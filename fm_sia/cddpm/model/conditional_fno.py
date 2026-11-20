@@ -17,8 +17,12 @@ class ConditionalFNO(OperatorModule):
         self.clinical_encoder = (ClinicalConditionEncoder(clinical_dim,clinical_embed_dim)
                                  if fusion_method != 'none' else None)
         parent_fusion = 'film' if fusion_method == 'cross_attention_zero' else fusion_method
-        self.clinical_fusion = (ClinicalFusion(64,clinical_embed_dim,parent_fusion)
-                                if fusion_method != 'none' else None)
+        if fusion_method == 'meridional_film':
+            from model.meridional_fusion import MeridionalFiLM
+            self.clinical_fusion = MeridionalFiLM(64, clinical_embed_dim)
+        else:
+            self.clinical_fusion = (ClinicalFusion(64,clinical_embed_dim,parent_fusion)
+                                    if fusion_method != 'none' else None)
         if fusion_method == 'cross_attention_zero':
             # Match the original FiLM identity and all subsequent shared parameter initializations.
             with torch.random.fork_rng(devices=[]):

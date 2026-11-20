@@ -801,6 +801,25 @@
       "near_eligible": false,
       "checkpoint_files": 0,
       "source_commit": "c9ae0baba733ca12944127910fa339b9eedafaa9"
+    },
+    {
+      "id": "037",
+      "rank_initial_with_tuning": true,
+      "proposal": "ITERATION_037.md",
+      "config": "configs/iteration037.json",
+      "proposal_id": "meridional_clinical_film",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "change": "Modulate the image-side clinical FiLM by the per-channel second harmonic of the preoperative features",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -976,7 +995,7 @@
   "direction_counts": {
     "sia_branch_and_joint_learning": 11,
     "clinical_feature_selection": 1,
-    "image_clinical_fusion": 6,
+    "image_clinical_fusion": 7,
     "loss_function_design": 3,
     "model_architecture": 4,
     "contrastive_autoregressive_integration": 1,
