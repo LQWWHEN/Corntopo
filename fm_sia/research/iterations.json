@@ -775,7 +775,9 @@
       "validation_gate_passed": false,
       "near_eligible": true,
       "checkpoint_files": 0,
-      "source_commit": "6850a5dd2dc9497eac4546bff5b75716d9db8712"
+      "source_commit": "6850a5dd2dc9497eac4546bff5b75716d9db8712",
+      "group_closed": true,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "036",
@@ -786,7 +788,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Replace the Fourier velocity core with a three-scale low-pass convolutional U-Net at the fixed 012 conditioning interface",
-      "status": "preregistered_source_audited",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -977,19 +979,19 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "frozen_035_test_selection",
+    "status": "training_036",
     "date": "2026-11-20",
-    "completed_through": "034",
+    "completed_through": "035",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 0,
+    "active_experiment_jobs": 1,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "036",
+    "next_new_proposal": "037",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
     "temporary_checkpoint_trials": []
   },
@@ -1399,7 +1401,7 @@
       "maximum": 5,
       "hyperparameter_trials_used": 5,
       "group_closed": true,
-      "status": "selection_frozen",
+      "status": "completed",
       "planned_final_two": [
         {
           "lambda_axis": 0.875
@@ -1408,7 +1410,9 @@
           "lr": 0.000125
         }
       ],
-      "selected_id": null
+      "selected_id": null,
+      "test_evaluated": false,
+      "checkpoint_files": 0
     }
   },
   "pre026_tuning_review": {
@@ -2951,7 +2955,9 @@
       "audit": "PASS",
       "source_commit": "a5a620978b2663e45579904fd9409afbd5cb5420",
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "035_2",
@@ -2977,7 +2983,9 @@
       "audit": "PASS",
       "source_commit": "a5a620978b2663e45579904fd9409afbd5cb5420",
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "035_3",
@@ -3003,7 +3011,9 @@
       "audit": "PASS",
       "source_commit": "a5a620978b2663e45579904fd9409afbd5cb5420",
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "parent": "035",
@@ -3029,7 +3039,9 @@
       "source_commit": "1f20a9982eeb19ed7f7480ebc2d8990b6626d756",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "parent": "035",
@@ -3055,9 +3067,11 @@
       "source_commit": "1f20a9982eeb19ed7f7480ebc2d8990b6626d756",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     }
   ],
-  "campaign_status": "frozen_035_test_selection",
+  "campaign_status": "training_036",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
