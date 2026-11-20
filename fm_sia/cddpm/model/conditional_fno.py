@@ -55,4 +55,17 @@ class ConditionalFNO(OperatorModule):
     def forward(self, x, t, cond, clinical=None):
         feature = cond if torch.is_tensor(cond) else self.prepare_condition(cond,clinical)
         time = self.time_projection(self.time_emb(t))[:,:,None,None]
-        return self.fno(torch.cat((x,feature+time),dim=1))
+        return self.velocity(torch.cat((x,feature+time),dim=1))
+
+    def velocity(self, state_and_condition):
+        return self.fno(state_and_condition)
+
+
+class HalfTurnFNO(ConditionalFNO):
+    """Project the velocity core onto functions equivariant to a half turn."""
+
+    def velocity(self, state_and_condition):
+        axes = (-2, -1)
+        paired = torch.cat((state_and_condition, state_and_condition.flip(axes)), dim=0)
+        direct, rotated = self.fno(paired).chunk(2, dim=0)
+        return 0.5 * (direct + rotated.flip(axes))

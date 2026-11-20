@@ -72,9 +72,10 @@ def test_multiresolution_skip_and_full_task_gradients():
                    for p in module.parameters())
 
 
-def test_saved_run_and_preoperative_sampling(tmp_path):
+@pytest.mark.parametrize("backbone", ["uno", "half_turn_fno"])
+def test_saved_run_and_preoperative_sampling(tmp_path, backbone):
     torch.set_num_threads(1)
-    args = arguments()
+    args = arguments(backbone)
     model = build_model(args, statistics()).eval()
     pre = torch.rand(1, 1, 32, 32)
     batch = dict(input=pre, condition=torch.tensor([[.1]]), mask_pre=torch.ones_like(pre), label=[1])
@@ -118,3 +119,30 @@ def test_rectangular_grid_avoids_bicubic_backward(monkeypatch):
     assert y.shape == (1, 1, 29, 33)
     y.square().mean().backward()
     assert torch.isfinite(x.grad).all() and x.grad.abs().sum() > 0
+
+def test_half_turn_fno_equivariance_and_parent_parameter_gradients():
+    torch.set_num_threads(1)
+    torch.manual_seed(38)
+    parent = build_model(arguments("fno"), statistics())
+    torch.manual_seed(38)
+    model = build_model(arguments("half_turn_fno"), statistics())
+    assert model.state_dict().keys() == parent.state_dict().keys()
+    for key, value in model.state_dict().items():
+        torch.testing.assert_close(value, parent.state_dict()[key], rtol=0, atol=0)
+    axes = (-2, -1)
+    inputs = torch.randn(2, 65, 19, 23, requires_grad=True)
+    ref = inputs.detach().clone().requires_grad_()
+    velocity = model.unet.velocity(inputs)
+    expected = (parent.unet.fno(ref) + parent.unet.fno(ref.flip(axes)).flip(axes)) / 2
+    torch.testing.assert_close(velocity, expected)
+    torch.testing.assert_close(model.unet.velocity(inputs.flip(axes)), velocity.flip(axes))
+    assert not torch.allclose(velocity, velocity.flip(axes))
+    target = torch.randn_like(velocity)
+    (velocity * target).mean().backward()
+    (expected * target).mean().backward()
+    torch.testing.assert_close(inputs.grad, ref.grad)
+    for (_, actual), (_, reference) in zip(model.unet.fno.named_parameters(),
+                                            parent.unet.fno.named_parameters()):
+        if reference.grad is not None:
+            torch.testing.assert_close(actual.grad, reference.grad)
+    assert inputs.grad.abs().sum() > 0
