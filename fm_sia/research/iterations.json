@@ -811,7 +811,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Modulate the image-side clinical FiLM by the per-channel second harmonic of the preoperative features",
-      "status": "preregistered",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -819,7 +819,8 @@
       ],
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "25ec7c4f2649fc676e6714abe3c4369a9231d2e7"
     }
   ],
   "artifact_policy": {
@@ -1002,20 +1003,20 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "designing_037",
+    "status": "training_037",
     "date": "2026-11-20",
     "completed_through": "036",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 0,
-    "experiment_checkpoint_files": 0,
+    "active_experiment_jobs": 1,
+    "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "037",
-    "checkpoint_file_count_status": "verified_after_036",
+    "next_new_proposal": "038",
+    "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
     "temporary_checkpoint_trials": []
   },
   "budget_policy_before_20261116": {
@@ -3095,6 +3096,6 @@
       "checkpoint_files": 0
     }
   ],
-  "campaign_status": "designing_037",
+  "campaign_status": "training_037",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
