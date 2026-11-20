@@ -769,7 +769,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 3,
+      "tuning_trials_used": 4,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "validation_gate_passed": false,
@@ -1397,7 +1397,7 @@
         "035_5"
       ],
       "maximum": 5,
-      "hyperparameter_trials_used": 3,
+      "hyperparameter_trials_used": 4,
       "group_closed": false,
       "status": "preregistered_final_two",
       "planned_final_two": [
@@ -3020,7 +3020,15 @@
       "change": {
         "lambda_axis": 0.875
       },
-      "status": "preregistered"
+      "status": "completed_validation_no_test",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "source_commit": "1f20a9982eeb19ed7f7480ebc2d8990b6626d756",
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned",
+      "report_pages": 4
     },
     {
       "parent": "035",
