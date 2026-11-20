@@ -977,13 +977,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "preregistered_035_final_two",
+    "status": "frozen_035_test_selection",
     "date": "2026-11-20",
     "completed_through": "034",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
     "active_experiment_jobs": 0,
-    "experiment_checkpoint_files": 0,
+    "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -1398,8 +1398,8 @@
       ],
       "maximum": 5,
       "hyperparameter_trials_used": 5,
-      "group_closed": false,
-      "status": "preregistered_final_two",
+      "group_closed": true,
+      "status": "selection_frozen",
       "planned_final_two": [
         {
           "lambda_axis": 0.875
@@ -1407,7 +1407,8 @@
         {
           "lr": 0.000125
         }
-      ]
+      ],
+      "selected_id": null
     }
   },
   "pre026_tuning_review": {
@@ -3057,6 +3058,6 @@
       "report_pages": 4
     }
   ],
-  "campaign_status": "preregistered_035_final_two",
+  "campaign_status": "frozen_035_test_selection",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
