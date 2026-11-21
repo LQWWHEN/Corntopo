@@ -861,7 +861,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Use preoperative clinical features to condition directed differences between the four encoder-scale projections",
-      "status": "training",
+      "status": "near_validation_qualified_for_tuning",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -870,7 +870,10 @@
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
-      "source_commit": "c068b233da0eb2b41dce54dc4b2b930086389eef"
+      "source_commit": "c068b233da0eb2b41dce54dc4b2b930086389eef",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "checkpoint_files": 0
     }
   ],
   "artifact_policy": {
@@ -1053,13 +1056,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_039",
+    "status": "preregistered_039_first_three",
     "date": "2026-11-21",
     "completed_through": "038",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 1,
-    "experiment_checkpoint_files": null,
+    "active_experiment_jobs": 0,
+    "experiment_checkpoint_files": 0,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -1561,6 +1564,30 @@
       "selected_id": null,
       "test_evaluated": false,
       "checkpoint_files": 0
+    },
+    "tuning_from_039": {
+      "parent_id": "039",
+      "parent_source_commit": "c068b233da0eb2b41dce54dc4b2b930086389eef",
+      "planned_first_three": [
+        {
+          "lambda_sia": 1.25
+        },
+        {
+          "lambda_sia": 1.5
+        },
+        {
+          "lr": 7.5e-05
+        }
+      ],
+      "reserved_trials": [
+        "039_1",
+        "039_2",
+        "039_3"
+      ],
+      "maximum": 5,
+      "hyperparameter_trials_used": 0,
+      "group_closed": false,
+      "status": "preregistered"
     }
   },
   "pre026_tuning_review": {
@@ -3498,8 +3525,62 @@
       "report_pages": 4,
       "group_closed": true,
       "checkpoint_files": 0
+    },
+    {
+      "id": "039_1",
+      "group": "tuning_from_039",
+      "parent": "039",
+      "parent_source_commit": "c068b233da0eb2b41dce54dc4b2b930086389eef",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 1,
+      "change": {
+        "lambda_sia": 1.25
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_039_1.md",
+      "config": "configs/tuning/039_1.json"
+    },
+    {
+      "id": "039_2",
+      "group": "tuning_from_039",
+      "parent": "039",
+      "parent_source_commit": "c068b233da0eb2b41dce54dc4b2b930086389eef",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 2,
+      "change": {
+        "lambda_sia": 1.5
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_039_2.md",
+      "config": "configs/tuning/039_2.json"
+    },
+    {
+      "id": "039_3",
+      "group": "tuning_from_039",
+      "parent": "039",
+      "parent_source_commit": "c068b233da0eb2b41dce54dc4b2b930086389eef",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 3,
+      "change": {
+        "lr": 7.5e-05
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_039_3.md",
+      "config": "configs/tuning/039_3.json"
     }
   ],
-  "campaign_status": "training_039",
+  "campaign_status": "preregistered_039_first_three",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
