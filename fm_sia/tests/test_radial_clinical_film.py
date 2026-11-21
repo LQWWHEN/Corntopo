@@ -47,7 +47,8 @@ def test_meridional_field_transforms_with_features_and_ignores_isotropic_offsets
 
 
 @pytest.mark.parametrize(("method", "projection"), [("radial_film", "radial_affine"),
-                                                    ("meridional_film", "direction_affine")])
+                                                    ("meridional_film", "direction_affine"),
+                                                    ("scale_exchange_film", "exchange")])
 def test_matched_parent_training_and_preoperative_reload(tmp_path, method, projection):
     torch.set_num_threads(1)
     torch.manual_seed(35)
@@ -97,3 +98,19 @@ def test_matched_parent_training_and_preoperative_reload(tmp_path, method, proje
             torch.testing.assert_close(after[key], measured[key], atol=0, rtol=0)
     finally:
         path.unlink(missing_ok=True)
+
+
+def test_scale_exchange_film_donor_routing_and_equal_scale_limit():
+    from model.scale_exchange import ScaleExchangeFiLM
+    fusion = ScaleExchangeFiLM(8, 2)
+    image = torch.randn(2, 8, 7, 9)
+    clinical = torch.eye(2)
+    with torch.no_grad():
+        fusion.exchange.weight[0, 0] = 1
+        fusion.exchange.weight[11, 1] = -0.5
+    expected = image.clone()
+    expected[0, :2] = image[0, 2:4]
+    expected[1, 6:] -= 0.5 * (image[1, 4:6] - image[1, 6:])
+    torch.testing.assert_close(fusion(image, clinical, None), expected)
+    identical = image[:, :2].repeat(1, 4, 1, 1)
+    torch.testing.assert_close(fusion(identical, clinical, None), identical)

@@ -17,7 +17,10 @@ class ConditionalFNO(OperatorModule):
         self.clinical_encoder = (ClinicalConditionEncoder(clinical_dim,clinical_embed_dim)
                                  if fusion_method != 'none' else None)
         parent_fusion = 'film' if fusion_method == 'cross_attention_zero' else fusion_method
-        if fusion_method == 'meridional_film':
+        if fusion_method == 'scale_exchange_film':
+            from model.scale_exchange import ScaleExchangeFiLM
+            self.clinical_fusion = ScaleExchangeFiLM(64, clinical_embed_dim)
+        elif fusion_method == 'meridional_film':
             from model.meridional_fusion import MeridionalFiLM
             self.clinical_fusion = MeridionalFiLM(64, clinical_embed_dim)
         else:

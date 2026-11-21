@@ -849,6 +849,25 @@
       "validation_gate_passed": false,
       "near_eligible": true,
       "checkpoint_files": 0
+    },
+    {
+      "id": "039",
+      "rank_initial_with_tuning": true,
+      "proposal": "ITERATION_039.md",
+      "config": "configs/iteration039.json",
+      "proposal_id": "clinical_scale_exchange",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "change": "Use preoperative clinical features to condition directed differences between the four encoder-scale projections",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -1024,7 +1043,7 @@
   "direction_counts": {
     "sia_branch_and_joint_learning": 11,
     "clinical_feature_selection": 1,
-    "image_clinical_fusion": 7,
+    "image_clinical_fusion": 8,
     "loss_function_design": 3,
     "model_architecture": 5,
     "contrastive_autoregressive_integration": 1,
