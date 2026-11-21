@@ -836,7 +836,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Average the velocity core and its half-turn conjugate at each flow step using the same Fourier parameters",
-      "status": "training",
+      "status": "near_validation_qualified_for_tuning",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -845,7 +845,10 @@
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
-      "source_commit": "ba3180cc5b08ef45beaa3635758ef6b1210bcdc5"
+      "source_commit": "ba3180cc5b08ef45beaa3635758ef6b1210bcdc5",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "checkpoint_files": 0
     }
   ],
   "artifact_policy": {
@@ -1028,13 +1031,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_038",
+    "status": "preregistered_038_first_three",
     "date": "2026-11-21",
     "completed_through": "037",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 1,
-    "experiment_checkpoint_files": null,
+    "active_experiment_jobs": 0,
+    "experiment_checkpoint_files": 0,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -1499,6 +1502,30 @@
       "selected_id": null,
       "test_evaluated": false,
       "checkpoint_files": 0
+    },
+    "tuning_from_038": {
+      "parent_id": "038",
+      "parent_source_commit": "ba3180cc5b08ef45beaa3635758ef6b1210bcdc5",
+      "planned_first_three": [
+        {
+          "lambda_sia": 1.25
+        },
+        {
+          "lambda_axis": 0.875
+        },
+        {
+          "lr": 7.5e-05
+        }
+      ],
+      "reserved_trials": [
+        "038_1",
+        "038_2",
+        "038_3"
+      ],
+      "maximum": 5,
+      "hyperparameter_trials_used": 0,
+      "group_closed": false,
+      "status": "preregistered"
     }
   },
   "pre026_tuning_review": {
@@ -3296,8 +3323,62 @@
       "report_pages": 4,
       "group_closed": true,
       "checkpoint_files": 0
+    },
+    {
+      "id": "038_1",
+      "parent": "038",
+      "parent_source_commit": "ba3180cc5b08ef45beaa3635758ef6b1210bcdc5",
+      "group": "tuning_from_038",
+      "trial": 1,
+      "change": {
+        "lambda_sia": 1.25
+      },
+      "proposal": "TUNING_038_1.md",
+      "config": "configs/tuning/038_1.json",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "038_2",
+      "parent": "038",
+      "parent_source_commit": "ba3180cc5b08ef45beaa3635758ef6b1210bcdc5",
+      "group": "tuning_from_038",
+      "trial": 2,
+      "change": {
+        "lambda_axis": 0.875
+      },
+      "proposal": "TUNING_038_2.md",
+      "config": "configs/tuning/038_2.json",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
+    },
+    {
+      "id": "038_3",
+      "parent": "038",
+      "parent_source_commit": "ba3180cc5b08ef45beaa3635758ef6b1210bcdc5",
+      "group": "tuning_from_038",
+      "trial": 3,
+      "change": {
+        "lr": 7.5e-05
+      },
+      "proposal": "TUNING_038_3.md",
+      "config": "configs/tuning/038_3.json",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ]
     }
   ],
-  "campaign_status": "training_038",
+  "campaign_status": "preregistered_038_first_three",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
