@@ -1031,13 +1031,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "preregistered_038_final_two",
+    "status": "training_038_4",
     "date": "2026-11-21",
     "completed_through": "037",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 0,
-    "experiment_checkpoint_files": 0,
+    "active_experiment_jobs": 1,
+    "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -1527,7 +1527,7 @@
       "maximum": 5,
       "hyperparameter_trials_used": 3,
       "group_closed": false,
-      "status": "preregistered_final_two",
+      "status": "final_two_running",
       "planned_final_two": [
         {
           "lr": 8.75e-05
@@ -3428,7 +3428,8 @@
       "change": {
         "lr": 8.75e-05
       },
-      "status": "preregistered"
+      "status": "training",
+      "source_commit": "8f9d965942ed37d5433cf16664a5e65697cd92f9"
     },
     {
       "parent": "038",
@@ -3446,9 +3447,10 @@
       "change": {
         "lr": 6.25e-05
       },
-      "status": "preregistered"
+      "status": "queued",
+      "source_commit": "8f9d965942ed37d5433cf16664a5e65697cd92f9"
     }
   ],
-  "campaign_status": "preregistered_038_final_two",
+  "campaign_status": "training_038_4",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
