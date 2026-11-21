@@ -817,7 +817,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 3,
+      "tuning_trials_used": 4,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "25ec7c4f2649fc676e6714abe3c4369a9231d2e7",
@@ -1025,7 +1025,7 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_037_4",
+    "status": "training_037_5",
     "date": "2026-11-21",
     "completed_through": "036",
     "private_summary_verified": true,
@@ -1482,7 +1482,7 @@
         "037_5"
       ],
       "maximum": 5,
-      "hyperparameter_trials_used": 3,
+      "hyperparameter_trials_used": 4,
       "group_closed": false,
       "status": "final_two_running",
       "planned_final_two": [
@@ -3245,8 +3245,15 @@
       "change": {
         "lambda_axis": 0.9375
       },
-      "status": "training",
-      "source_commit": "dd59e882bd51a5904ddf2b51c784e700f9c44ffb"
+      "status": "completed_validation_no_test",
+      "source_commit": "dd59e882bd51a5904ddf2b51c784e700f9c44ffb",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned",
+      "report_pages": 4
     },
     {
       "parent": "037",
@@ -3264,10 +3271,10 @@
       "change": {
         "lambda_sia": 0.9
       },
-      "status": "queued",
+      "status": "training",
       "source_commit": "dd59e882bd51a5904ddf2b51c784e700f9c44ffb"
     }
   ],
-  "campaign_status": "training_037_4",
+  "campaign_status": "training_037_5",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
