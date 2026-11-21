@@ -842,7 +842,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 1,
+      "tuning_trials_used": 2,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "ba3180cc5b08ef45beaa3635758ef6b1210bcdc5",
@@ -1031,7 +1031,7 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_038_2",
+    "status": "training_038_3",
     "date": "2026-11-21",
     "completed_through": "037",
     "private_summary_verified": true,
@@ -1523,7 +1523,7 @@
         "038_3"
       ],
       "maximum": 5,
-      "hyperparameter_trials_used": 1,
+      "hyperparameter_trials_used": 2,
       "group_closed": false,
       "status": "first_three_running"
     }
@@ -3361,13 +3361,20 @@
       },
       "proposal": "TUNING_038_2.md",
       "config": "configs/tuning/038_2.json",
-      "status": "training",
+      "status": "completed_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "source_commit": "71bf26bd1b62116c5eb1c2db46190099e91bec3e"
+      "source_commit": "71bf26bd1b62116c5eb1c2db46190099e91bec3e",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned",
+      "report_pages": 4
     },
     {
       "id": "038_3",
@@ -3380,7 +3387,7 @@
       },
       "proposal": "TUNING_038_3.md",
       "config": "configs/tuning/038_3.json",
-      "status": "queued",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -3389,6 +3396,6 @@
       "source_commit": "71bf26bd1b62116c5eb1c2db46190099e91bec3e"
     }
   ],
-  "campaign_status": "training_038_2",
+  "campaign_status": "training_038_3",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
