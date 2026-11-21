@@ -848,7 +848,9 @@
       "source_commit": "ba3180cc5b08ef45beaa3635758ef6b1210bcdc5",
       "validation_gate_passed": false,
       "near_eligible": true,
-      "checkpoint_files": 0
+      "checkpoint_files": 0,
+      "group_closed": true,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "039",
@@ -859,7 +861,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Use preoperative clinical features to condition directed differences between the four encoder-scale projections",
-      "status": "preregistered",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -867,7 +869,8 @@
       ],
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "c068b233da0eb2b41dce54dc4b2b930086389eef"
     }
   ],
   "artifact_policy": {
@@ -1050,19 +1053,19 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "frozen_038_test_selection",
+    "status": "training_039",
     "date": "2026-11-21",
-    "completed_through": "037",
+    "completed_through": "038",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 0,
+    "active_experiment_jobs": 1,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "039",
+    "next_new_proposal": "040",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
     "temporary_checkpoint_trials": []
   },
@@ -1546,7 +1549,7 @@
       "maximum": 5,
       "hyperparameter_trials_used": 5,
       "group_closed": true,
-      "status": "selection_frozen",
+      "status": "completed",
       "planned_final_two": [
         {
           "lr": 8.75e-05
@@ -1555,7 +1558,9 @@
           "lr": 6.25e-05
         }
       ],
-      "selected_id": null
+      "selected_id": null,
+      "test_evaluated": false,
+      "checkpoint_files": 0
     }
   },
   "pre026_tuning_review": {
@@ -3378,7 +3383,9 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "038_2",
@@ -3404,7 +3411,9 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "038_3",
@@ -3430,7 +3439,9 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "parent": "038",
@@ -3456,7 +3467,9 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "parent": "038",
@@ -3482,9 +3495,11 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     }
   ],
-  "campaign_status": "frozen_038_test_selection",
+  "campaign_status": "training_039",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
