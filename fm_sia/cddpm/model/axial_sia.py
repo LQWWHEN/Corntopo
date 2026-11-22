@@ -7,8 +7,8 @@ from model.fm_sia import JointFlowMatching
 from model.fm_common import masked_mse, ode_step
 
 
-def axial_moments(feature):
-    """Mean, x²-y² and 2xy moments, normalized on a centered circular aperture.
+def axial_weights(feature):
+    """Mean, x²-y² and 2xy weights, normalized on a centered circular aperture.
 
     x points right and y points up. The two quadratic weights are the real
     and imaginary parts of r² exp(2i theta). This readout preserves spatial
@@ -19,7 +19,11 @@ def axial_moments(feature):
                             2*(torch.arange(w, device=feature.device, dtype=feature.dtype)+.5)/w-1, indexing='ij')
     aperture = (xx.square()+yy.square() <= 1).to(feature.dtype)
     weights = torch.stack((aperture, (xx.square()-yy.square())*aperture, 2*xx*yy*aperture))
-    weights = weights / weights.abs().sum((-2, -1), keepdim=True).clamp_min(1)
+    return weights / weights.abs().sum((-2, -1), keepdim=True).clamp_min(1)
+
+
+def axial_moments(feature):
+    weights = axial_weights(feature)
     return torch.einsum('bchw,khw->bkc', feature, weights).flatten(1)
 
 
