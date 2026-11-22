@@ -884,7 +884,7 @@
       "parent": "036",
       "parent_source_commit": "c9ae0baba733ca12944127910fa339b9eedafaa9",
       "change": "Replace both blur-pool/full-skip pairs in 036 by Haar cell means and complementary detail skips at matched parameter count",
-      "status": "preregistered",
+      "status": "queued_after_039",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -892,7 +892,8 @@
       ],
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "80a53873791690b1ed160eef3b517ac1152ffe2c"
     }
   ],
   "artifact_policy": {
