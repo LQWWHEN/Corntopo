@@ -920,6 +920,25 @@
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "e66ba2d16fbf4d41a79b66f088c3973ee3704b12"
+    },
+    {
+      "id": "042",
+      "rank_initial_with_tuning": true,
+      "proposal": "ITERATION_042.md",
+      "config": "configs/iteration042.json",
+      "proposal_id": "shared_optical_directional_velocity_modes",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "change": "Constrain two central second-harmonic velocity coefficients to preoperative predictions and share these physical coefficients with the polar SIA readout",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
