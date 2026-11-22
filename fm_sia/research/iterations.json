@@ -912,7 +912,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Use a preoperative clinical query to weight positions in the zeroth-order SIA feature while retaining the original two quadrupole moments",
-      "status": "training",
+      "status": "completed_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -922,7 +922,10 @@
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "e66ba2d16fbf4d41a79b66f088c3973ee3704b12",
-      "strict_gpu_acceptance": "PASS"
+      "strict_gpu_acceptance": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "checkpoint_files": 0
     },
     {
       "id": "042",
@@ -933,7 +936,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Constrain two central second-harmonic velocity coefficients to preoperative predictions and share these physical coefficients with the polar SIA readout",
-      "status": "queued_after_041",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -942,7 +945,8 @@
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
-      "source_commit": "d90cf38c4e7bd11024140f059dc70fdbe2ab5c7e"
+      "source_commit": "d90cf38c4e7bd11024140f059dc70fdbe2ab5c7e",
+      "strict_gpu_acceptance": "PASS"
     },
     {
       "id": "043",
@@ -1145,9 +1149,9 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_041",
+    "status": "training_042",
     "date": "2026-11-22",
-    "completed_through": "040",
+    "completed_through": "041",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
     "active_experiment_jobs": 1,
@@ -3880,6 +3884,6 @@
       "checkpoint_files": 0
     }
   ],
-  "campaign_status": "training_041",
+  "campaign_status": "training_042",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
