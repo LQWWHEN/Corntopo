@@ -867,7 +867,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 4,
+      "tuning_trials_used": 5,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "c068b233da0eb2b41dce54dc4b2b930086389eef",
@@ -1096,12 +1096,12 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_039_5",
+    "status": "frozen_039_test_selection",
     "date": "2026-11-22",
     "completed_through": "038",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 1,
+    "active_experiment_jobs": 0,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
@@ -1627,9 +1627,9 @@
         "039_5"
       ],
       "maximum": 5,
-      "hyperparameter_trials_used": 4,
-      "group_closed": false,
-      "status": "final_two_running",
+      "hyperparameter_trials_used": 5,
+      "group_closed": true,
+      "status": "selection_frozen",
       "planned_final_two": [
         {
           "lambda_sia": 1.125
@@ -1637,7 +1637,8 @@
         {
           "lr": 0.0001125
         }
-      ]
+      ],
+      "selected_id": null
     }
   },
   "pre026_tuning_review": {
@@ -3696,10 +3697,17 @@
       "change": {
         "lr": 0.0001125
       },
-      "status": "training",
-      "source_commit": "496cf2f0476ad096cb44b552f8e7d1033357d3e1"
+      "status": "completed_validation_no_test",
+      "source_commit": "496cf2f0476ad096cb44b552f8e7d1033357d3e1",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned",
+      "report_pages": 4
     }
   ],
-  "campaign_status": "training_039_5",
+  "campaign_status": "frozen_039_test_selection",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
