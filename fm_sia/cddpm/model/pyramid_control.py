@@ -6,7 +6,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from model.conditional_fno import ConditionalFNO
-from model.polar_sia import PolarSIAFlowMatching
+from model.polar_sia import MaskedImageConditionPolarSIA as PyramidControlledPolarSIA
 
 
 class PreparedPyramid(NamedTuple):
@@ -54,13 +54,3 @@ class PyramidControlledFNO(ConditionalFNO):
         if op.domain_padding is not None:
             x = op.domain_padding.unpad(x)
         return op.projection(x)
-
-
-class PyramidControlledPolarSIA(PolarSIAFlowMatching):
-    uses_preoperative_mask = True
-
-    def image_velocity(self, state, time, condition, clinical, pre_mask=None):
-        return self.unet(state, time, condition, clinical=clinical, pre_mask=pre_mask)
-
-    def prepare_image_condition(self, condition, clinical, pre_mask):
-        return self.unet.prepare_condition(condition, clinical, pre_mask)

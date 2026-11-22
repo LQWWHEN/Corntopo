@@ -146,3 +146,14 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
             auxiliary = axial_rank_contrast(hidden, target/self.sia_ref, self.rank_temperature)
             output.update(loss=output['loss']+self.rank_weight*auxiliary, loss_rank_contrast=auxiliary)
         return output
+
+
+class MaskedImageConditionPolarSIA(PolarSIAFlowMatching):
+    """Pass the preoperative mask to the image core during training and sampling."""
+    uses_preoperative_mask = True
+
+    def image_velocity(self, state, time, condition, clinical, pre_mask=None):
+        return self.unet(state, time, condition, clinical=clinical, pre_mask=pre_mask)
+
+    def prepare_image_condition(self, condition, clinical, pre_mask):
+        return self.unet.prepare_condition(condition, clinical, pre_mask)

@@ -967,6 +967,25 @@
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "fff368c0c781a8e84c01cebcccaf991225e98add"
+    },
+    {
+      "id": "044",
+      "rank_initial_with_tuning": true,
+      "proposal": "ITERATION_044.md",
+      "config": "configs/iteration044.json",
+      "proposal_id": "preoperative_aperture_restricted_fourier_velocity",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "change": "Restrict every Fourier velocity block input and final velocity to the measured preoperative aperture",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -1144,7 +1163,7 @@
     "clinical_feature_selection": 1,
     "image_clinical_fusion": 8,
     "loss_function_design": 3,
-    "model_architecture": 5,
+    "model_architecture": 6,
     "contrastive_autoregressive_integration": 1,
     "data_augmentation": 2
   },
@@ -1161,7 +1180,7 @@
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "044",
+    "next_new_proposal": "045",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
     "temporary_checkpoint_trials": []
   },
