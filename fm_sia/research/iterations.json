@@ -873,7 +873,9 @@
       "source_commit": "c068b233da0eb2b41dce54dc4b2b930086389eef",
       "validation_gate_passed": false,
       "near_eligible": true,
-      "checkpoint_files": 0
+      "checkpoint_files": 0,
+      "group_closed": true,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "040",
@@ -884,7 +886,7 @@
       "parent": "036",
       "parent_source_commit": "c9ae0baba733ca12944127910fa339b9eedafaa9",
       "change": "Replace both blur-pool/full-skip pairs in 036 by Haar cell means and complementary detail skips at matched parameter count",
-      "status": "queued_after_039",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -893,7 +895,8 @@
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
-      "source_commit": "80a53873791690b1ed160eef3b517ac1152ffe2c"
+      "source_commit": "80a53873791690b1ed160eef3b517ac1152ffe2c",
+      "strict_gpu_acceptance": "PASS"
     },
     {
       "id": "041",
@@ -1096,12 +1099,12 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "frozen_039_test_selection",
+    "status": "training_040",
     "date": "2026-11-22",
-    "completed_through": "038",
+    "completed_through": "039",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 0,
+    "active_experiment_jobs": 1,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
@@ -1629,7 +1632,7 @@
       "maximum": 5,
       "hyperparameter_trials_used": 5,
       "group_closed": true,
-      "status": "selection_frozen",
+      "status": "completed",
       "planned_final_two": [
         {
           "lambda_sia": 1.125
@@ -1638,7 +1641,9 @@
           "lr": 0.0001125
         }
       ],
-      "selected_id": null
+      "selected_id": null,
+      "test_evaluated": false,
+      "checkpoint_files": 0
     }
   },
   "pre026_tuning_review": {
@@ -3601,7 +3606,9 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "039_2",
@@ -3627,7 +3634,9 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "039_3",
@@ -3653,7 +3662,9 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "parent": "039",
@@ -3679,7 +3690,9 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "parent": "039",
@@ -3705,9 +3718,11 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     }
   ],
-  "campaign_status": "frozen_039_test_selection",
+  "campaign_status": "training_040",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
