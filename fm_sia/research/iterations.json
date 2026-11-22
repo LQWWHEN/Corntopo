@@ -936,7 +936,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Constrain two central second-harmonic velocity coefficients to preoperative predictions and share these physical coefficients with the polar SIA readout",
-      "status": "training",
+      "status": "near_validation_qualified_for_tuning",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -946,7 +946,10 @@
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "d90cf38c4e7bd11024140f059dc70fdbe2ab5c7e",
-      "strict_gpu_acceptance": "PASS"
+      "strict_gpu_acceptance": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "checkpoint_files": 0
     },
     {
       "id": "043",
@@ -1169,13 +1172,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_042",
+    "status": "preregistered_042_tuning",
     "date": "2026-11-22",
-    "completed_through": "041",
+    "completed_through": "042",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 1,
-    "experiment_checkpoint_files": null,
+    "active_experiment_jobs": 0,
+    "experiment_checkpoint_files": 0,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -1741,6 +1744,30 @@
       "selected_id": null,
       "test_evaluated": false,
       "checkpoint_files": 0
+    },
+    "tuning_from_042": {
+      "parent_id": "042",
+      "parent_source_commit": "d90cf38c4e7bd11024140f059dc70fdbe2ab5c7e",
+      "planned_first_three": [
+        {
+          "lr": 7.5e-05
+        },
+        {
+          "lambda_sia": 1.25
+        },
+        {
+          "lambda_axis": 0.875
+        }
+      ],
+      "reserved_trials": [
+        "042_1",
+        "042_2",
+        "042_3"
+      ],
+      "maximum": 5,
+      "hyperparameter_trials_used": 0,
+      "group_closed": false,
+      "status": "preregistered_first_three"
     }
   },
   "pre026_tuning_review": {
@@ -3902,8 +3929,62 @@
       "report_pages": 4,
       "group_closed": true,
       "checkpoint_files": 0
+    },
+    {
+      "id": "042_1",
+      "group": "tuning_from_042",
+      "parent": "042",
+      "parent_source_commit": "d90cf38c4e7bd11024140f059dc70fdbe2ab5c7e",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 1,
+      "change": {
+        "lr": 7.5e-05
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_042_1.md",
+      "config": "configs/tuning/042_1.json"
+    },
+    {
+      "id": "042_2",
+      "group": "tuning_from_042",
+      "parent": "042",
+      "parent_source_commit": "d90cf38c4e7bd11024140f059dc70fdbe2ab5c7e",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 2,
+      "change": {
+        "lambda_sia": 1.25
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_042_2.md",
+      "config": "configs/tuning/042_2.json"
+    },
+    {
+      "id": "042_3",
+      "group": "tuning_from_042",
+      "parent": "042",
+      "parent_source_commit": "d90cf38c4e7bd11024140f059dc70fdbe2ab5c7e",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 3,
+      "change": {
+        "lambda_axis": 0.875
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_042_3.md",
+      "config": "configs/tuning/042_3.json"
     }
   ],
-  "campaign_status": "training_042",
+  "campaign_status": "preregistered_042_tuning",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
