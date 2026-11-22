@@ -96,7 +96,7 @@ def get_args(argv=None):
                    help='SIA feature readout in lab coordinates, the preoperative axis frame, or with clinical-query spatial pooling')
     p.add_argument('--image_loss_units', choices=['normalized','diopter'], default='normalized',
                    help='Axial direct FRONT velocity loss: normalized pixels or physical D / sia_ref')
-    p.add_argument('--image_backbone', choices=['unet','fno','uno','fno_pyramid_control','axis_factorized_fno','blur_unet', 'haar_detail_unet', 'optical_mode_fno','half_turn_fno'], default='unet',
+    p.add_argument('--image_backbone', choices=['unet','fno','uno','fno_pyramid_control','axis_factorized_fno','blur_unet', 'haar_detail_unet', 'optical_mode_fno','half_turn_fno','moment_routed_fno'], default='unet',
                    help='Axial direct FM-SIA velocity network; historical models retain UNet')
     p.add_argument('--image_local_residual', action='store_true',
                    help='Add a preoperative-mask mean-free two-scale local CNN to conditional FNO velocity')
@@ -301,6 +301,9 @@ def check_args(a):
         raise ValueError('Conditional FNO backbone requires a spatial-moment direct FM-SIA head')
     if a.fusion_method in ('meridional_film', 'scale_exchange_film') and (a.image_backbone != 'fno' or a.sia_prediction != 'polar_direct'):
         raise ValueError(f'{a.fusion_method} requires the polar-direct conditional FNO')
+    if a.image_backbone == 'moment_routed_fno' and (a.sia_feature_fusion != 'lab' or a.eye_frame != 'native'
+            or a.sia_aperture_moments or a.sia_radial_contrast):
+        raise ValueError('Moment routing requires the native axial readout on the fixed circular aperture')
     if a.image_backbone == 'optical_mode_fno' and (a.fusion_method != 'film' or a.sia_feature_fusion != 'lab'
             or a.eye_frame != 'native' or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
         raise ValueError('The optical-mode split requires native FRONT maps and the polar FiLM readout')
@@ -309,9 +312,9 @@ def check_args(a):
     if a.image_backbone == 'fno_pyramid_control' and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
             or a.eye_frame != 'native' or a.fno_layers != 4 or a.fusion_method != 'film'):
         raise ValueError('Pyramid control requires a four-layer native polar-direct FNO with clinical FiLM')
-    if a.image_backbone in ('axis_factorized_fno', 'blur_unet', 'haar_detail_unet', 'optical_mode_fno', 'half_turn_fno') and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'):
+    if a.image_backbone in ('axis_factorized_fno', 'blur_unet', 'haar_detail_unet', 'optical_mode_fno', 'half_turn_fno', 'moment_routed_fno') and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'):
         raise ValueError(f'{a.image_backbone} requires polar-direct FM-SIA')
-    if a.image_backbone in ('fno','uno','fno_pyramid_control','axis_factorized_fno','blur_unet', 'haar_detail_unet', 'optical_mode_fno', 'half_turn_fno') and (min(*a.fno_modes,a.fno_hidden_channels,a.fno_layers)<1
+    if a.image_backbone in ('fno','uno','fno_pyramid_control','axis_factorized_fno','blur_unet', 'haar_detail_unet', 'optical_mode_fno', 'half_turn_fno', 'moment_routed_fno') and (min(*a.fno_modes,a.fno_hidden_channels,a.fno_layers)<1
                                      or not math.isfinite(a.fno_domain_padding) or a.fno_domain_padding<0):
         raise ValueError('Invalid conditional FNO dimensions or padding')
     if a.image_loss_units == 'diopter' and (a.model != 'fm_sia' or a.sia_prediction != 'axial_direct'
@@ -429,9 +432,12 @@ def build_model(args, stats=None):
     direct_sia = args.model == 'fm_sia' and getattr(args, 'sia_prediction', 'flow') in ('direct','axial_direct','polar_direct')
     encoder = ConditionEncoder()
     image_backbone = getattr(args, 'image_backbone', 'unet')
-    if image_backbone in ('fno', 'uno', 'fno_pyramid_control', 'axis_factorized_fno', 'blur_unet', 'haar_detail_unet', 'optical_mode_fno', 'half_turn_fno'):
+    if image_backbone in ('fno', 'uno', 'fno_pyramid_control', 'axis_factorized_fno', 'blur_unet', 'haar_detail_unet', 'optical_mode_fno', 'half_turn_fno', 'moment_routed_fno'):
         from model.conditional_fno import ConditionalFNO
         fno_class = ConditionalFNO
+        if image_backbone == 'moment_routed_fno':
+            from model.moment_routed_fno import MomentRoutedFNO
+            fno_class = MomentRoutedFNO
         if image_backbone == 'half_turn_fno':
             from model.conditional_fno import HalfTurnFNO
             fno_class = HalfTurnFNO

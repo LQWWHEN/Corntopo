@@ -943,6 +943,25 @@
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "d90cf38c4e7bd11024140f059dc70fdbe2ab5c7e"
+    },
+    {
+      "id": "043",
+      "rank_initial_with_tuning": true,
+      "proposal": "ITERATION_043.md",
+      "config": "configs/iteration043.json",
+      "proposal_id": "axial_moment_image_gradient_routing",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "change": "At the deepest conditioning feature, project only the image gradient onto the complement of the three axial readout moments",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -1116,7 +1135,7 @@
     }
   },
   "direction_counts": {
-    "sia_branch_and_joint_learning": 11,
+    "sia_branch_and_joint_learning": 12,
     "clinical_feature_selection": 1,
     "image_clinical_fusion": 8,
     "loss_function_design": 3,
@@ -1137,7 +1156,7 @@
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "043",
+    "next_new_proposal": "044",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
     "temporary_checkpoint_trials": []
   },
