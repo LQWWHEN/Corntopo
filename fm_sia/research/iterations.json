@@ -942,7 +942,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 0,
+      "tuning_trials_used": 1,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "d90cf38c4e7bd11024140f059dc70fdbe2ab5c7e",
@@ -1172,13 +1172,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "preregistered_042_tuning",
+    "status": "training_042_1",
     "date": "2026-11-22",
     "completed_through": "042",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 0,
-    "experiment_checkpoint_files": 0,
+    "active_experiment_jobs": 1,
+    "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -1186,7 +1186,9 @@
     "iteration022_started": true,
     "next_new_proposal": "045",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": []
+    "temporary_checkpoint_trials": [
+      "042_1"
+    ]
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -1765,9 +1767,9 @@
         "042_3"
       ],
       "maximum": 5,
-      "hyperparameter_trials_used": 0,
+      "hyperparameter_trials_used": 1,
       "group_closed": false,
-      "status": "preregistered_first_three"
+      "status": "running_first_three"
     }
   },
   "pre026_tuning_review": {
@@ -3944,9 +3946,10 @@
       "change": {
         "lr": 7.5e-05
       },
-      "status": "preregistered",
+      "status": "training",
       "proposal": "TUNING_042_1.md",
-      "config": "configs/tuning/042_1.json"
+      "config": "configs/tuning/042_1.json",
+      "source_commit": "e37f07199ed7a9de423bd3806f80f4a6af55b749"
     },
     {
       "id": "042_2",
@@ -3962,9 +3965,10 @@
       "change": {
         "lambda_sia": 1.25
       },
-      "status": "preregistered",
+      "status": "queued",
       "proposal": "TUNING_042_2.md",
-      "config": "configs/tuning/042_2.json"
+      "config": "configs/tuning/042_2.json",
+      "source_commit": "e37f07199ed7a9de423bd3806f80f4a6af55b749"
     },
     {
       "id": "042_3",
@@ -3980,11 +3984,12 @@
       "change": {
         "lambda_axis": 0.875
       },
-      "status": "preregistered",
+      "status": "queued",
       "proposal": "TUNING_042_3.md",
-      "config": "configs/tuning/042_3.json"
+      "config": "configs/tuning/042_3.json",
+      "source_commit": "e37f07199ed7a9de423bd3806f80f4a6af55b749"
     }
   ],
-  "campaign_status": "preregistered_042_tuning",
+  "campaign_status": "training_042_1",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
