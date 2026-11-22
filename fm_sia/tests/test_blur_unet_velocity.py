@@ -6,7 +6,7 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "cddpm"))
 pytest.importorskip("neuralop")
-from model.blur_unet_velocity import BlurPool, BlurUNetVelocity
+from model.blur_unet_velocity import BlurPool, BlurUNetVelocity, haar_split
 from predict import load_checkpoint
 from train import PIPELINE_VERSION, build_model, sample_batch, forward_batch
 from test_conditional_uno import arguments, statistics
@@ -36,16 +36,34 @@ def test_multiscale_odd_grid_and_gradients():
         assert torch.isfinite(grad).all() and grad.abs().sum() > 0
 
 
-def test_parent_condition_and_sia_match_and_saved_sampling(tmp_path):
+def test_haar_detail_retains_three_orientations_and_reconstructs_odd_edges():
+    rows, cols = torch.meshgrid(torch.arange(7), torch.arange(9), indexing="ij")
+    x = torch.stack([torch.ones_like(rows), (-1) ** rows, (-1) ** cols, (-1) ** (rows + cols)]).float()[None]
+    low, detail = haar_split(x)
+    assert torch.equal(detail[:, 0], torch.zeros_like(detail[:, 0]))
+    torch.testing.assert_close(detail[:, 1:, :6, :8], x[:, 1:, :6, :8])
+    torch.testing.assert_close(haar_split(detail)[0], torch.zeros_like(low))
+    reconstructed = low.repeat_interleave(2, -2).repeat_interleave(2, -1)[..., :7, :9] + detail
+    torch.testing.assert_close(reconstructed, x)
+
+
+@pytest.mark.parametrize("backbone,parent_backbone", [("blur_unet", "fno"), ("haar_detail_unet", "blur_unet")])
+def test_parent_condition_and_sia_match_and_saved_sampling(tmp_path, backbone, parent_backbone):
     torch.set_num_threads(1)
-    args = arguments("blur_unet")
+    args = arguments(backbone)
     torch.manual_seed(36)
-    parent = build_model(arguments("fno"), statistics()).eval()
+    parent = build_model(arguments(parent_backbone), statistics()).eval()
     rng = torch.get_rng_state()
     torch.manual_seed(36)
     model = build_model(args, statistics()).eval()
     assert torch.equal(rng, torch.get_rng_state())
     state = model.state_dict()
+    if backbone == "haar_detail_unet":
+        assert model.unet.fno.haar_details
+        parent_params = dict(parent.named_parameters())
+        assert parent_params.keys() == dict(model.named_parameters()).keys()
+        for name, value in model.named_parameters():
+            torch.testing.assert_close(value, parent_params[name], rtol=0, atol=0)
     for name, value in parent.state_dict().items():
         if not name.startswith("unet.fno."):
             torch.testing.assert_close(state[name], value, rtol=0, atol=0)
@@ -61,8 +79,10 @@ def test_parent_condition_and_sia_match_and_saved_sampling(tmp_path):
     before = sample_batch(model, batch, args, "cpu")
     hook.remove()
     assert calls == [1]
-    ref = sample_batch(parent, batch, arguments("fno"), "cpu")
+    ref = sample_batch(parent, batch, arguments(parent_backbone), "cpu")
     torch.testing.assert_close(before["sia_vector"], ref["sia_vector"], rtol=0, atol=0)
+    if backbone == "haar_detail_unet":
+        assert not torch.equal(before["pred"], ref["pred"])
     path = tmp_path / "reload.pth"
     try:
         torch.save(dict(pipeline_version=PIPELINE_VERSION, config=vars(args), stats=statistics(),

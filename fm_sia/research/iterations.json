@@ -874,6 +874,25 @@
       "validation_gate_passed": false,
       "near_eligible": true,
       "checkpoint_files": 0
+    },
+    {
+      "id": "040",
+      "rank_initial_with_tuning": true,
+      "proposal": "ITERATION_040.md",
+      "config": "configs/iteration040.json",
+      "proposal_id": "haar_detail_unet_velocity",
+      "parent": "036",
+      "parent_source_commit": "c9ae0baba733ca12944127910fa339b9eedafaa9",
+      "change": "Replace both blur-pool/full-skip pairs in 036 by Haar cell means and complementary detail skips at matched parameter count",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
