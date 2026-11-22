@@ -1056,13 +1056,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "preregistered_039_final_two",
+    "status": "training_039_4",
     "date": "2026-11-22",
     "completed_through": "038",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 0,
-    "experiment_checkpoint_files": 0,
+    "active_experiment_jobs": 1,
+    "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -1589,7 +1589,7 @@
       "maximum": 5,
       "hyperparameter_trials_used": 3,
       "group_closed": false,
-      "status": "preregistered_final_two",
+      "status": "final_two_running",
       "planned_final_two": [
         {
           "lambda_sia": 1.125
@@ -3630,7 +3630,8 @@
       "change": {
         "lambda_sia": 1.125
       },
-      "status": "preregistered"
+      "status": "training",
+      "source_commit": "496cf2f0476ad096cb44b552f8e7d1033357d3e1"
     },
     {
       "parent": "039",
@@ -3648,9 +3649,10 @@
       "change": {
         "lr": 0.0001125
       },
-      "status": "preregistered"
+      "status": "queued",
+      "source_commit": "496cf2f0476ad096cb44b552f8e7d1033357d3e1"
     }
   ],
-  "campaign_status": "preregistered_039_final_two",
+  "campaign_status": "training_039_4",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
