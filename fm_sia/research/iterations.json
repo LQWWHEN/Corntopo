@@ -942,7 +942,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 1,
+      "tuning_trials_used": 2,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "d90cf38c4e7bd11024140f059dc70fdbe2ab5c7e",
@@ -1172,7 +1172,7 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_042_1",
+    "status": "training_042_2",
     "date": "2026-11-22",
     "completed_through": "042",
     "private_summary_verified": true,
@@ -1187,7 +1187,7 @@
     "next_new_proposal": "045",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
     "temporary_checkpoint_trials": [
-      "042_1"
+      "042_2"
     ]
   },
   "budget_policy_before_20261116": {
@@ -1767,7 +1767,7 @@
         "042_3"
       ],
       "maximum": 5,
-      "hyperparameter_trials_used": 1,
+      "hyperparameter_trials_used": 2,
       "group_closed": false,
       "status": "running_first_three"
     }
@@ -3946,10 +3946,18 @@
       "change": {
         "lr": 7.5e-05
       },
-      "status": "training",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_042_1.md",
       "config": "configs/tuning/042_1.json",
-      "source_commit": "e37f07199ed7a9de423bd3806f80f4a6af55b749"
+      "source_commit": "e37f07199ed7a9de423bd3806f80f4a6af55b749",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned",
+      "report_pages": 4,
+      "checkpoint_files": 0
     },
     {
       "id": "042_2",
@@ -3965,7 +3973,7 @@
       "change": {
         "lambda_sia": 1.25
       },
-      "status": "queued",
+      "status": "training",
       "proposal": "TUNING_042_2.md",
       "config": "configs/tuning/042_2.json",
       "source_commit": "e37f07199ed7a9de423bd3806f80f4a6af55b749"
@@ -3990,6 +3998,6 @@
       "source_commit": "e37f07199ed7a9de423bd3806f80f4a6af55b749"
     }
   ],
-  "campaign_status": "training_042_1",
+  "campaign_status": "training_042_2",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
