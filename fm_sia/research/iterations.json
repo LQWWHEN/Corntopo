@@ -977,7 +977,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Restrict every Fourier velocity block input and final velocity to the measured preoperative aperture",
-      "status": "preregistered",
+      "status": "queued_after_043",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -985,7 +985,8 @@
       ],
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "19166c352030f3df571a4801cc382770e78e182a"
     }
   ],
   "artifact_policy": {
