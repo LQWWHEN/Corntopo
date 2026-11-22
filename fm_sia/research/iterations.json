@@ -1102,13 +1102,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "preregistered_040_tuning",
+    "status": "training_040_1",
     "date": "2026-11-22",
     "completed_through": "039",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 0,
-    "experiment_checkpoint_files": 0,
+    "active_experiment_jobs": 1,
+    "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -1670,7 +1670,7 @@
       "maximum": 5,
       "hyperparameter_trials_used": 0,
       "group_closed": false,
-      "status": "preregistered_first_three"
+      "status": "first_three_running"
     }
   },
   "pre026_tuning_review": {
@@ -3763,9 +3763,10 @@
       "change": {
         "lr": 7.5e-05
       },
-      "status": "preregistered",
+      "status": "training",
       "proposal": "TUNING_040_1.md",
-      "config": "configs/tuning/040_1.json"
+      "config": "configs/tuning/040_1.json",
+      "source_commit": "2c821cdefb8045770b0f2345d81b2800d855e181"
     },
     {
       "id": "040_2",
@@ -3781,9 +3782,10 @@
       "change": {
         "lambda_sia": 1.25
       },
-      "status": "preregistered",
+      "status": "queued",
       "proposal": "TUNING_040_2.md",
-      "config": "configs/tuning/040_2.json"
+      "config": "configs/tuning/040_2.json",
+      "source_commit": "2c821cdefb8045770b0f2345d81b2800d855e181"
     },
     {
       "id": "040_3",
@@ -3799,11 +3801,12 @@
       "change": {
         "lambda_axis": 0.875
       },
-      "status": "preregistered",
+      "status": "queued",
       "proposal": "TUNING_040_3.md",
-      "config": "configs/tuning/040_3.json"
+      "config": "configs/tuning/040_3.json",
+      "source_commit": "2c821cdefb8045770b0f2345d81b2800d855e181"
     }
   ],
-  "campaign_status": "preregistered_040_tuning",
+  "campaign_status": "training_040_1",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
