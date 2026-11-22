@@ -867,7 +867,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 0,
+      "tuning_trials_used": 3,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "c068b233da0eb2b41dce54dc4b2b930086389eef",
@@ -1056,13 +1056,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_039_1",
-    "date": "2026-11-21",
+    "status": "preregistered_039_final_two",
+    "date": "2026-11-22",
     "completed_through": "038",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 1,
-    "experiment_checkpoint_files": null,
+    "active_experiment_jobs": 0,
+    "experiment_checkpoint_files": 0,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -1582,12 +1582,22 @@
       "reserved_trials": [
         "039_1",
         "039_2",
-        "039_3"
+        "039_3",
+        "039_4",
+        "039_5"
       ],
       "maximum": 5,
-      "hyperparameter_trials_used": 0,
+      "hyperparameter_trials_used": 3,
       "group_closed": false,
-      "status": "first_three_running"
+      "status": "preregistered_final_two",
+      "planned_final_two": [
+        {
+          "lambda_sia": 1.125
+        },
+        {
+          "lr": 0.0001125
+        }
+      ]
     }
   },
   "pre026_tuning_review": {
@@ -3540,10 +3550,17 @@
       "change": {
         "lambda_sia": 1.25
       },
-      "status": "training",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_039_1.md",
       "config": "configs/tuning/039_1.json",
-      "source_commit": "8ec11aec285a200fb5bac71e7356c636eeb4737f"
+      "source_commit": "8ec11aec285a200fb5bac71e7356c636eeb4737f",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned",
+      "report_pages": 4
     },
     {
       "id": "039_2",
@@ -3559,10 +3576,17 @@
       "change": {
         "lambda_sia": 1.5
       },
-      "status": "queued",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_039_2.md",
       "config": "configs/tuning/039_2.json",
-      "source_commit": "8ec11aec285a200fb5bac71e7356c636eeb4737f"
+      "source_commit": "8ec11aec285a200fb5bac71e7356c636eeb4737f",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned",
+      "report_pages": 4
     },
     {
       "id": "039_3",
@@ -3578,12 +3602,55 @@
       "change": {
         "lr": 7.5e-05
       },
-      "status": "queued",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_039_3.md",
       "config": "configs/tuning/039_3.json",
-      "source_commit": "8ec11aec285a200fb5bac71e7356c636eeb4737f"
+      "source_commit": "8ec11aec285a200fb5bac71e7356c636eeb4737f",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned",
+      "report_pages": 4
+    },
+    {
+      "parent": "039",
+      "parent_source_commit": "c068b233da0eb2b41dce54dc4b2b930086389eef",
+      "group": "tuning_from_039",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "id": "039_4",
+      "proposal": "TUNING_039_4.md",
+      "config": "configs/tuning/039_4.json",
+      "trial": 4,
+      "change": {
+        "lambda_sia": 1.125
+      },
+      "status": "preregistered"
+    },
+    {
+      "parent": "039",
+      "parent_source_commit": "c068b233da0eb2b41dce54dc4b2b930086389eef",
+      "group": "tuning_from_039",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "id": "039_5",
+      "proposal": "TUNING_039_5.md",
+      "config": "configs/tuning/039_5.json",
+      "trial": 5,
+      "change": {
+        "lr": 0.0001125
+      },
+      "status": "preregistered"
     }
   ],
-  "campaign_status": "training_039_1",
+  "campaign_status": "preregistered_039_final_two",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
