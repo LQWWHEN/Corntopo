@@ -949,7 +949,9 @@
       "strict_gpu_acceptance": "PASS",
       "validation_gate_passed": false,
       "near_eligible": true,
-      "checkpoint_files": 0
+      "checkpoint_files": 0,
+      "group_closed": true,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "043",
@@ -960,7 +962,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "At the deepest conditioning feature, project only the image gradient onto the complement of the three axial readout moments",
-      "status": "queued_after_042",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1172,12 +1174,12 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "frozen_042_test_selection",
-    "date": "2026-11-22",
+    "status": "training_043",
+    "date": "2026-11-23",
     "completed_through": "042",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 0,
+    "active_experiment_jobs": 1,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
@@ -1186,7 +1188,9 @@
     "iteration022_started": true,
     "next_new_proposal": "045",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": []
+    "temporary_checkpoint_trials": [
+      "043"
+    ]
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -1769,7 +1773,7 @@
       "maximum": 5,
       "hyperparameter_trials_used": 5,
       "group_closed": true,
-      "status": "selection_frozen",
+      "status": "completed",
       "planned_final_two": [
         {
           "lambda_sia": 0.875
@@ -1778,7 +1782,9 @@
           "lr": 0.0001125
         }
       ],
-      "selected_id": null
+      "selected_id": null,
+      "test_evaluated": false,
+      "checkpoint_files": 0
     }
   },
   "pre026_tuning_review": {
@@ -3966,7 +3972,8 @@
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
       "report_pages": 4,
-      "checkpoint_files": 0
+      "checkpoint_files": 0,
+      "group_closed": true
     },
     {
       "id": "042_2",
@@ -3993,7 +4000,8 @@
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
       "report_pages": 4,
-      "checkpoint_files": 0
+      "checkpoint_files": 0,
+      "group_closed": true
     },
     {
       "id": "042_3",
@@ -4020,7 +4028,8 @@
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
       "report_pages": 4,
-      "checkpoint_files": 0
+      "checkpoint_files": 0,
+      "group_closed": true
     },
     {
       "id": "042_4",
@@ -4046,7 +4055,9 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "042_5",
@@ -4072,9 +4083,11 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     }
   ],
-  "campaign_status": "frozen_042_test_selection",
+  "campaign_status": "training_043",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
