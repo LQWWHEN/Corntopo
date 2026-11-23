@@ -962,7 +962,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "At the deepest conditioning feature, project only the image gradient onto the complement of the three axial readout moments",
-      "status": "training",
+      "status": "completed_validation_tuning_required",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -971,7 +971,13 @@
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
-      "source_commit": "fff368c0c781a8e84c01cebcccaf991225e98add"
+      "source_commit": "fff368c0c781a8e84c01cebcccaf991225e98add",
+      "audit": "PASS",
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "validation_gate_passed": false,
+      "checkpoint_state": "cleaned",
+      "checkpoint_files": 0
     },
     {
       "id": "044",
@@ -1174,13 +1180,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_043",
+    "status": "first_three_043_frozen",
     "date": "2026-11-23",
-    "completed_through": "042",
+    "completed_through": "043",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 1,
-    "experiment_checkpoint_files": null,
+    "active_experiment_jobs": 0,
+    "experiment_checkpoint_files": 0,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -1188,9 +1194,7 @@
     "iteration022_started": true,
     "next_new_proposal": "045",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": [
-      "043"
-    ]
+    "temporary_checkpoint_trials": []
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -1785,6 +1789,32 @@
       "selected_id": null,
       "test_evaluated": false,
       "checkpoint_files": 0
+    },
+    "tuning_from_043": {
+      "parent_id": "043",
+      "parent_source_commit": "fff368c0c781a8e84c01cebcccaf991225e98add",
+      "planned_first_three": [
+        {
+          "lambda_axis": 1.125
+        },
+        {
+          "lambda_sia": 1.125
+        },
+        {
+          "lr": 7.5e-05
+        }
+      ],
+      "reserved_trials": [
+        "043_1",
+        "043_2",
+        "043_3",
+        "043_4",
+        "043_5"
+      ],
+      "maximum": 5,
+      "hyperparameter_trials_used": 0,
+      "group_closed": false,
+      "status": "first_three_frozen"
     }
   },
   "pre026_tuning_review": {
@@ -4086,8 +4116,65 @@
       "report_pages": 4,
       "group_closed": true,
       "checkpoint_files": 0
+    },
+    {
+      "id": "043_1",
+      "group": "tuning_from_043",
+      "parent": "043",
+      "parent_source_commit": "fff368c0c781a8e84c01cebcccaf991225e98add",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 1,
+      "change": {
+        "lambda_axis": 1.125
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_043_1.md",
+      "config": "configs/tuning/043_1.json",
+      "test_evaluated": false
+    },
+    {
+      "id": "043_2",
+      "group": "tuning_from_043",
+      "parent": "043",
+      "parent_source_commit": "fff368c0c781a8e84c01cebcccaf991225e98add",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 2,
+      "change": {
+        "lambda_sia": 1.125
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_043_2.md",
+      "config": "configs/tuning/043_2.json",
+      "test_evaluated": false
+    },
+    {
+      "id": "043_3",
+      "group": "tuning_from_043",
+      "parent": "043",
+      "parent_source_commit": "fff368c0c781a8e84c01cebcccaf991225e98add",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 3,
+      "change": {
+        "lr": 7.5e-05
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_043_3.md",
+      "config": "configs/tuning/043_3.json",
+      "test_evaluated": false
     }
   ],
-  "campaign_status": "training_043",
+  "campaign_status": "first_three_043_frozen",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
