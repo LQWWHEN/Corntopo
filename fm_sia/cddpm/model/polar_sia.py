@@ -108,8 +108,10 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
             q, magnitude, phase = self.predict_polar(cond, clinical, **self.sia_mask_argument(pre_mask))
         target = sia_vector.to(pre)
         tau = t[:, None, None, None]
-        velocity = self.image_velocity((1-tau)*pre+tau*post, t, cond, clinical, pre_mask)
-        normalized_image_loss = masked_mse(velocity, post-pre, mask)
+        change = post - pre
+        state = tau * change if self.integrates_power_change else (1-tau)*pre+tau*post
+        velocity = self.image_velocity(state, t, cond, clinical, pre_mask)
+        normalized_image_loss = masked_mse(velocity, change, mask)
         image_loss = self.image_loss_multiplier*normalized_image_loss
         extra_logs = {}
         if self.image_gradient_weight:
@@ -146,6 +148,12 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
             auxiliary = axial_rank_contrast(hidden, target/self.sia_ref, self.rank_temperature)
             output.update(loss=output['loss']+self.rank_weight*auxiliary, loss_rank_contrast=auxiliary)
         return output
+
+
+class PowerChangePolarSIA(PolarSIAFlowMatching):
+    """Integrate power change from zero and add it to the measured preoperative map."""
+
+    integrates_power_change = True
 
 
 class MaskedImageConditionPolarSIA(PolarSIAFlowMatching):

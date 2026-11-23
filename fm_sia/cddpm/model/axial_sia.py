@@ -28,6 +28,8 @@ def axial_moments(feature):
 
 
 class AxialSIAFlowMatching(JointFlowMatching):
+    integrates_power_change = False
+
     def __init__(self, condition_encoder, unet, sia_mean, sia_std, *, feature_fusion='lab',
                  clinical_vector_indices=None, clinical_vector_mean=None, clinical_vector_std=None,
                  image_loss_units='normalized', image_scale=1., image_harmonic_weight=0., **kwargs):
@@ -119,10 +121,12 @@ class AxialSIAFlowMatching(JointFlowMatching):
         def field(state, time):
             t = pre.new_full((pre.shape[0],), time)
             return (self.unet(state[0], t, image_cond, clinical=clinical),)
-        state = (pre,)
+        initial = torch.zeros_like(pre) if self.integrates_power_change else pre
+        state = (initial,)
         for k in range(steps):
             state = ode_step(field, state, k/steps, 1/steps, method or self.method)
-        return dict(pred=state[0], sia_vector=q, sia=q.norm(dim=-1), sia_state=(q-self.sia_mean)/self.sia_std)
+        image = pre + state[0] if self.integrates_power_change else state[0]
+        return dict(pred=image, sia_vector=q, sia=q.norm(dim=-1), sia_state=(q-self.sia_mean)/self.sia_std)
 
 
 def preoperative_frame_moments(feature, pre_vector):
