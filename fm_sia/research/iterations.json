@@ -977,7 +977,8 @@
       "eligible_for_group_selection": false,
       "validation_gate_passed": false,
       "checkpoint_state": "cleaned",
-      "checkpoint_files": 0
+      "checkpoint_files": 0,
+      "group_closed": true
     },
     {
       "id": "044",
@@ -988,7 +989,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Restrict every Fourier velocity block input and final velocity to the measured preoperative aperture",
-      "status": "queued_after_043",
+      "status": "training",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1180,12 +1181,12 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "frozen_043_test_selection",
+    "status": "training_044",
     "date": "2026-11-23",
     "completed_through": "043",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 0,
+    "active_experiment_jobs": 1,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
@@ -1194,7 +1195,9 @@
     "iteration022_started": true,
     "next_new_proposal": "045",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": []
+    "temporary_checkpoint_trials": [
+      "044"
+    ]
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -1814,7 +1817,7 @@
       "maximum": 5,
       "hyperparameter_trials_used": 5,
       "group_closed": true,
-      "status": "selection_frozen",
+      "status": "completed",
       "planned_final_two": [
         {
           "lambda_sia": 0.875
@@ -1823,7 +1826,9 @@
           "lr": 0.0001125
         }
       ],
-      "selected_id": null
+      "selected_id": null,
+      "test_evaluated": false,
+      "checkpoint_files": 0
     }
   },
   "pre026_tuning_review": {
@@ -4150,7 +4155,9 @@
       "eligible_for_group_selection": false,
       "audit": "PASS",
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "043_2",
@@ -4176,7 +4183,9 @@
       "eligible_for_group_selection": false,
       "audit": "PASS",
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "043_3",
@@ -4202,7 +4211,9 @@
       "eligible_for_group_selection": false,
       "audit": "PASS",
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "043_4",
@@ -4228,7 +4239,9 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "043_5",
@@ -4254,9 +4267,11 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 4
+      "report_pages": 4,
+      "group_closed": true,
+      "checkpoint_files": 0
     }
   ],
-  "campaign_status": "frozen_043_test_selection",
+  "campaign_status": "training_044",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
