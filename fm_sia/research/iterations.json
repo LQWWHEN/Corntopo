@@ -1050,8 +1050,15 @@
       "config": "configs/iteration046.json",
       "proposal_id": "preoperative_power_change_flow_state",
       "change": "Integrate the FNO field in preoperative power-change coordinates with an explicit preoperative image skip",
-      "status": "training",
-      "source_commit": "9ab688d6b4cf75cc7abb9c39115584db7039f3d9"
+      "status": "completed_validation_tuning_pending",
+      "source_commit": "9ab688d6b4cf75cc7abb9c39115584db7039f3d9",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "checkpoint_files": 0,
+      "checkpoint_state": "cleaned",
+      "report_pages": 5
     },
     {
       "rank_initial_with_tuning": true,
@@ -1254,13 +1261,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_046",
+    "status": "registered_046_first_three",
     "date": "2026-11-24",
-    "completed_through": "045",
+    "completed_through": "046",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 1,
-    "experiment_checkpoint_files": null,
+    "active_experiment_jobs": 0,
+    "experiment_checkpoint_files": 0,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -1268,9 +1275,7 @@
     "iteration022_started": true,
     "next_new_proposal": "048",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": [
-      "046"
-    ]
+    "temporary_checkpoint_trials": []
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -1939,6 +1944,30 @@
       "selected_id": null,
       "test_evaluated": false,
       "checkpoint_files": 0
+    },
+    "tuning_from_046": {
+      "parent_id": "046",
+      "parent_source_commit": "9ab688d6b4cf75cc7abb9c39115584db7039f3d9",
+      "planned_first_three": [
+        {
+          "lr": 0.0001125
+        },
+        {
+          "lambda_sia": 1.125
+        },
+        {
+          "lambda_axis": 0.875
+        }
+      ],
+      "reserved_trials": [
+        "046_1",
+        "046_2",
+        "046_3"
+      ],
+      "maximum": 5,
+      "hyperparameter_trials_used": 0,
+      "group_closed": false,
+      "status": "first_three_registered"
     }
   },
   "pre026_tuning_review": {
@@ -4520,8 +4549,65 @@
       "report_pages": 5,
       "group_closed": true,
       "checkpoint_files": 0
+    },
+    {
+      "id": "046_1",
+      "group": "tuning_from_046",
+      "parent": "046",
+      "parent_source_commit": "9ab688d6b4cf75cc7abb9c39115584db7039f3d9",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 1,
+      "change": {
+        "lr": 0.0001125
+      },
+      "status": "registered",
+      "proposal": "TUNING_046_1.md",
+      "config": "configs/tuning/046_1.json",
+      "test_evaluated": false
+    },
+    {
+      "id": "046_2",
+      "group": "tuning_from_046",
+      "parent": "046",
+      "parent_source_commit": "9ab688d6b4cf75cc7abb9c39115584db7039f3d9",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 2,
+      "change": {
+        "lambda_sia": 1.125
+      },
+      "status": "registered",
+      "proposal": "TUNING_046_2.md",
+      "config": "configs/tuning/046_2.json",
+      "test_evaluated": false
+    },
+    {
+      "id": "046_3",
+      "group": "tuning_from_046",
+      "parent": "046",
+      "parent_source_commit": "9ab688d6b4cf75cc7abb9c39115584db7039f3d9",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 3,
+      "change": {
+        "lambda_axis": 0.875
+      },
+      "status": "registered",
+      "proposal": "TUNING_046_3.md",
+      "config": "configs/tuning/046_3.json",
+      "test_evaluated": false
     }
   ],
-  "campaign_status": "training_046",
+  "campaign_status": "registered_046_first_three",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
