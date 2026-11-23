@@ -20,6 +20,9 @@ class ConditionalFNO(OperatorModule):
         if fusion_method == 'scale_exchange_film':
             from model.scale_exchange import ScaleExchangeFiLM
             self.clinical_fusion = ScaleExchangeFiLM(64, clinical_embed_dim)
+        elif fusion_method == 'parity_film':
+            from model.clinical_parity import ParityFiLM
+            self.clinical_fusion = ParityFiLM(64, clinical_embed_dim)
         elif fusion_method == 'meridional_film':
             from model.meridional_fusion import MeridionalFiLM
             self.clinical_fusion = MeridionalFiLM(64, clinical_embed_dim)

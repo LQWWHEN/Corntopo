@@ -68,7 +68,7 @@ def get_args(argv=None):
     p.add_argument('--objective', default='grad')
     p.add_argument('--conditions', nargs='+', default=[])
     p.add_argument('--targets', nargs='+', default=[], help='Legacy extra fields; SIA uses the selected mode-specific label columns')
-    p.add_argument('--fusion_method', choices=['none','concat','add','self_attention','cross_attention','film','cross_attention_zero','radial_film','meridional_film','scale_exchange_film'], default='none')
+    p.add_argument('--fusion_method', choices=['none','concat','add','self_attention','cross_attention','film','cross_attention_zero','radial_film','meridional_film','scale_exchange_film','parity_film'], default='none')
     p.add_argument('--clinical_embed_dim', type=int, default=128)
     p.add_argument('--sia_columns', nargs=2, default=['delta_front_X','delta_front_Y'])
     p.add_argument('--sia_mode', choices=['vector','scalar'], default='vector',
@@ -299,7 +299,7 @@ def check_args(a):
             raise ValueError('Invalid SIA rank-contrast temperature')
     if a.image_backbone == 'fno' and (a.model != 'fm_sia' or a.sia_prediction not in ('axial_direct','polar_direct')):
         raise ValueError('Conditional FNO backbone requires a spatial-moment direct FM-SIA head')
-    if a.fusion_method in ('meridional_film', 'scale_exchange_film') and (a.image_backbone != 'fno' or a.sia_prediction != 'polar_direct'):
+    if a.fusion_method in ('meridional_film', 'scale_exchange_film','parity_film') and (a.image_backbone != 'fno' or a.sia_prediction != 'polar_direct'):
         raise ValueError(f'{a.fusion_method} requires the polar-direct conditional FNO')
     if a.image_backbone == 'aperture_fno' and a.eye_frame != 'native':
         raise ValueError('Aperture FNO uses the preoperative mask in the native image frame')

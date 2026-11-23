@@ -48,7 +48,8 @@ def test_meridional_field_transforms_with_features_and_ignores_isotropic_offsets
 
 @pytest.mark.parametrize(("method", "projection"), [("radial_film", "radial_affine"),
                                                     ("meridional_film", "direction_affine"),
-                                                    ("scale_exchange_film", "exchange")])
+                                                    ("scale_exchange_film", "exchange"),
+                                                    ("parity_film", "odd_gain")])
 def test_matched_parent_training_and_preoperative_reload(tmp_path, method, projection):
     torch.set_num_threads(1)
     torch.manual_seed(35)
@@ -114,3 +115,18 @@ def test_scale_exchange_film_donor_routing_and_equal_scale_limit():
     torch.testing.assert_close(fusion(image, clinical, None), expected)
     identical = image[:, :2].repeat(1, 4, 1, 1)
     torch.testing.assert_close(fusion(identical, clinical, None), identical)
+
+def test_half_turn_odd_condition_preserves_even_component():
+    from model.clinical_parity import ParityFiLM
+    layer = ParityFiLM(8, 2)
+    with torch.no_grad():
+        layer.odd_gain.weight[:, 0] = torch.tensor([0., .2, -.7, 1.])
+    x = torch.randn(2, 8, 9, 12)
+    clinical = torch.tensor([[0., 1.], [1., 0.]])
+    y = layer(x, clinical, None)
+    even = .5 * (x + x.flip((-2, -1)))
+    odd = x - even
+    weights = torch.tensor([0., .2, -.7, 1.]).tanh().repeat_interleave(2)
+    torch.testing.assert_close(y[0], x[0])
+    torch.testing.assert_close(y[1], x[1] + weights[:, None, None] * odd[1])
+    torch.testing.assert_close(.5 * (y + y.flip((-2, -1))), even)
