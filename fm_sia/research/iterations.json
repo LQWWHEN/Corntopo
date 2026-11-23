@@ -1044,7 +1044,8 @@
       "config": "configs/iteration046.json",
       "proposal_id": "preoperative_power_change_flow_state",
       "change": "Integrate the FNO field in preoperative power-change coordinates with an explicit preoperative image skip",
-      "status": "planned_after_045"
+      "status": "ready_after_045",
+      "source_commit": "9ab688d6b4cf75cc7abb9c39115584db7039f3d9"
     }
   ],
   "artifact_policy": {
