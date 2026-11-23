@@ -1207,12 +1207,12 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_044_5",
+    "status": "frozen_044_test_selection",
     "date": "2026-11-24",
     "completed_through": "044",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 1,
+    "active_experiment_jobs": 0,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
@@ -1221,9 +1221,7 @@
     "iteration022_started": true,
     "next_new_proposal": "046",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": [
-      "044_5"
-    ]
+    "temporary_checkpoint_trials": []
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -1879,8 +1877,8 @@
       ],
       "maximum": 5,
       "hyperparameter_trials_used": 5,
-      "group_closed": false,
-      "status": "last_two_running",
+      "group_closed": true,
+      "status": "selection_frozen",
       "planned_final_two": [
         {
           "lr": 8.75e-05
@@ -1888,7 +1886,8 @@
         {
           "lambda_axis": 1.1875
         }
-      ]
+      ],
+      "selected_id": null
     }
   },
   "pre026_tuning_review": {
@@ -4449,12 +4448,19 @@
       "change": {
         "lambda_axis": 1.1875
       },
-      "status": "training",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_044_5.md",
       "config": "configs/tuning/044_5.json",
-      "source_commit": "569e3c0223add29218956309ad6a292d9c1b8a8d"
+      "source_commit": "569e3c0223add29218956309ad6a292d9c1b8a8d",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned",
+      "report_pages": 5
     }
   ],
-  "campaign_status": "training_044_5",
+  "campaign_status": "frozen_044_test_selection",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
