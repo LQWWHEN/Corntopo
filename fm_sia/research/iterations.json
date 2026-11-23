@@ -1070,7 +1070,8 @@
       "config": "configs/iteration047.json",
       "proposal_id": "shared_multiscale_axial_sia",
       "change": "Fuse native-grid quadrupoles from four encoder scales using shared image channel projections and a common directional residual map",
-      "status": "planned_after_046"
+      "status": "ready_after_046",
+      "source_commit": "13ba62af558b77933e602e3567cfdcf3f5cfd5da"
     }
   ],
   "artifact_policy": {
