@@ -1017,7 +1017,8 @@
       ],
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "3504128359272921dcb206f49deab910eb56577e"
     }
   ],
   "artifact_policy": {
