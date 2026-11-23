@@ -1180,13 +1180,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_043_3",
+    "status": "preregistered_043_final_two",
     "date": "2026-11-23",
     "completed_through": "043",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 1,
-    "experiment_checkpoint_files": null,
+    "active_experiment_jobs": 0,
+    "experiment_checkpoint_files": 0,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -1194,9 +1194,7 @@
     "iteration022_started": true,
     "next_new_proposal": "045",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": [
-      "043_3"
-    ]
+    "temporary_checkpoint_trials": []
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -1816,7 +1814,15 @@
       "maximum": 5,
       "hyperparameter_trials_used": 3,
       "group_closed": false,
-      "status": "first_three_running"
+      "status": "preregistered_final_two",
+      "planned_final_two": [
+        {
+          "lambda_sia": 0.875
+        },
+        {
+          "lr": 0.0001125
+        }
+      ]
     }
   },
   "pre026_tuning_review": {
@@ -4185,13 +4191,55 @@
       "change": {
         "lr": 7.5e-05
       },
-      "status": "training",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_043_3.md",
       "config": "configs/tuning/043_3.json",
       "test_evaluated": false,
-      "source_commit": "4a0fb6b670c80f69dbb56cdc48e1676dfbcbd258"
+      "source_commit": "4a0fb6b670c80f69dbb56cdc48e1676dfbcbd258",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "checkpoint_state": "cleaned",
+      "report_pages": 4
+    },
+    {
+      "id": "043_4",
+      "parent": "043",
+      "parent_source_commit": "fff368c0c781a8e84c01cebcccaf991225e98add",
+      "group": "tuning_from_043",
+      "trial": 4,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "change": {
+        "lambda_sia": 0.875
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_043_4.md",
+      "config": "configs/tuning/043_4.json"
+    },
+    {
+      "id": "043_5",
+      "parent": "043",
+      "parent_source_commit": "fff368c0c781a8e84c01cebcccaf991225e98add",
+      "group": "tuning_from_043",
+      "trial": 5,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "change": {
+        "lr": 0.0001125
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_043_5.md",
+      "config": "configs/tuning/043_5.json"
     }
   ],
-  "campaign_status": "training_043_3",
+  "campaign_status": "preregistered_043_final_two",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
