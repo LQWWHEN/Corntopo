@@ -1016,7 +1016,7 @@
       "parent": "012",
       "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
       "change": "Clinically gate the half-turn-odd component separately at each preoperative feature scale after FiLM",
-      "status": "training",
+      "status": "completed_negative_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1025,7 +1025,13 @@
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
-      "source_commit": "3504128359272921dcb206f49deab910eb56577e"
+      "source_commit": "3504128359272921dcb206f49deab910eb56577e",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "checkpoint_files": 0,
+      "checkpoint_state": "cleaned",
+      "report_pages": 5
     },
     {
       "rank_initial_with_tuning": true,
@@ -1044,7 +1050,7 @@
       "config": "configs/iteration046.json",
       "proposal_id": "preoperative_power_change_flow_state",
       "change": "Integrate the FNO field in preoperative power-change coordinates with an explicit preoperative image skip",
-      "status": "ready_after_045",
+      "status": "training",
       "source_commit": "9ab688d6b4cf75cc7abb9c39115584db7039f3d9"
     }
   ],
@@ -1228,9 +1234,9 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_045",
+    "status": "training_046",
     "date": "2026-11-24",
-    "completed_through": "044",
+    "completed_through": "045",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
     "active_experiment_jobs": 1,
@@ -1243,7 +1249,7 @@
     "next_new_proposal": "047",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
     "temporary_checkpoint_trials": [
-      "045"
+      "046"
     ]
   },
   "budget_policy_before_20261116": {
@@ -4496,6 +4502,6 @@
       "checkpoint_files": 0
     }
   ],
-  "campaign_status": "training_045",
+  "campaign_status": "training_046",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
