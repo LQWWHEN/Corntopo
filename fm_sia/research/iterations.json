@@ -1070,7 +1070,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 4,
+      "tuning_trials_used": 5,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "id": "047",
@@ -1290,7 +1290,7 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_047_4",
+    "status": "training_047_5",
     "date": "2026-11-24",
     "completed_through": "046",
     "private_summary_verified": true,
@@ -1305,7 +1305,7 @@
     "next_new_proposal": "048",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
     "temporary_checkpoint_trials": [
-      "047_4"
+      "047_5"
     ]
   },
   "budget_policy_before_20261116": {
@@ -2035,7 +2035,7 @@
         "047_5"
       ],
       "maximum": 5,
-      "hyperparameter_trials_used": 4,
+      "hyperparameter_trials_used": 5,
       "group_closed": false,
       "status": "training_final_two",
       "planned_final_two": [
@@ -4860,11 +4860,17 @@
       "change": {
         "lambda_sia": 0.9375
       },
-      "status": "training",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_047_4.md",
       "config": "configs/tuning/047_4.json",
       "source_commit": "872317d6b01f5075011c9333d64b568259c9a641",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "checkpoint_state": "cleaned",
+      "report_pages": 5
     },
     {
       "id": "047_5",
@@ -4880,13 +4886,13 @@
       "change": {
         "lambda_axis": 0.9375
       },
-      "status": "queued",
+      "status": "training",
       "proposal": "TUNING_047_5.md",
       "config": "configs/tuning/047_5.json",
       "source_commit": "872317d6b01f5075011c9333d64b568259c9a641",
       "test_evaluated": false
     }
   ],
-  "campaign_status": "training_047_4",
+  "campaign_status": "training_047_5",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
