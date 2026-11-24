@@ -1261,12 +1261,12 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_046_5",
+    "status": "frozen_046_test_selection",
     "date": "2026-11-24",
     "completed_through": "046",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 1,
+    "active_experiment_jobs": 0,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
@@ -1275,9 +1275,7 @@
     "iteration022_started": true,
     "next_new_proposal": "048",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": [
-      "046_5"
-    ]
+    "temporary_checkpoint_trials": []
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -1970,8 +1968,8 @@
       ],
       "maximum": 5,
       "hyperparameter_trials_used": 5,
-      "group_closed": false,
-      "status": "last_two_running",
+      "group_closed": true,
+      "status": "selection_frozen",
       "planned_final_two": [
         {
           "lambda_axis": 0.8125
@@ -1979,7 +1977,8 @@
         {
           "lambda_sia": 1.0625
         }
-      ]
+      ],
+      "selected_id": null
     }
   },
   "pre026_tuning_review": {
@@ -4680,11 +4679,19 @@
       "change": {
         "lambda_sia": 1.0625
       },
-      "status": "training",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_046_5.md",
-      "config": "configs/tuning/046_5.json"
+      "config": "configs/tuning/046_5.json",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "source_commit": "3a57b90154e322e9db71e6a91c5989cac1495835",
+      "test_evaluated": false,
+      "checkpoint_state": "cleaned",
+      "report_pages": 5
     }
   ],
-  "campaign_status": "training_046_5",
+  "campaign_status": "frozen_046_test_selection",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
