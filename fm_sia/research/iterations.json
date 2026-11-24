@@ -1134,11 +1134,11 @@
       "config": "configs/iteration049.json",
       "proposal_id": "cosine_velocity_operator",
       "change": "Replace four two-dimensional Fourier spectral convolutions by modewise real channel mixing in a tensor-product DCT-II basis",
-      "status": "completed_validation_tuning_pending",
+      "status": "completed_validation_no_test",
       "source_commit": "757474d69621fc2ff66062734eecf7f08a465f39",
       "validation_gate_passed": false,
       "near_eligible": true,
-      "group_closed": false,
+      "group_closed": true,
       "audit": "PASS",
       "eligible_for_group_selection": false,
       "checkpoint_state": "cleaned",
@@ -1162,7 +1162,7 @@
       "config": "configs/iteration050.json",
       "proposal_id": "axial_strength_clinical_field_attention",
       "change": "Query clinical field tokens with channelwise preoperative quadrupole strength at the polar SIA readout",
-      "status": "ready_after_049",
+      "status": "training",
       "source_commit": "f21b9fc681c2666fdb243126b8876b84eea19b1c"
     },
     {
@@ -1366,12 +1366,12 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "frozen_049_test_selection",
+    "status": "training_050",
     "date": "2026-11-24",
-    "completed_through": "048",
+    "completed_through": "049",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 0,
+    "active_experiment_jobs": 1,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": true,
@@ -1380,7 +1380,9 @@
     "iteration022_started": true,
     "next_new_proposal": "050",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": []
+    "temporary_checkpoint_trials": [
+      "050"
+    ]
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -2148,7 +2150,7 @@
       "maximum": 5,
       "hyperparameter_trials_used": 5,
       "group_closed": true,
-      "status": "selection_frozen",
+      "status": "completed",
       "planned_final_two": [
         {
           "lambda_axis": 0.75
@@ -2157,7 +2159,9 @@
           "lambda_sia": 0.875
         }
       ],
-      "selected_id": null
+      "selected_id": null,
+      "test_evaluated": false,
+      "checkpoint_files": 0
     }
   },
   "pre026_tuning_review": {
@@ -5046,7 +5050,8 @@
       "audit": "PASS",
       "checkpoint_state": "cleaned",
       "report_pages": 5,
-      "checkpoint_files": 0
+      "checkpoint_files": 0,
+      "group_closed": true
     },
     {
       "id": "049_2",
@@ -5073,7 +5078,9 @@
       "eligible_for_group_selection": false,
       "audit": "PASS",
       "checkpoint_state": "cleaned",
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "049_3",
@@ -5100,7 +5107,9 @@
       "eligible_for_group_selection": false,
       "audit": "PASS",
       "checkpoint_state": "cleaned",
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "049_4",
@@ -5127,7 +5136,9 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "049_5",
@@ -5154,9 +5165,11 @@
       "audit": "PASS",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     }
   ],
-  "campaign_status": "frozen_049_test_selection",
+  "campaign_status": "training_050",
   "latest_user_scope": "完成 050 全部适用训练、组内调参、冻结测试选择及清理；暂停后续迭代并提交 001–050 阶段报告。后续实验仅提出方向，恢复训练需用户新指令。"
 }
