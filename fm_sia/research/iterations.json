@@ -1098,7 +1098,8 @@
       "config": "configs/iteration048.json",
       "proposal_id": "early_clinical_film",
       "change": "Apply a linear flow-time envelope to clinical FiLM gain and shift in the image condition",
-      "status": "preparing_after_047"
+      "status": "ready_after_047",
+      "source_commit": "3f3d13dfbc8723ecba9941c95f93654787357bb3"
     }
   ],
   "artifact_policy": {
