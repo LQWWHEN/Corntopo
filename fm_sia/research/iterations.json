@@ -1126,7 +1126,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 1,
+      "tuning_trials_used": 3,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "id": "049",
@@ -1366,13 +1366,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_049_2",
+    "status": "preregistered_049_final_two",
     "date": "2026-11-24",
     "completed_through": "048",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 1,
-    "experiment_checkpoint_files": null,
+    "active_experiment_jobs": 0,
+    "experiment_checkpoint_files": 0,
     "iteration021_started": true,
     "resume_requires_user_request": true,
     "stop_after": "050",
@@ -1380,9 +1380,7 @@
     "iteration022_started": true,
     "next_new_proposal": "050",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": [
-      "049_2"
-    ]
+    "temporary_checkpoint_trials": []
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -2143,12 +2141,22 @@
       "reserved_trials": [
         "049_1",
         "049_2",
-        "049_3"
+        "049_3",
+        "049_4",
+        "049_5"
       ],
       "maximum": 5,
-      "hyperparameter_trials_used": 1,
+      "hyperparameter_trials_used": 3,
       "group_closed": false,
-      "status": "first_three_running"
+      "status": "preregistered_final_two",
+      "planned_final_two": [
+        {
+          "lambda_axis": 0.75
+        },
+        {
+          "lambda_sia": 0.875
+        }
+      ]
     }
   },
   "pre026_tuning_review": {
@@ -5053,12 +5061,18 @@
       "change": {
         "lambda_sia": 1.125
       },
-      "status": "training",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_049_2.md",
       "config": "configs/tuning/049_2.json",
       "test_evaluated": false,
       "source_commit": "5757d3d3f9660390904e4b2f9ac4b38cdfc32cfc",
-      "training_source_commit": "757474d69621fc2ff66062734eecf7f08a465f39"
+      "training_source_commit": "757474d69621fc2ff66062734eecf7f08a465f39",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "checkpoint_state": "cleaned",
+      "report_pages": 5
     },
     {
       "id": "049_3",
@@ -5074,14 +5088,56 @@
       "change": {
         "lambda_axis": 0.875
       },
-      "status": "queued",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_049_3.md",
       "config": "configs/tuning/049_3.json",
       "test_evaluated": false,
       "source_commit": "5757d3d3f9660390904e4b2f9ac4b38cdfc32cfc",
-      "training_source_commit": "757474d69621fc2ff66062734eecf7f08a465f39"
+      "training_source_commit": "757474d69621fc2ff66062734eecf7f08a465f39",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "checkpoint_state": "cleaned",
+      "report_pages": 5
+    },
+    {
+      "id": "049_4",
+      "parent": "049",
+      "parent_source_commit": "757474d69621fc2ff66062734eecf7f08a465f39",
+      "group": "tuning_from_049",
+      "trial": 4,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "change": {
+        "lambda_axis": 0.75
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_049_4.md",
+      "config": "configs/tuning/049_4.json"
+    },
+    {
+      "id": "049_5",
+      "parent": "049",
+      "parent_source_commit": "757474d69621fc2ff66062734eecf7f08a465f39",
+      "group": "tuning_from_049",
+      "trial": 5,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "change": {
+        "lambda_sia": 0.875
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_049_5.md",
+      "config": "configs/tuning/049_5.json"
     }
   ],
-  "campaign_status": "training_049_2",
+  "campaign_status": "preregistered_049_final_two",
   "latest_user_scope": "完成 050 全部适用训练、组内调参、冻结测试选择及清理；暂停后续迭代并提交 001–050 阶段报告。后续实验仅提出方向，恢复训练需用户新指令。"
 }
