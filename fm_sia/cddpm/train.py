@@ -92,7 +92,7 @@ def get_args(argv=None):
                    help='Physical SIA metric rank-contrast weight on the existing polar hidden features')
     p.add_argument('--sia_rank_temperature', type=float, default=.2,
                    help='Cosine-similarity temperature for SIA rank contrast')
-    p.add_argument('--sia_feature_fusion', choices=['lab','preop_frame','clinical_spatial_pool','multiscale_axial'], default='lab',
+    p.add_argument('--sia_feature_fusion', choices=['lab','preop_frame','clinical_spatial_pool','multiscale_axial','clinical_field_attention'], default='lab',
                    help='SIA feature readout in lab coordinates, the preoperative axis frame, with clinical-query spatial pooling, or with multiscale angular moments')
     p.add_argument('--image_loss_units', choices=['normalized','diopter'], default='normalized',
                    help='Axial direct FRONT velocity loss: normalized pixels or physical D / sia_ref')
@@ -267,13 +267,13 @@ def check_args(a):
             or a.image_loss_units != 'normalized' or a.loss_balance != 'fixed'
             or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
         raise ValueError('Harmonic objective requires normalized FRONT axial-direct FM-SIA with fixed balance')
-    if a.sia_feature_fusion in ('clinical_spatial_pool', 'multiscale_axial') and (a.sia_prediction != 'polar_direct'
+    if a.sia_feature_fusion in ('clinical_spatial_pool', 'multiscale_axial', 'clinical_field_attention') and (a.sia_prediction != 'polar_direct'
             or a.image_backbone != 'fno' or a.fusion_method != 'film' or not a.conditions
             or a.sia_velocity_coupling or a.sia_spatial_conditioning or a.image_local_residual):
         raise ValueError(f'{a.sia_feature_fusion} requires a polar-direct FNO with clinical FiLM')
     if a.sia_prediction == 'polar_direct':
         if (a.model != 'fm_sia' or a.sia_mode != 'vector' or a.loss_balance != 'fixed'
-                or a.sia_feature_fusion not in ('lab', 'clinical_spatial_pool', 'multiscale_axial') or a.lambda_sia <= 0):
+                or a.sia_feature_fusion not in ('lab', 'clinical_spatial_pool', 'multiscale_axial', 'clinical_field_attention') or a.lambda_sia <= 0):
             raise ValueError('Polar direct requires vector FM-SIA, lab features, fixed balance and magnitude loss')
         if (not math.isfinite(a.lambda_axis) or a.lambda_axis <= 0
                 or not math.isfinite(a.axis_loss_min_magnitude) or a.axis_loss_min_magnitude < 0):
@@ -490,6 +490,9 @@ def build_model(args, stats=None):
             if getattr(args, 'sia_feature_fusion', 'lab') == 'clinical_spatial_pool':
                 from model.clinical_spatial_pool import ClinicalSpatialPolarSIA
                 polar_class = ClinicalSpatialPolarSIA
+            if getattr(args, 'sia_feature_fusion', 'lab') == 'clinical_field_attention':
+                from model.clinical_field_attention import ClinicalFieldPolarSIA
+                polar_class = ClinicalFieldPolarSIA
             if getattr(args, 'sia_feature_fusion', 'lab') == 'multiscale_axial':
                 from model.multiscale_axial_sia import MultiscaleAxialPolarSIA
                 polar_class = MultiscaleAxialPolarSIA
