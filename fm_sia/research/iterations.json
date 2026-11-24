@@ -1138,7 +1138,12 @@
       "source_commit": "757474d69621fc2ff66062734eecf7f08a465f39",
       "validation_gate_passed": false,
       "near_eligible": true,
-      "group_closed": false
+      "group_closed": false,
+      "audit": "PASS",
+      "eligible_for_group_selection": false,
+      "checkpoint_state": "cleaned",
+      "checkpoint_files": 0,
+      "report_pages": 5
     },
     {
       "parent": "012",
@@ -1341,13 +1346,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "preregistered_049_first_three",
+    "status": "training_049_1",
     "date": "2026-11-24",
     "completed_through": "048",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 0,
-    "experiment_checkpoint_files": 0,
+    "active_experiment_jobs": 1,
+    "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -1355,7 +1360,9 @@
     "iteration022_started": true,
     "next_new_proposal": "050",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": []
+    "temporary_checkpoint_trials": [
+      "049_1"
+    ]
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -2121,7 +2128,7 @@
       "maximum": 5,
       "hyperparameter_trials_used": 0,
       "group_closed": false,
-      "status": "preregistered_first_three"
+      "status": "first_three_running"
     }
   },
   "pre026_tuning_review": {
@@ -4998,10 +5005,12 @@
       "change": {
         "lr": 8.75e-05
       },
-      "status": "preregistered",
+      "status": "training",
       "proposal": "TUNING_049_1.md",
       "config": "configs/tuning/049_1.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "5757d3d3f9660390904e4b2f9ac4b38cdfc32cfc",
+      "training_source_commit": "757474d69621fc2ff66062734eecf7f08a465f39"
     },
     {
       "id": "049_2",
@@ -5017,10 +5026,12 @@
       "change": {
         "lambda_sia": 1.125
       },
-      "status": "preregistered",
+      "status": "queued",
       "proposal": "TUNING_049_2.md",
       "config": "configs/tuning/049_2.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "5757d3d3f9660390904e4b2f9ac4b38cdfc32cfc",
+      "training_source_commit": "757474d69621fc2ff66062734eecf7f08a465f39"
     },
     {
       "id": "049_3",
@@ -5036,12 +5047,14 @@
       "change": {
         "lambda_axis": 0.875
       },
-      "status": "preregistered",
+      "status": "queued",
       "proposal": "TUNING_049_3.md",
       "config": "configs/tuning/049_3.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "5757d3d3f9660390904e4b2f9ac4b38cdfc32cfc",
+      "training_source_commit": "757474d69621fc2ff66062734eecf7f08a465f39"
     }
   ],
-  "campaign_status": "preregistered_049_first_three",
+  "campaign_status": "training_049_1",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
