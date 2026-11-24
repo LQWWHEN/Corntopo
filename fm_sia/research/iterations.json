@@ -1134,8 +1134,11 @@
       "config": "configs/iteration049.json",
       "proposal_id": "cosine_velocity_operator",
       "change": "Replace four two-dimensional Fourier spectral convolutions by modewise real channel mixing in a tensor-product DCT-II basis",
-      "status": "training",
-      "source_commit": "757474d69621fc2ff66062734eecf7f08a465f39"
+      "status": "completed_validation_tuning_pending",
+      "source_commit": "757474d69621fc2ff66062734eecf7f08a465f39",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "group_closed": false
     },
     {
       "parent": "012",
@@ -1338,13 +1341,13 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_049",
+    "status": "preregistered_049_first_three",
     "date": "2026-11-24",
     "completed_through": "048",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 1,
-    "experiment_checkpoint_files": null,
+    "active_experiment_jobs": 0,
+    "experiment_checkpoint_files": 0,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
@@ -1352,9 +1355,7 @@
     "iteration022_started": true,
     "next_new_proposal": "050",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": [
-      "049"
-    ]
+    "temporary_checkpoint_trials": []
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -2097,6 +2098,30 @@
       "selected_id": null,
       "test_evaluated": false,
       "checkpoint_files": 0
+    },
+    "tuning_from_049": {
+      "parent_id": "049",
+      "parent_source_commit": "757474d69621fc2ff66062734eecf7f08a465f39",
+      "planned_first_three": [
+        {
+          "lr": 8.75e-05
+        },
+        {
+          "lambda_sia": 1.125
+        },
+        {
+          "lambda_axis": 0.875
+        }
+      ],
+      "reserved_trials": [
+        "049_1",
+        "049_2",
+        "049_3"
+      ],
+      "maximum": 5,
+      "hyperparameter_trials_used": 0,
+      "group_closed": false,
+      "status": "preregistered_first_three"
     }
   },
   "pre026_tuning_review": {
@@ -4958,8 +4983,65 @@
       "report_pages": 5,
       "group_closed": true,
       "checkpoint_files": 0
+    },
+    {
+      "id": "049_1",
+      "group": "tuning_from_049",
+      "parent": "049",
+      "parent_source_commit": "757474d69621fc2ff66062734eecf7f08a465f39",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 1,
+      "change": {
+        "lr": 8.75e-05
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_049_1.md",
+      "config": "configs/tuning/049_1.json",
+      "test_evaluated": false
+    },
+    {
+      "id": "049_2",
+      "group": "tuning_from_049",
+      "parent": "049",
+      "parent_source_commit": "757474d69621fc2ff66062734eecf7f08a465f39",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 2,
+      "change": {
+        "lambda_sia": 1.125
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_049_2.md",
+      "config": "configs/tuning/049_2.json",
+      "test_evaluated": false
+    },
+    {
+      "id": "049_3",
+      "group": "tuning_from_049",
+      "parent": "049",
+      "parent_source_commit": "757474d69621fc2ff66062734eecf7f08a465f39",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 3,
+      "change": {
+        "lambda_axis": 0.875
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_049_3.md",
+      "config": "configs/tuning/049_3.json",
+      "test_evaluated": false
     }
   ],
-  "campaign_status": "training_049",
+  "campaign_status": "preregistered_049_first_three",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
