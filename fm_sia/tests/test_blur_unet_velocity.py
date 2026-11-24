@@ -6,7 +6,7 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "cddpm"))
 pytest.importorskip("neuralop")
-from model.blur_unet_velocity import BlurPool, BlurUNetVelocity, haar_split
+from model.blur_unet_velocity import BlurPool, BlurUNetVelocity, PyramidReadoutUNet, haar_split
 from predict import load_checkpoint
 from train import PIPELINE_VERSION, build_model, sample_batch, forward_batch
 from test_conditional_uno import arguments, statistics
@@ -47,7 +47,29 @@ def test_haar_detail_retains_three_orientations_and_reconstructs_odd_edges():
     torch.testing.assert_close(reconstructed, x)
 
 
-@pytest.mark.parametrize("backbone,parent_backbone", [("blur_unet", "fno"), ("haar_detail_unet", "blur_unet")])
+def test_pyramid_readout_cell_means_and_band_gradients():
+    torch.manual_seed(51)
+    op = PyramidReadoutUNet(4).double()
+    coarse = torch.randn(2, 16, 3, 2, dtype=torch.float64, requires_grad=True)
+    middle = torch.randn(2, 8, 5, 4, dtype=torch.float64, requires_grad=True)
+    fine = torch.randn(2, 4, 9, 7, dtype=torch.float64, requires_grad=True)
+    velocity = op.readout(coarse, middle, fine)
+    midpoint, fine_detail = haar_split(velocity)
+    mean, middle_detail = haar_split(midpoint)
+    torch.testing.assert_close(mean, op.coarse_output(coarse) + op.output.bias)
+    torch.testing.assert_close(middle_detail, haar_split(op.middle_output(middle))[1])
+    torch.testing.assert_close(fine_detail, haar_split(op.output(fine))[1])
+    # A coarse-only loss has zero derivative through both local correction heads.
+    local_grads = torch.autograd.grad(mean.square().sum(), (fine, middle), retain_graph=True)
+    for grad in local_grads:
+        torch.testing.assert_close(grad, torch.zeros_like(grad), rtol=0, atol=1.e-12)
+    velocity.square().mean().backward()
+    for head in (op.coarse_output, op.middle_output, op.output):
+        assert torch.isfinite(head.weight.grad).all() and head.weight.grad.abs().sum() > 0
+
+
+@pytest.mark.parametrize("backbone,parent_backbone", [("blur_unet", "fno"), ("haar_detail_unet", "blur_unet"),
+                                                      ("pyramid_readout_unet", "haar_detail_unet")])
 def test_parent_condition_and_sia_match_and_saved_sampling(tmp_path, backbone, parent_backbone):
     torch.set_num_threads(1)
     args = arguments(backbone)
@@ -65,7 +87,7 @@ def test_parent_condition_and_sia_match_and_saved_sampling(tmp_path, backbone, p
         for name, value in model.named_parameters():
             torch.testing.assert_close(value, parent_params[name], rtol=0, atol=0)
     for name, value in parent.state_dict().items():
-        if not name.startswith("unet.fno."):
+        if backbone == "pyramid_readout_unet" or not name.startswith("unet.fno."):
             torch.testing.assert_close(state[name], value, rtol=0, atol=0)
     pre = torch.rand(2, 1, 32, 32)
     batch = dict(input=pre, condition=torch.tensor([[.2], [.8]]), mask_pre=torch.ones_like(pre), label=[1, 2])
@@ -81,7 +103,7 @@ def test_parent_condition_and_sia_match_and_saved_sampling(tmp_path, backbone, p
     assert calls == [1]
     ref = sample_batch(parent, batch, arguments(parent_backbone), "cpu")
     torch.testing.assert_close(before["sia_vector"], ref["sia_vector"], rtol=0, atol=0)
-    if backbone == "haar_detail_unet":
+    if backbone in ("haar_detail_unet", "pyramid_readout_unet"):
         assert not torch.equal(before["pred"], ref["pred"])
     path = tmp_path / "reload.pth"
     try:

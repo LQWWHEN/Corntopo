@@ -1164,6 +1164,25 @@
       "change": "Query clinical field tokens with channelwise preoperative quadrupole strength at the polar SIA readout",
       "status": "ready_after_049",
       "source_commit": "f21b9fc681c2666fdb243126b8876b84eea19b1c"
+    },
+    {
+      "parent": "040",
+      "parent_source_commit": "80a53873791690b1ed160eef3b517ac1152ffe2c",
+      "rank_initial_with_tuning": true,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false,
+      "id": "051",
+      "proposal": "ITERATION_051.md",
+      "config": "configs/iteration051.json",
+      "proposal_id": "haar_pyramid_velocity_readout",
+      "change": "Predict the coarse cell mean and two zero-cell-mean corrections directly at the three 040 decoder resolutions",
+      "status": "source_audited"
     }
   ],
   "artifact_policy": {

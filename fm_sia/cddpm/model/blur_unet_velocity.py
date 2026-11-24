@@ -22,11 +22,15 @@ class ConvPair(nn.Sequential):
                          nn.Conv2d(out_channels, out_channels, 3, padding=1), nn.SiLU())
 
 
+def expand_cells(low, shape):
+    expanded = low.repeat_interleave(2, dim=-2).repeat_interleave(2, dim=-1)
+    return expanded[..., :shape[-2], :shape[-1]]
+
+
 def haar_split(x):
     """Return cell means and full-grid detail; border cells use their available pixels."""
     low = F.avg_pool2d(x, 2, stride=2, ceil_mode=True, count_include_pad=False)
-    constant = low.repeat_interleave(2, dim=-2).repeat_interleave(2, dim=-1)
-    return low, x - constant[..., :x.shape[-2], :x.shape[-1]]
+    return low, x - expand_cells(low, x.shape)
 
 
 class BlurUNetVelocity(nn.Module):
@@ -55,13 +59,35 @@ class BlurUNetVelocity(nn.Module):
         low, middle = haar_split(middle) if self.haar_details else (self.down_middle(middle), middle)
         coarse = self.coarse(low)
         middle = self.decode_middle(self.with_skip(coarse, middle))
-        return self.output(self.decode_fine(self.with_skip(middle, fine)))
+        fine = self.decode_fine(self.with_skip(middle, fine))
+        return self.readout(coarse, middle, fine)
+
+    def readout(self, coarse, middle, fine):
+        return self.output(fine)
+
+
+class PyramidReadoutUNet(BlurUNetVelocity):
+    """Predict coarse power velocity and two levels of zero-cell-mean corrections."""
+
+    def __init__(self, width):
+        super().__init__(width, haar_details=True)
+        self.middle_output = nn.Conv2d(2 * width, 1, 1, bias=False)
+        self.coarse_output = nn.Conv2d(4 * width, 1, 1, bias=False)
+
+    def readout(self, coarse, middle, fine):
+        # The original global output bias belongs to the coarse mean.
+        mean = self.coarse_output(coarse) + self.output.bias.view(1, 1, 1, 1)
+        _, middle_detail = haar_split(self.middle_output(middle))
+        middle_velocity = expand_cells(mean, middle.shape) + middle_detail
+        _, fine_detail = haar_split(F.conv2d(fine, self.output.weight))
+        return expand_cells(middle_velocity, fine.shape) + fine_detail
 
 
 class ConditionedBlurUNet(ConditionalFNO):
-    def __init__(self, *, hidden_channels, haar_details=False, **kwargs):
+    def __init__(self, *, hidden_channels, haar_details=False, pyramid_readout=False, **kwargs):
         super().__init__(hidden_channels=hidden_channels, **kwargs)
         # Construct the parent first to match the random stream for its SIA head.
         del self.fno
         with torch.random.fork_rng(devices=[]):
-            self.fno = BlurUNetVelocity(hidden_channels, haar_details=haar_details)
+            self.fno = (PyramidReadoutUNet(hidden_channels) if pyramid_readout
+                        else BlurUNetVelocity(hidden_channels, haar_details=haar_details))
