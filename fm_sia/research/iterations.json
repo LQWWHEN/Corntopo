@@ -1154,7 +1154,8 @@
       "config": "configs/iteration050.json",
       "proposal_id": "axial_strength_clinical_field_attention",
       "change": "Query clinical field tokens with channelwise preoperative quadrupole strength at the polar SIA readout",
-      "status": "preparing_after_049"
+      "status": "ready_after_049",
+      "source_commit": "f21b9fc681c2666fdb243126b8876b84eea19b1c"
     }
   ],
   "artifact_policy": {
