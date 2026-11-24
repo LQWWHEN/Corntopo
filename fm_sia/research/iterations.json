@@ -1042,7 +1042,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 2,
+      "tuning_trials_used": 3,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "id": "046",
@@ -1261,7 +1261,7 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_046_2",
+    "status": "training_046_3",
     "date": "2026-11-24",
     "completed_through": "046",
     "private_summary_verified": true,
@@ -1276,7 +1276,7 @@
     "next_new_proposal": "048",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
     "temporary_checkpoint_trials": [
-      "046_2"
+      "046_3"
     ]
   },
   "budget_policy_before_20261116": {
@@ -1967,7 +1967,7 @@
         "046_3"
       ],
       "maximum": 5,
-      "hyperparameter_trials_used": 2,
+      "hyperparameter_trials_used": 3,
       "group_closed": false,
       "status": "first_three_running"
     }
@@ -4592,10 +4592,17 @@
       "change": {
         "lambda_sia": 1.125
       },
-      "status": "training",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_046_2.md",
       "config": "configs/tuning/046_2.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "source_commit": "6f42f881aa8c16512df1d86de355e7ae8b05b47f",
+      "checkpoint_state": "cleaned",
+      "report_pages": 5
     },
     {
       "id": "046_3",
@@ -4611,12 +4618,12 @@
       "change": {
         "lambda_axis": 0.875
       },
-      "status": "registered",
+      "status": "training",
       "proposal": "TUNING_046_3.md",
       "config": "configs/tuning/046_3.json",
       "test_evaluated": false
     }
   ],
-  "campaign_status": "training_046_2",
+  "campaign_status": "training_046_3",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
