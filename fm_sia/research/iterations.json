@@ -1290,12 +1290,12 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "training_047_5",
+    "status": "frozen_047_test_selection",
     "date": "2026-11-24",
     "completed_through": "046",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 1,
+    "active_experiment_jobs": 0,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
@@ -1304,9 +1304,7 @@
     "iteration022_started": true,
     "next_new_proposal": "048",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": [
-      "047_5"
-    ]
+    "temporary_checkpoint_trials": []
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -2036,8 +2034,8 @@
       ],
       "maximum": 5,
       "hyperparameter_trials_used": 5,
-      "group_closed": false,
-      "status": "training_final_two",
+      "group_closed": true,
+      "status": "selection_frozen",
       "planned_final_two": [
         {
           "lambda_sia": 0.9375
@@ -2045,7 +2043,8 @@
         {
           "lambda_axis": 0.9375
         }
-      ]
+      ],
+      "selected_id": null
     }
   },
   "pre026_tuning_review": {
@@ -4886,13 +4885,19 @@
       "change": {
         "lambda_axis": 0.9375
       },
-      "status": "training",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_047_5.md",
       "config": "configs/tuning/047_5.json",
       "source_commit": "872317d6b01f5075011c9333d64b568259c9a641",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "audit": "PASS",
+      "checkpoint_state": "cleaned",
+      "report_pages": 5
     }
   ],
-  "campaign_status": "training_047_5",
+  "campaign_status": "frozen_047_test_selection",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
