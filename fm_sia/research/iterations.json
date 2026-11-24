@@ -1182,7 +1182,8 @@
       "config": "configs/iteration051.json",
       "proposal_id": "haar_pyramid_velocity_readout",
       "change": "Predict the coarse cell mean and two zero-cell-mean corrections directly at the three 040 decoder resolutions",
-      "status": "source_audited"
+      "status": "ready_after_050",
+      "source_commit": "18e341d360dbb490a0838a72da1796c524d90766"
     }
   ],
   "artifact_policy": {
