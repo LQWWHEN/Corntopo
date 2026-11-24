@@ -1078,7 +1078,7 @@
       "config": "configs/iteration047.json",
       "proposal_id": "shared_multiscale_axial_sia",
       "change": "Fuse native-grid quadrupoles from four encoder scales using shared image channel projections and a common directional residual map",
-      "status": "completed_validation_tuning_pending",
+      "status": "completed_validation_no_test",
       "source_commit": "13ba62af558b77933e602e3567cfdcf3f5cfd5da",
       "audit": "PASS",
       "validation_gate_passed": false,
@@ -1087,7 +1087,7 @@
       "checkpoint_files": 0,
       "checkpoint_state": "cleaned",
       "report_pages": 5,
-      "group_closed": false
+      "group_closed": true
     },
     {
       "parent": "012",
@@ -1106,7 +1106,7 @@
       "config": "configs/iteration048.json",
       "proposal_id": "early_clinical_film",
       "change": "Apply a linear flow-time envelope to clinical FiLM gain and shift in the image condition",
-      "status": "ready_after_047",
+      "status": "training",
       "source_commit": "3f3d13dfbc8723ecba9941c95f93654787357bb3"
     }
   ],
@@ -1290,21 +1290,23 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "frozen_047_test_selection",
+    "status": "training_048",
     "date": "2026-11-24",
-    "completed_through": "046",
+    "completed_through": "047",
     "private_summary_verified": true,
     "public_summary": "STAGE_000_030.md",
-    "active_experiment_jobs": 0,
+    "active_experiment_jobs": 1,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "048",
+    "next_new_proposal": "049",
     "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
-    "temporary_checkpoint_trials": []
+    "temporary_checkpoint_trials": [
+      "048"
+    ]
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -2035,7 +2037,7 @@
       "maximum": 5,
       "hyperparameter_trials_used": 5,
       "group_closed": true,
-      "status": "selection_frozen",
+      "status": "completed",
       "planned_final_two": [
         {
           "lambda_sia": 0.9375
@@ -2044,7 +2046,9 @@
           "lambda_axis": 0.9375
         }
       ],
-      "selected_id": null
+      "selected_id": null,
+      "test_evaluated": false,
+      "checkpoint_files": 0
     }
   },
   "pre026_tuning_review": {
@@ -4791,7 +4795,9 @@
       "eligible_for_group_selection": false,
       "audit": "PASS",
       "checkpoint_state": "cleaned",
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "047_2",
@@ -4817,7 +4823,9 @@
       "eligible_for_group_selection": false,
       "audit": "PASS",
       "checkpoint_state": "cleaned",
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "047_3",
@@ -4843,7 +4851,9 @@
       "eligible_for_group_selection": false,
       "audit": "PASS",
       "checkpoint_state": "cleaned",
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "047_4",
@@ -4869,7 +4879,9 @@
       "eligible_for_group_selection": false,
       "audit": "PASS",
       "checkpoint_state": "cleaned",
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "047_5",
@@ -4895,9 +4907,11 @@
       "eligible_for_group_selection": false,
       "audit": "PASS",
       "checkpoint_state": "cleaned",
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     }
   ],
-  "campaign_status": "frozen_047_test_selection",
+  "campaign_status": "training_048",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
