@@ -1182,7 +1182,7 @@
       "config": "configs/iteration051.json",
       "proposal_id": "haar_pyramid_velocity_readout",
       "change": "Predict the coarse cell mean and two zero-cell-mean corrections directly at the three 040 decoder resolutions",
-      "status": "ready_after_050",
+      "status": "prepared_on_hold_by_user",
       "source_commit": "18e341d360dbb490a0838a72da1796c524d90766"
     }
   ],
@@ -1374,8 +1374,8 @@
     "active_experiment_jobs": 1,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
-    "resume_requires_user_request": false,
-    "stop_after": null,
+    "resume_requires_user_request": true,
+    "stop_after": "050",
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
     "next_new_proposal": "050",
@@ -5083,5 +5083,5 @@
     }
   ],
   "campaign_status": "training_049_2",
-  "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
+  "latest_user_scope": "完成 050 全部适用训练、组内调参、冻结测试选择及清理；暂停后续迭代并提交 001–050 阶段报告。后续实验仅提出方向，恢复训练需用户新指令。"
 }
