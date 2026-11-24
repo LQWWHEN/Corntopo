@@ -96,7 +96,7 @@ def get_args(argv=None):
                    help='SIA feature readout in lab coordinates, the preoperative axis frame, with clinical-query spatial pooling, or with multiscale angular moments')
     p.add_argument('--image_loss_units', choices=['normalized','diopter'], default='normalized',
                    help='Axial direct FRONT velocity loss: normalized pixels or physical D / sia_ref')
-    p.add_argument('--image_backbone', choices=['unet','fno','uno','fno_pyramid_control','axis_factorized_fno','blur_unet', 'haar_detail_unet', 'optical_mode_fno','half_turn_fno','moment_routed_fno', 'aperture_fno', 'power_change_fno'], default='unet',
+    p.add_argument('--image_backbone', choices=['unet','fno','uno','fno_pyramid_control','axis_factorized_fno', 'cosine_operator','blur_unet', 'haar_detail_unet', 'optical_mode_fno','half_turn_fno','moment_routed_fno', 'aperture_fno', 'power_change_fno'], default='unet',
                    help='Axial direct FM-SIA velocity network; historical models retain UNet')
     p.add_argument('--image_local_residual', action='store_true',
                    help='Add a preoperative-mask mean-free two-scale local CNN to conditional FNO velocity')
@@ -318,9 +318,9 @@ def check_args(a):
     if a.image_backbone == 'fno_pyramid_control' and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
             or a.eye_frame != 'native' or a.fno_layers != 4 or a.fusion_method != 'film'):
         raise ValueError('Pyramid control requires a four-layer native polar-direct FNO with clinical FiLM')
-    if a.image_backbone in ('axis_factorized_fno', 'blur_unet', 'haar_detail_unet', 'optical_mode_fno', 'half_turn_fno', 'moment_routed_fno', 'aperture_fno', 'power_change_fno') and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'):
+    if a.image_backbone in ('axis_factorized_fno', 'cosine_operator', 'blur_unet', 'haar_detail_unet', 'optical_mode_fno', 'half_turn_fno', 'moment_routed_fno', 'aperture_fno', 'power_change_fno') and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'):
         raise ValueError(f'{a.image_backbone} requires polar-direct FM-SIA')
-    if a.image_backbone in ('fno','uno','fno_pyramid_control','axis_factorized_fno','blur_unet', 'haar_detail_unet', 'optical_mode_fno', 'half_turn_fno', 'moment_routed_fno', 'aperture_fno', 'power_change_fno') and (min(*a.fno_modes,a.fno_hidden_channels,a.fno_layers)<1
+    if a.image_backbone in ('fno','uno','fno_pyramid_control','axis_factorized_fno', 'cosine_operator','blur_unet', 'haar_detail_unet', 'optical_mode_fno', 'half_turn_fno', 'moment_routed_fno', 'aperture_fno', 'power_change_fno') and (min(*a.fno_modes,a.fno_hidden_channels,a.fno_layers)<1
                                      or not math.isfinite(a.fno_domain_padding) or a.fno_domain_padding<0):
         raise ValueError('Invalid conditional FNO dimensions or padding')
     if a.image_loss_units == 'diopter' and (a.model != 'fm_sia' or a.sia_prediction != 'axial_direct'
@@ -438,7 +438,7 @@ def build_model(args, stats=None):
     direct_sia = args.model == 'fm_sia' and getattr(args, 'sia_prediction', 'flow') in ('direct','axial_direct','polar_direct')
     encoder = ConditionEncoder()
     image_backbone = getattr(args, 'image_backbone', 'unet')
-    if image_backbone in ('fno', 'uno', 'fno_pyramid_control', 'axis_factorized_fno', 'blur_unet', 'haar_detail_unet', 'optical_mode_fno', 'half_turn_fno', 'moment_routed_fno', 'aperture_fno', 'power_change_fno'):
+    if image_backbone in ('fno', 'uno', 'fno_pyramid_control', 'axis_factorized_fno', 'cosine_operator', 'blur_unet', 'haar_detail_unet', 'optical_mode_fno', 'half_turn_fno', 'moment_routed_fno', 'aperture_fno', 'power_change_fno'):
         from model.conditional_fno import ConditionalFNO
         fno_class = ConditionalFNO
         fusion_method = args.fusion_method
@@ -458,6 +458,9 @@ def build_model(args, stats=None):
         if image_backbone in ('blur_unet', 'haar_detail_unet'):
             from model.blur_unet_velocity import ConditionedBlurUNet
             fno_class = ConditionedBlurUNet
+        if image_backbone == 'cosine_operator':
+            from model.cosine_operator import CosineVelocityOperator
+            fno_class = CosineVelocityOperator
         if image_backbone == 'axis_factorized_fno':
             from model.axis_factorized_fno import AxisFactorizedFNO
             fno_class = AxisFactorizedFNO
