@@ -1078,8 +1078,16 @@
       "config": "configs/iteration047.json",
       "proposal_id": "shared_multiscale_axial_sia",
       "change": "Fuse native-grid quadrupoles from four encoder scales using shared image channel projections and a common directional residual map",
-      "status": "training",
-      "source_commit": "13ba62af558b77933e602e3567cfdcf3f5cfd5da"
+      "status": "completed_validation_tuning_pending",
+      "source_commit": "13ba62af558b77933e602e3567cfdcf3f5cfd5da",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "checkpoint_files": 0,
+      "checkpoint_state": "cleaned",
+      "report_pages": 5,
+      "group_closed": false
     },
     {
       "parent": "012",
@@ -2004,6 +2012,30 @@
       "selected_id": null,
       "test_evaluated": false,
       "checkpoint_files": 0
+    },
+    "tuning_from_047": {
+      "parent_id": "047",
+      "parent_source_commit": "13ba62af558b77933e602e3567cfdcf3f5cfd5da",
+      "planned_first_three": [
+        {
+          "lr": 8.75e-05
+        },
+        {
+          "lambda_sia": 0.875
+        },
+        {
+          "lambda_axis": 1.125
+        }
+      ],
+      "reserved_trials": [
+        "047_1",
+        "047_2",
+        "047_3"
+      ],
+      "maximum": 5,
+      "hyperparameter_trials_used": 0,
+      "group_closed": false,
+      "status": "first_three_registered"
     }
   },
   "pre026_tuning_review": {
@@ -4725,8 +4757,65 @@
       "report_pages": 5,
       "group_closed": true,
       "checkpoint_files": 0
+    },
+    {
+      "id": "047_1",
+      "group": "tuning_from_047",
+      "parent": "047",
+      "parent_source_commit": "13ba62af558b77933e602e3567cfdcf3f5cfd5da",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 1,
+      "change": {
+        "lr": 8.75e-05
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_047_1.md",
+      "config": "configs/tuning/047_1.json",
+      "test_evaluated": false
+    },
+    {
+      "id": "047_2",
+      "group": "tuning_from_047",
+      "parent": "047",
+      "parent_source_commit": "13ba62af558b77933e602e3567cfdcf3f5cfd5da",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 2,
+      "change": {
+        "lambda_sia": 0.875
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_047_2.md",
+      "config": "configs/tuning/047_2.json",
+      "test_evaluated": false
+    },
+    {
+      "id": "047_3",
+      "group": "tuning_from_047",
+      "parent": "047",
+      "parent_source_commit": "13ba62af558b77933e602e3567cfdcf3f5cfd5da",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "trial": 3,
+      "change": {
+        "lambda_axis": 1.125
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_047_3.md",
+      "config": "configs/tuning/047_3.json",
+      "test_evaluated": false
     }
   ],
-  "campaign_status": "training_047",
+  "campaign_status": "047_tuning_registered",
   "latest_user_scope": "2026-11-19: resume long-term iteration, check training every 60 minutes"
 }
