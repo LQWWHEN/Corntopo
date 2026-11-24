@@ -1080,6 +1080,25 @@
       "change": "Fuse native-grid quadrupoles from four encoder scales using shared image channel projections and a common directional residual map",
       "status": "training",
       "source_commit": "13ba62af558b77933e602e3567cfdcf3f5cfd5da"
+    },
+    {
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "rank_initial_with_tuning": true,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false,
+      "id": "048",
+      "proposal": "ITERATION_048.md",
+      "config": "configs/iteration048.json",
+      "proposal_id": "early_clinical_film",
+      "change": "Apply a linear flow-time envelope to clinical FiLM gain and shift in the image condition",
+      "status": "preparing_after_047"
     }
   ],
   "artifact_policy": {

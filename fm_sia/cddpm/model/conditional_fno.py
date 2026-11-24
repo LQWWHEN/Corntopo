@@ -47,12 +47,15 @@ class ConditionalFNO(OperatorModule):
             with torch.random.fork_rng(devices=[]):
                 self.fno = UVelocityOperator(modes, hidden_channels, domain_padding)
 
-    def prepare_condition(self, condition_features, clinical=None):
-        """Reuse the same preoperative representation across all ODE time steps."""
+    def project_features(self, condition_features):
         size = condition_features[0].shape[-2:]
         projected = [F.interpolate(layer(feature),size=size,mode='bilinear',align_corners=False)
                      for layer,feature in zip(self.condition_projection,condition_features)]
-        feature = torch.cat(projected,dim=1)
+        return torch.cat(projected,dim=1)
+
+    def prepare_condition(self, condition_features, clinical=None):
+        """Reuse the same preoperative representation across all ODE time steps."""
+        feature = self.project_features(condition_features)
         if self.clinical_encoder is not None:
             embedding,tokens = self.clinical_encoder(clinical)
             feature = self.clinical_fusion(feature,embedding,tokens)
@@ -60,6 +63,9 @@ class ConditionalFNO(OperatorModule):
 
     def forward(self, x, t, cond, clinical=None):
         feature = cond if torch.is_tensor(cond) else self.prepare_condition(cond,clinical)
+        return self.conditioned_velocity(x, t, feature)
+
+    def conditioned_velocity(self, x, t, feature):
         time = self.time_projection(self.time_emb(t))[:,:,None,None]
         return self.velocity(torch.cat((x,feature+time),dim=1))
 

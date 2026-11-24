@@ -68,7 +68,7 @@ def get_args(argv=None):
     p.add_argument('--objective', default='grad')
     p.add_argument('--conditions', nargs='+', default=[])
     p.add_argument('--targets', nargs='+', default=[], help='Legacy extra fields; SIA uses the selected mode-specific label columns')
-    p.add_argument('--fusion_method', choices=['none','concat','add','self_attention','cross_attention','film','cross_attention_zero','radial_film','meridional_film','scale_exchange_film','parity_film'], default='none')
+    p.add_argument('--fusion_method', choices=['none','concat','add','self_attention','cross_attention','film','cross_attention_zero','radial_film','meridional_film','scale_exchange_film','parity_film','early_clinical_film'], default='none')
     p.add_argument('--clinical_embed_dim', type=int, default=128)
     p.add_argument('--sia_columns', nargs=2, default=['delta_front_X','delta_front_Y'])
     p.add_argument('--sia_mode', choices=['vector','scalar'], default='vector',
@@ -301,6 +301,8 @@ def check_args(a):
         raise ValueError('Conditional FNO backbone requires a spatial-moment direct FM-SIA head')
     if a.fusion_method in ('meridional_film', 'scale_exchange_film','parity_film') and (a.image_backbone != 'fno' or a.sia_prediction != 'polar_direct'):
         raise ValueError(f'{a.fusion_method} requires the polar-direct conditional FNO')
+    if a.fusion_method == 'early_clinical_film' and (a.image_backbone != 'fno' or a.sia_prediction != 'polar_direct' or a.image_local_residual):
+        raise ValueError('Early clinical FiLM requires the polar-direct conditional FNO')
     if a.image_backbone == 'power_change_fno' and a.eye_frame != 'native':
         raise ValueError('The power change state uses the native preoperative map')
     if a.image_backbone == 'aperture_fno' and a.eye_frame != 'native':
@@ -439,6 +441,11 @@ def build_model(args, stats=None):
     if image_backbone in ('fno', 'uno', 'fno_pyramid_control', 'axis_factorized_fno', 'blur_unet', 'haar_detail_unet', 'optical_mode_fno', 'half_turn_fno', 'moment_routed_fno', 'aperture_fno', 'power_change_fno'):
         from model.conditional_fno import ConditionalFNO
         fno_class = ConditionalFNO
+        fusion_method = args.fusion_method
+        if fusion_method == 'early_clinical_film':
+            from model.early_clinical_fno import EarlyClinicalFNO
+            fno_class = EarlyClinicalFNO
+            fusion_method = 'film'
         if image_backbone == 'aperture_fno':
             from model.aperture_fno import ApertureFNO
             fno_class = ApertureFNO
@@ -461,7 +468,7 @@ def build_model(args, stats=None):
             from model.local_fno import LocalResidualFNO
             fno_class = LocalResidualFNO
         unet = fno_class(clinical_dim=len(args.conditions),clinical_embed_dim=args.clinical_embed_dim,
-            fusion_method=args.fusion_method,modes=args.fno_modes,hidden_channels=args.fno_hidden_channels,
+            fusion_method=fusion_method,modes=args.fno_modes,hidden_channels=args.fno_hidden_channels,
             n_layers=args.fno_layers,domain_padding=args.fno_domain_padding,
             u_shaped=image_backbone == 'uno',
             **({'haar_details': True} if image_backbone == 'haar_detail_unet' else {}))
