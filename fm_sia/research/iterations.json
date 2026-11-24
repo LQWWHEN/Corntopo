@@ -1126,7 +1126,8 @@
       "config": "configs/iteration049.json",
       "proposal_id": "cosine_velocity_operator",
       "change": "Replace four two-dimensional Fourier spectral convolutions by modewise real channel mixing in a tensor-product DCT-II basis",
-      "status": "preparing_after_048"
+      "status": "ready_after_048",
+      "source_commit": "757474d69621fc2ff66062734eecf7f08a465f39"
     }
   ],
   "artifact_policy": {
