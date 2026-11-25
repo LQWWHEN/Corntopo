@@ -1162,14 +1162,14 @@
       "config": "configs/iteration050.json",
       "proposal_id": "axial_strength_clinical_field_attention",
       "change": "Query clinical field tokens with channelwise preoperative quadrupole strength at the polar SIA readout",
-      "status": "completed_validation_tuning_pending",
+      "status": "completed_validation_no_test",
       "source_commit": "f21b9fc681c2666fdb243126b8876b84eea19b1c",
       "near_eligible": true,
       "eligible_for_group_selection": false,
       "validation_gate_passed": false,
       "checkpoint_files": 0,
       "checkpoint_state": "cleaned",
-      "group_closed": false
+      "group_closed": true
     },
     {
       "parent": "040",
@@ -1372,20 +1372,20 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "frozen_050_test_selection",
-    "date": "2026-11-24",
-    "completed_through": "049",
+    "status": "paused_after_050",
+    "date": "2026-11-25",
+    "completed_through": "050",
     "private_summary_verified": true,
-    "public_summary": "STAGE_000_030.md",
+    "public_summary": "STAGE_001_050.md",
     "active_experiment_jobs": 0,
-    "experiment_checkpoint_files": null,
+    "experiment_checkpoint_files": 0,
     "iteration021_started": true,
     "resume_requires_user_request": true,
     "stop_after": "050",
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "050",
-    "checkpoint_file_count_status": "dynamic_during_training_and_group_selection",
+    "next_new_proposal": "051",
+    "checkpoint_file_count_status": "verified_at_pause",
     "temporary_checkpoint_trials": []
   },
   "budget_policy_before_20261116": {
@@ -2191,7 +2191,7 @@
       "maximum": 5,
       "hyperparameter_trials_used": 5,
       "group_closed": true,
-      "status": "selection_frozen",
+      "status": "completed",
       "planned_final_two": [
         {
           "lambda_axis": 0.875
@@ -2200,7 +2200,9 @@
           "lambda_sia": 1.0625
         }
       ],
-      "selected_id": null
+      "selected_id": null,
+      "test_evaluated": false,
+      "checkpoint_files": 0
     }
   },
   "pre026_tuning_review": {
@@ -5233,7 +5235,9 @@
       "eligible_for_group_selection": false,
       "audit": "PASS",
       "checkpoint_state": "cleaned",
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "050_2",
@@ -5260,7 +5264,9 @@
       "eligible_for_group_selection": false,
       "audit": "PASS",
       "checkpoint_state": "cleaned",
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "050_3",
@@ -5287,7 +5293,9 @@
       "eligible_for_group_selection": false,
       "audit": "PASS",
       "checkpoint_state": "cleaned",
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "050_4",
@@ -5313,7 +5321,9 @@
       "source_commit": "359da302d7c3a69f734fc52269150f7b3e15d04f",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     },
     {
       "id": "050_5",
@@ -5339,9 +5349,11 @@
       "source_commit": "359da302d7c3a69f734fc52269150f7b3e15d04f",
       "test_evaluated": false,
       "checkpoint_state": "cleaned",
-      "report_pages": 5
+      "report_pages": 5,
+      "group_closed": true,
+      "checkpoint_files": 0
     }
   ],
-  "campaign_status": "frozen_050_test_selection",
+  "campaign_status": "paused_after_050",
   "latest_user_scope": "完成 050 全部适用训练、组内调参、冻结测试选择及清理；暂停后续迭代并提交 001–050 阶段报告。后续实验仅提出方向，恢复训练需用户新指令。"
 }
