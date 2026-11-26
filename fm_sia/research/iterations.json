@@ -1253,7 +1253,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 3,
+      "tuning_trials_used": 5,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "72888ef0011c6b8dac1b1286b75bf77a0e30abe6",
@@ -1346,7 +1346,7 @@
       "proposal_id": "transported_radius_joint_flow",
       "proposal": "ITERATION_058.md",
       "config": "configs/iteration058.json",
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1572,12 +1572,11 @@
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "057",
-      "054_3"
+      "058"
     ],
-    "latest_completed_trial": "054_2",
-    "active_trial": "054_3",
+    "latest_completed_trial": "054_3",
+    "active_trial": "058",
     "queued_trials": [
-      "058",
       "055_1",
       "055_2",
       "055_3",
@@ -2426,8 +2425,16 @@
           "lambda_axis": 0.875
         }
       ],
-      "hyperparameter_trials_used": 3,
-      "status": "registered"
+      "hyperparameter_trials_used": 5,
+      "status": "registered",
+      "planned_final_two": [
+        {
+          "lr": 7.5e-05
+        },
+        {
+          "lambda_sia": 0.875
+        }
+      ]
     },
     "tuning_from_055": {
       "parent_id": "055",
@@ -5698,12 +5705,18 @@
       "change": {
         "lambda_axis": 0.875
       },
-      "status": "training_validation",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_054_3.md",
       "config": "configs/tuning/054_3.json",
       "test_evaluated": false,
       "source_commit": "72888ef0011c6b8dac1b1286b75bf77a0e30abe6",
-      "recipe_commit": "7d0d3a769241c86e45fef4c28cf1c27bc356b3f2"
+      "recipe_commit": "7d0d3a769241c86e45fef4c28cf1c27bc356b3f2",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "group_closed": false,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "055_1",
@@ -5830,6 +5843,44 @@
       "test_evaluated": false,
       "source_commit": "4752d326c0c21f8d99f2f468542ed35f4b0e888c",
       "recipe_commit": "55f7844cab17cfba6ca5585afb9234c6a5567d22"
+    },
+    {
+      "id": "054_4",
+      "parent": "054",
+      "parent_source_commit": "72888ef0011c6b8dac1b1286b75bf77a0e30abe6",
+      "group": "tuning_from_054",
+      "trial": 4,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "change": {
+        "lr": 7.5e-05
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_054_4.md",
+      "config": "configs/tuning/054_4.json",
+      "test_evaluated": false
+    },
+    {
+      "id": "054_5",
+      "parent": "054",
+      "parent_source_commit": "72888ef0011c6b8dac1b1286b75bf77a0e30abe6",
+      "group": "tuning_from_054",
+      "trial": 5,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "change": {
+        "lambda_sia": 0.875
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_054_5.md",
+      "config": "configs/tuning/054_5.json",
+      "test_evaluated": false
     }
   ],
   "campaign_status": "active",
