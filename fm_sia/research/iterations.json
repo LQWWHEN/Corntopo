@@ -1346,7 +1346,7 @@
       "proposal_id": "transported_radius_joint_flow",
       "proposal": "ITERATION_058.md",
       "config": "configs/iteration058.json",
-      "status": "training_validation",
+      "status": "completed_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1355,7 +1355,13 @@
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
-      "source_commit": "cb083dfd8cbb939810c42445d38cb83b0ac0e357"
+      "source_commit": "cb083dfd8cbb939810c42445d38cb83b0ac0e357",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "group_closed": true,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "059",
@@ -1572,18 +1578,19 @@
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "057",
-      "058"
+      "055_1"
     ],
-    "latest_completed_trial": "054_3",
-    "active_trial": "058",
+    "latest_completed_trial": "058",
+    "active_trial": "055_1",
     "queued_trials": [
-      "055_1",
       "055_2",
       "055_3",
       "057_1",
       "057_2",
       "057_3",
-      "059"
+      "059",
+      "054_4",
+      "054_5"
     ]
   },
   "budget_policy_before_20261116": {
@@ -5732,7 +5739,7 @@
       "change": {
         "lambda_sia": 1.125
       },
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "proposal": "TUNING_055_1.md",
       "config": "configs/tuning/055_1.json",
       "test_evaluated": false,
@@ -5858,10 +5865,12 @@
       "change": {
         "lr": 7.5e-05
       },
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "proposal": "TUNING_054_4.md",
       "config": "configs/tuning/054_4.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "72888ef0011c6b8dac1b1286b75bf77a0e30abe6",
+      "recipe_commit": "ebab1d7981b542729967502a18ebe208f09c3f6d"
     },
     {
       "id": "054_5",
@@ -5877,10 +5886,12 @@
       "change": {
         "lambda_sia": 0.875
       },
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "proposal": "TUNING_054_5.md",
       "config": "configs/tuning/054_5.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "72888ef0011c6b8dac1b1286b75bf77a0e30abe6",
+      "recipe_commit": "ebab1d7981b542729967502a18ebe208f09c3f6d"
     }
   ],
   "campaign_status": "active",
