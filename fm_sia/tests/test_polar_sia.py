@@ -68,6 +68,30 @@ def test_fitted_and_zero_bias_models_differ_only_in_the_initial_output_bias():
     torch.testing.assert_close(vector, torch.tensor([[math.log(2), 0.]]))
 
 
+def test_component_supervision_matches_cartesian_objective_with_identical_initial_polar_predictions():
+    flags = ['--image_backbone', 'fno', '--fno_modes', '4', '4',
+             '--fno_hidden_channels', '8', '--fno_layers', '1']
+    args = arguments(flags)
+    _, stats = statistics(args)
+    torch.manual_seed(12)
+    parent = build_model(args, stats)
+    torch.manual_seed(12)
+    ablated = build_model(arguments([*flags, '--polar_component_objective']), stats)
+    pre = torch.rand(2, 1, 32, 32)
+    clinical = torch.rand(2, 1)
+    target = torch.tensor([[.02, -.04], [.7, -.6]])
+    time = torch.tensor([.25, .75])
+    actual = ablated(pre, pre+.25, target, clinical=clinical, t=time)
+    original = parent(pre, pre+.25, target, clinical=clinical, t=time)
+    for key in ('q_clean','velocity_pred','loss_sia','loss_image'):
+        torch.testing.assert_close(actual[key], original[key], rtol=0, atol=0)
+    expected = F.huber_loss(actual['q_clean'], target)
+    torch.testing.assert_close(actual['loss_vector'], expected)
+    torch.testing.assert_close(actual['loss'], actual['loss_image']+actual['loss_sia']+expected)
+    actual['loss'].backward()
+    assert torch.all(ablated.sia_readout[-1].bias.grad.abs()>0)
+
+
 def test_polar_statistics_are_training_only_and_handle_zero_targets():
     args=arguments();df,stats=statistics(args)
     assert stats['sia']['polar_median_magnitude']==1

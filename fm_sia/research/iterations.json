@@ -1293,6 +1293,23 @@
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "87b742f0298fd665588e81ae08bd80b0b36aeb28"
+    },
+    {
+      "id": "057",
+      "parent": "012",
+      "parent_source_commit": "a8bd0232cf64b6f1f12cdf7f8e05e7e4f0d221f8",
+      "proposal_id": "polar_component_supervision",
+      "proposal": "ITERATION_057.md",
+      "config": "configs/iteration057.json",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -1487,7 +1504,7 @@
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "057",
+    "next_new_proposal": "058",
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "054"

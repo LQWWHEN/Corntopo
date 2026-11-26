@@ -49,12 +49,13 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
                  axis_min_magnitude=.1, rank_weight=0., rank_temperature=.2,
                  image_gradient_weight=0., axis_gradient_projection=False,
                  learned_axis_concentration=False, axis_arc_distance=False, quartile_weight=0.,
-                 axis_reliability_scale=0., zero_polar_bias=False, **kwargs):
+                 axis_reliability_scale=0., zero_polar_bias=False, polar_component_objective=False, **kwargs):
         super().__init__(*args, **kwargs)
         if (not all(math.isfinite(v) for v in (initial_magnitude, initial_phase, lambda_axis, axis_min_magnitude))
                 or initial_magnitude < 0 or lambda_axis <= 0 or axis_min_magnitude < 0):
             raise ValueError('Invalid polar initialization or axis objective')
         self.lambda_axis = lambda_axis
+        self.polar_component_objective = polar_component_objective
         self.axis_arc_distance = axis_arc_distance
         self.axis_reliability_scale = axis_reliability_scale
         self.quartile_weight = quartile_weight
@@ -137,8 +138,15 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
             extra_logs['axis_kappa_mean'] = concentration.detach().mean()
             extra_logs['axis_kappa_min'] = concentration.detach().min()
             extra_logs['axis_kappa_max'] = concentration.detach().max()
-        output = dict(loss=image_loss+self.lambda_sia*magnitude_loss+self.lambda_axis*axis_loss,
-                    loss_image=image_loss, loss_sia=magnitude_loss, loss_axis=axis_loss,
+        if self.polar_component_objective:
+            component_loss = F.huber_loss(q/self.sia_ref, target/self.sia_ref, delta=self.huber_delta)
+            direction_term = self.lambda_vector * component_loss
+            extra_logs.update(loss_vector=component_loss, axis_cosine_diagnostic=axis_loss.detach())
+        else:
+            direction_term = self.lambda_axis * axis_loss
+            extra_logs['loss_axis'] = axis_loss
+        output = dict(loss=image_loss+self.lambda_sia*magnitude_loss+direction_term,
+                    loss_image=image_loss, loss_sia=magnitude_loss,
                     loss_image_normalized=normalized_image_loss,
                     velocity_pred=velocity, q_clean=q, sia_clean=magnitude, t=t, **extra_logs)
         if self.axis_gradient_projection and self.training and torch.is_grad_enabled():

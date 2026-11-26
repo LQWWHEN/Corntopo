@@ -112,6 +112,8 @@ def get_args(argv=None):
                    help='Subtract the fixed starting draw from the learned SIA velocity output')
     p.add_argument('--zero_polar_bias', action='store_true',
                    help='Initialize both polar readout biases at zero')
+    p.add_argument('--polar_component_objective', action='store_true',
+                   help='Supervise decoded polar vectors with component Huber and radial L1')
     p.add_argument('--uncentered_aperture', action='store_true',
                    help='Keep measured-aperture weighting and omit angular basis centering')
     p.add_argument('--sia_magnitude_column', default='front_SIA_D')
@@ -268,6 +270,10 @@ def check_args(a):
         raise ValueError('validation_reference is for a frozen test rerun, not validation_only')
     if a.zero_polar_bias and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'):
         raise ValueError('Zero polar bias requires a polar-direct readout')
+    if a.polar_component_objective and (
+            a.model != 'fm_sia' or a.sia_prediction != 'polar_direct' or a.sia_axis_gradient_projection
+            or a.sia_axis_arc_distance or a.axis_reliability_scale or a.sia_learned_axis_concentration):
+        raise ValueError('Component supervision requires a polar head without a custom phase objective')
     if a.subtract_source_velocity and a.zero_induced_source:
         raise ValueError('Source subtraction requires the original Gaussian SIA source')
     if (a.zero_induced_source or a.subtract_source_velocity) and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'):
@@ -562,6 +568,7 @@ def build_model(args, stats=None):
                 lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
                 initial_magnitude=stats['sia']['polar_median_magnitude'],
                 zero_polar_bias=getattr(args, 'zero_polar_bias', False),
+                polar_component_objective=getattr(args, 'polar_component_objective', False),
                 initial_phase=stats['sia']['polar_initial_phase'],lambda_axis=args.lambda_axis,
                 axis_min_magnitude=args.axis_loss_min_magnitude,
                 axis_gradient_projection=getattr(args, 'sia_axis_gradient_projection', False),
@@ -681,7 +688,7 @@ def saved_config_value(config, key):
     if key == 'strict_determinism' and key not in config:
         return False
     if key in ('geometry_only_eye', 'zero_induced_source', 'zero_polar_bias', 'uncentered_aperture',
-               'subtract_source_velocity') and key not in config:
+               'subtract_source_velocity', 'polar_component_objective') and key not in config:
         return False
     if key == 'eye_frame' and key not in config:
         return 'native'
