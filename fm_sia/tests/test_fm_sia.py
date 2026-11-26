@@ -97,6 +97,42 @@ def test_source_velocity_uses_the_same_draw_along_the_entire_joint_path():
         torch.testing.assert_close(predicted['pred'], pre+.25)
 
 
+def test_transported_radius_preserves_parent_weights_and_consistent_endpoints():
+    from train import build_model, forward_batch, sample_batch
+    flags = ['--excel_path','unused','--data_root','unused','--zero_induced_source',
+             '--conditions','pre_age_years','--fusion_method','film','--sample_steps','2']
+    stats = {'sia':{'mean':[.2, -.1], 'std':[.5, 2.]}}
+    torch.manual_seed(42)
+    parent = build_model(get_args(flags), stats)
+    torch.manual_seed(42)
+    args = get_args([*flags,'--transported_radius'])
+    augmented = build_model(args, stats)
+    for name,value in parent.named_parameters():
+        torch.testing.assert_close(augmented.get_parameter(name), value, rtol=0, atol=0)
+    branch = augmented.unet.sia_interaction
+    assert sum(p.numel() for p in augmented.parameters())-sum(p.numel() for p in parent.parameters()) == 2*args.sia_embed_dim+1
+    pre = torch.rand(2, 1, 32, 32)
+    q = torch.tensor([[.3,.4],[-.4,.3]])
+    batch = dict(input=pre,target=pre+.25,condition=torch.ones(2,1),mask_pre=torch.ones_like(pre),
+                 mask_post=torch.ones_like(pre),sia_vector=q,label=[1,2])
+    out = forward_batch(augmented,batch,'cpu')
+    out['loss'].backward()
+    assert branch.radius_velocity.weight.grad.abs().sum()>0
+    augmented.eval()
+    result = sample_batch(augmented,batch,args,'cpu')
+    torch.testing.assert_close(result['sia_vector'].norm(dim=-1), result['sia'])
+    origin = augmented.initial_sia_state(torch.ones(2,3))
+    target = torch.cat((q, q.norm(dim=-1,keepdim=True)),dim=-1)
+    velocity = (target-augmented.sia_mean)/augmented.sia_std-origin
+    augmented.unet = Oracle(torch.tensor(.25),velocity)
+    restored = augmented.sample(pre,noise=torch.randn(2,3))
+    torch.testing.assert_close(restored['sia_vector'],q)
+    torch.testing.assert_close(restored['pred'],pre+.25)
+    # Change only the integrated radius. Direction and reported norm must agree.
+    velocity[:, 2] *= 2
+    torch.testing.assert_close(augmented.sample(pre)['sia_vector'],2*q)
+
+
 def test_zero_norm_gradient_and_auxiliary_backprop():
     class Tiny(nn.Module):
         def __init__(self):

@@ -9,8 +9,8 @@ from model.fm_common import masked_mse, ode_step
 
 def fixed_sia_noise(labels, seed=42, sample_index=0, state_dim=2):
     """Stable per-label CPU RNG; invariant to batch order, size and device."""
-    if state_dim not in (1, 2):
-        raise ValueError("SIA state_dim must be 1 or 2")
+    if state_dim not in (1, 2, 3):
+        raise ValueError("SIA state_dim must be 1, 2 or 3")
     values = []
     if torch.is_tensor(labels):
         labels = labels.detach().cpu().tolist()
@@ -26,7 +26,7 @@ class JointFlowMatching(nn.Module):
     def __init__(self, condition_encoder, unet, sia_mean, sia_std, sample_steps=100,
                  method="euler", lambda_vector=1.0, lambda_sia=0.1,
                  sia_ref=1.0, huber_delta=1.0, sia_mode="vector", lambda_scalar=1.0,
-                 zero_induced_source=False, subtract_source_velocity=False):
+                 zero_induced_source=False, subtract_source_velocity=False, transported_radius=False):
         super().__init__()
         self.condition_encoder, self.unet = condition_encoder, unet
         if sia_mode not in ('vector', 'scalar'):
@@ -38,13 +38,20 @@ class JointFlowMatching(nn.Module):
         if subtract_source_velocity and (zero_induced_source or sia_mode != 'vector'):
             raise ValueError("Source subtraction requires a Gaussian vector source")
         self.subtract_source_velocity = subtract_source_velocity
-        self.state_dim = 2 if sia_mode == 'vector' else 1
+        if transported_radius and not zero_induced_source:
+            raise ValueError("Transported radius uses the physical zero source")
+        self.transported_radius = transported_radius
+        self.state_dim = 1 if sia_mode == 'scalar' else 2
         mean, std = torch.as_tensor(sia_mean, dtype=torch.float32), torch.as_tensor(sia_std, dtype=torch.float32)
         if mean.shape != (self.state_dim,) or std.shape != (self.state_dim,) or not torch.isfinite(mean).all() or not torch.isfinite(std).all() or (std <= 0).any():
             raise ValueError(f"SIA normalization requires finite length-{self.state_dim} mean and positive std")
         active_weight = lambda_vector if sia_mode == 'vector' else lambda_scalar
         if not all(math.isfinite(v) for v in (active_weight, lambda_sia, sia_ref, huber_delta)) or sample_steps < 1 or active_weight <= 0 or lambda_sia < 0 or sia_ref <= 0 or huber_delta <= 0:
             raise ValueError("Invalid FM-SIA loss or sampler settings")
+        if transported_radius:
+            self.state_dim = 3
+            mean = torch.cat((mean, mean.new_zeros(1)))
+            std = torch.cat((std, std.new_tensor([sia_ref])))
         self.register_buffer("sia_mean", mean)
         self.register_buffer("sia_std", std)
         self.sample_steps, self.method = sample_steps, method
@@ -57,6 +64,11 @@ class JointFlowMatching(nn.Module):
         if self.sia_mode == 'scalar':
             # Training uses this unprojected endpoint to retain gradients below 0 D.
             return None, q.squeeze(-1)
+        if self.transported_radius:
+            xy, radius = q[:, :2], q[:, 2].clamp_min(0)
+            length = torch.linalg.vector_norm(xy, dim=-1)
+            radius = torch.where(length > 1e-8, radius, 0.)
+            return xy * (radius / length.clamp_min(1e-8))[:, None], radius
         return q, torch.linalg.vector_norm(q, dim=-1)
 
     def initial_sia_state(self, noise):
@@ -78,6 +90,11 @@ class JointFlowMatching(nn.Module):
             physical = sia_magnitude.to(pre).reshape(batch, 1)
             s_true = physical[:, 0]
         t = torch.rand(batch, device=pre.device, dtype=pre.dtype) if t is None else t.to(pre)
+        if self.transported_radius:
+            # Consume the same training draws as the two-coordinate zero-source parent.
+            if noise is None:
+                noise = F.pad(torch.randn_like(physical), (0, 1))
+            physical = torch.cat((physical, s_true[:, None]), dim=-1)
         noise = torch.randn_like(physical) if noise is None else noise.to(pre)
         if t.shape != (batch,) or noise.shape != (batch, self.state_dim) or not torch.isfinite(t).all() or not torch.isfinite(noise).all() or ((t < 0) | (t > 1)).any():
             raise ValueError("Invalid time or noise shape")
@@ -90,7 +107,12 @@ class JointFlowMatching(nn.Module):
         if self.subtract_source_velocity:
             vz = vz - noise
         loss_image = masked_mse(vx, post-pre, mask)
-        loss_state = F.mse_loss(vz, z1-noise)
+        target_velocity = z1-noise
+        if self.transported_radius:
+            loss_state = F.mse_loss(vz[:, :2], target_velocity[:, :2])
+            loss_radius = F.mse_loss(vz[:, 2], target_velocity[:, 2])
+        else:
+            loss_state = F.mse_loss(vz, target_velocity)
         # One-step endpoint estimate; final evaluation always integrates the ODE.
         z_clean = zt + (1-t[:, None])*vz
         q_clean, s_clean = self.decode(z_clean)
@@ -101,6 +123,8 @@ class JointFlowMatching(nn.Module):
         result = dict(loss=loss, loss_image=loss_image, loss_sia=loss_sia,
                       velocity_pred=vx, sia_velocity_pred=vz, sia_clean=s_clean, t=t)
         result['loss_vector' if self.sia_mode == 'vector' else 'loss_scalar'] = loss_state
+        if self.transported_radius:
+            result.update(loss=loss + loss_radius, loss_radius_velocity=loss_radius)
         if self.sia_mode == 'vector':
             result['sia_vector_clean'] = q_clean
         return result

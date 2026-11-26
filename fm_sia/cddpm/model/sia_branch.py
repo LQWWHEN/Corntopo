@@ -8,10 +8,11 @@ class SIAInteraction(nn.Module):
         super().__init__()
         if embed_dim < 1 or num_heads < 1 or embed_dim % num_heads:
             raise ValueError("sia_embed_dim must be positive and divisible by sia_num_heads")
-        if state_dim not in (1, 2):
-            raise ValueError("SIA state dimension must be 1 or 2")
+        if state_dim not in (1, 2, 3):
+            raise ValueError("SIA state dimension must be 1, 2 or 3")
         self.state_dim = state_dim
-        self.state_proj = nn.Sequential(nn.Linear(state_dim, embed_dim), nn.SiLU(), nn.Linear(embed_dim, embed_dim))
+        base_dim = min(state_dim, 2)
+        self.state_proj = nn.Sequential(nn.Linear(base_dim, embed_dim), nn.SiLU(), nn.Linear(embed_dim, embed_dim))
         self.time_proj = nn.Linear(time_dim, embed_dim)
         self.image_proj = nn.Conv2d(channels, embed_dim, 1)
         self.position_proj = nn.Linear(2, embed_dim, bias=False)
@@ -24,7 +25,14 @@ class SIAInteraction(nn.Module):
         nn.init.zeros_(self.film.weight)
         nn.init.zeros_(self.film.bias)
         self.velocity = nn.Sequential(nn.LayerNorm(embed_dim), nn.Linear(embed_dim, embed_dim),
-                                      nn.SiLU(), nn.Linear(embed_dim, state_dim))
+                                      nn.SiLU(), nn.Linear(embed_dim, base_dim))
+        if state_dim == 3:
+            with torch.random.fork_rng(devices=[]):
+                self.radius_input = nn.Linear(1, embed_dim, bias=False)
+                self.radius_velocity = nn.Linear(embed_dim, 1)
+            nn.init.zeros_(self.radius_input.weight)
+            nn.init.zeros_(self.radius_velocity.weight)
+            nn.init.zeros_(self.radius_velocity.bias)
 
     def forward(self, image, state, time_embedding):
         if state.shape != (image.shape[0], self.state_dim):
@@ -35,12 +43,18 @@ class SIAInteraction(nn.Module):
         position = torch.stack((xx, yy), dim=-1).reshape(1, h*w, 2)
         spatial = self.image_proj(image).flatten(2).transpose(1, 2)
         spatial = self.image_norm(spatial + self.position_proj(position))
-        token = (self.state_proj(state) + self.time_proj(time_embedding)).unsqueeze(1)
+        embedding = self.state_proj(state[:, :2])
+        if self.state_dim == 3:
+            embedding = embedding + self.radius_input(state[:, 2:])
+        token = (embedding + self.time_proj(time_embedding)).unsqueeze(1)
         update, _ = self.attn(self.query_norm(token), spatial, spatial, need_weights=False)
         token = token + update
         token = token + self.ff(token)
         feature = token[:, 0]
         gamma, beta = self.film(feature).chunk(2, dim=-1)
         image = image * (1 + gamma[:, :, None, None]) + beta[:, :, None, None]
-        return image, self.velocity(feature)
+        velocity = self.velocity(feature)
+        if self.state_dim == 3:
+            velocity = torch.cat((velocity, self.radius_velocity(feature)), dim=-1)
+        return image, velocity
 

@@ -110,6 +110,8 @@ def get_args(argv=None):
                    help='Start the joint SIA flow at zero physical induced astigmatism')
     p.add_argument('--subtract_source_velocity', action='store_true',
                    help='Subtract the fixed starting draw from the learned SIA velocity output')
+    p.add_argument('--transported_radius', action='store_true',
+                   help='Integrate an additional radial velocity from zero alongside the two SIA components')
     p.add_argument('--zero_polar_bias', action='store_true',
                    help='Initialize both polar readout biases at zero')
     p.add_argument('--polar_component_objective', action='store_true',
@@ -276,6 +278,8 @@ def check_args(a):
         raise ValueError('Component supervision requires a polar head without a custom phase objective')
     if a.subtract_source_velocity and a.zero_induced_source:
         raise ValueError('Source subtraction requires the original Gaussian SIA source')
+    if a.transported_radius and (not a.zero_induced_source or a.loss_balance != 'fixed'):
+        raise ValueError('Transported radius requires fixed joint losses and the physical zero source')
     if (a.zero_induced_source or a.subtract_source_velocity) and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'):
         raise ValueError('SIA source changes require joint vector flow matching')
     if a.geometry_only_eye and (a.eye_frame != 'right' or a.sia_prediction != 'axial_direct'):
@@ -507,7 +511,8 @@ def build_model(args, stats=None):
             clinical_embed_dim=args.clinical_embed_dim, fusion_method=args.fusion_method,
             sia_embed_dim=args.sia_embed_dim if args.model == 'fm_sia' and not direct_sia else None,
             sia_num_heads=args.sia_num_heads,
-            sia_state_dim=1 if getattr(args, 'sia_mode', 'vector') == 'scalar' else 2)
+            sia_state_dim=3 if getattr(args, 'transported_radius', False) else
+                          (1 if getattr(args, 'sia_mode', 'vector') == 'scalar' else 2))
     if args.model == 'fm_sia':
         if not stats or not stats.get('sia'):
             raise ValueError('FM-SIA requires saved/fitted training-fold SIA statistics')
@@ -615,7 +620,8 @@ def build_model(args, stats=None):
             lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
             sia_mode=getattr(args, 'sia_mode', 'vector'), lambda_scalar=getattr(args, 'lambda_scalar', 1.0),
             zero_induced_source=getattr(args, 'zero_induced_source', False),
-            subtract_source_velocity=getattr(args, 'subtract_source_velocity', False))
+            subtract_source_velocity=getattr(args, 'subtract_source_velocity', False),
+            transported_radius=getattr(args, 'transported_radius', False))
     if args.model == 'fm':
         from model.fm import FlowMatching
         return FlowMatching(encoder, unet, method=args.ode_solver, sample_steps=args.sample_steps)
@@ -688,7 +694,7 @@ def saved_config_value(config, key):
     if key == 'strict_determinism' and key not in config:
         return False
     if key in ('geometry_only_eye', 'zero_induced_source', 'zero_polar_bias', 'uncentered_aperture',
-               'subtract_source_velocity', 'polar_component_objective') and key not in config:
+               'subtract_source_velocity', 'polar_component_objective', 'transported_radius') and key not in config:
         return False
     if key == 'eye_frame' and key not in config:
         return 'native'

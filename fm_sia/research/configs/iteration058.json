@@ -1,0 +1,46 @@
+{
+  "model": "fm_sia",
+  "input_maps": [
+    "FRONT"
+  ],
+  "output_maps": [
+    "FRONT"
+  ],
+  "image_size": 128,
+  "epochs": 200,
+  "batch_size": 8,
+  "lr": 0.0001,
+  "num_workers": 2,
+  "cpu_threads": 2,
+  "ode_solver": "euler",
+  "sample_steps": 100,
+  "k_folds": 3,
+  "seed": 42,
+  "eval_seed": 2026,
+  "eval_samples": 1,
+  "use_ema": false,
+  "conditions": [
+    "pre_age_years",
+    "pre_GENERAL DATA_Cornea Front Astig",
+    "pre_GENERAL DATA_K Max (Front)",
+    "pre_GENERAL DATA_Pachy Min"
+  ],
+  "fusion_method": "film",
+  "clinical_embed_dim": 128,
+  "sia_columns": [
+    "delta_front_X",
+    "delta_front_Y"
+  ],
+  "sia_mode": "vector",
+  "lambda_vector": 1.0,
+  "lambda_sia": 0.1,
+  "sia_ref": 1.0,
+  "huber_delta": 1.0,
+  "reconstruction_domain": "valid",
+  "best_metric": "MAE",
+  "zero_induced_source": true,
+  "sia_prediction": "flow",
+  "image_backbone": "unet",
+  "save_checkpoints": true,
+  "transported_radius": true
+}

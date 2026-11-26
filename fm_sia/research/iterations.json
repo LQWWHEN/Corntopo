@@ -1318,6 +1318,23 @@
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "4752d326c0c21f8d99f2f468542ed35f4b0e888c"
+    },
+    {
+      "id": "058",
+      "parent": "053",
+      "parent_source_commit": "7662911cff071a214b7c63c2d485e8f35aa34837",
+      "proposal_id": "transported_radius_joint_flow",
+      "proposal": "ITERATION_058.md",
+      "config": "configs/iteration058.json",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -1512,7 +1529,7 @@
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "058",
+    "next_new_proposal": "059",
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "055"
