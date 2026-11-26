@@ -49,7 +49,7 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
                  axis_min_magnitude=.1, rank_weight=0., rank_temperature=.2,
                  image_gradient_weight=0., axis_gradient_projection=False,
                  learned_axis_concentration=False, axis_arc_distance=False, quartile_weight=0.,
-                 axis_reliability_scale=0., **kwargs):
+                 axis_reliability_scale=0., zero_polar_bias=False, **kwargs):
         super().__init__(*args, **kwargs)
         if (not all(math.isfinite(v) for v in (initial_magnitude, initial_phase, lambda_axis, axis_min_magnitude))
                 or initial_magnitude < 0 or lambda_axis <= 0 or axis_min_magnitude < 0):
@@ -76,8 +76,11 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
         # Stable inverse softplus. The floor only handles an all-zero training median.
         magnitude = max(initial_magnitude, 1e-6)
         with torch.no_grad():
-            self.sia_readout[-1].bias.copy_(self.sia_mean.new_tensor([
-                magnitude + math.log(-math.expm1(-magnitude)), initial_phase]))
+            bias = self.sia_readout[-1].bias
+            if zero_polar_bias:
+                bias.zero_()
+            else:
+                bias.copy_(bias.new_tensor([magnitude + math.log(-math.expm1(-magnitude)), initial_phase]))
         self.axis_concentration_head = None
         if learned_axis_concentration:
             from model.axis_concentration import AxisConcentration

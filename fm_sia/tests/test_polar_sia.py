@@ -50,6 +50,24 @@ def test_undefined_and_near_zero_axes_have_finite_zero_loss():
     assert periodic_axis_loss(phase,torch.zeros(2,2),0).item()==0
 
 
+def test_fitted_and_zero_bias_models_differ_only_in_the_initial_output_bias():
+    flags = ['--image_backbone', 'fno', '--fno_modes', '4', '4',
+             '--fno_hidden_channels', '8', '--fno_layers', '1']
+    args = arguments(flags)
+    _, stats = statistics(args)
+    torch.manual_seed(123)
+    parent = build_model(args, stats)
+    torch.manual_seed(123)
+    ablated = build_model(arguments([*flags, '--zero_polar_bias']), stats)
+    different = [k for k,v in parent.state_dict().items() if not torch.equal(v, ablated.state_dict()[k])]
+    assert different == [f'sia_readout.{len(parent.sia_readout)-1}.bias']
+    raw = ablated.sia_readout[-1](torch.ones(1, ablated.sia_readout[-1].in_features))
+    vector, magnitude, phase = decode_polar(raw)
+    torch.testing.assert_close(magnitude, torch.tensor([math.log(2)]))
+    torch.testing.assert_close(phase, torch.zeros(1))
+    torch.testing.assert_close(vector, torch.tensor([[math.log(2), 0.]]))
+
+
 def test_polar_statistics_are_training_only_and_handle_zero_targets():
     args=arguments();df,stats=statistics(args)
     assert stats['sia']['polar_median_magnitude']==1
