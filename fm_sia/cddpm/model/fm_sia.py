@@ -26,7 +26,7 @@ class JointFlowMatching(nn.Module):
     def __init__(self, condition_encoder, unet, sia_mean, sia_std, sample_steps=100,
                  method="euler", lambda_vector=1.0, lambda_sia=0.1,
                  sia_ref=1.0, huber_delta=1.0, sia_mode="vector", lambda_scalar=1.0,
-                 zero_induced_source=False):
+                 zero_induced_source=False, subtract_source_velocity=False):
         super().__init__()
         self.condition_encoder, self.unet = condition_encoder, unet
         if sia_mode not in ('vector', 'scalar'):
@@ -35,6 +35,9 @@ class JointFlowMatching(nn.Module):
         if zero_induced_source and sia_mode != 'vector':
             raise ValueError("Physical zero SIA source requires a vector flow")
         self.zero_induced_source = zero_induced_source
+        if subtract_source_velocity and (zero_induced_source or sia_mode != 'vector'):
+            raise ValueError("Source subtraction requires a Gaussian vector source")
+        self.subtract_source_velocity = subtract_source_velocity
         self.state_dim = 2 if sia_mode == 'vector' else 1
         mean, std = torch.as_tensor(sia_mean, dtype=torch.float32), torch.as_tensor(sia_std, dtype=torch.float32)
         if mean.shape != (self.state_dim,) or std.shape != (self.state_dim,) or not torch.isfinite(mean).all() or not torch.isfinite(std).all() or (std <= 0).any():
@@ -84,6 +87,8 @@ class JointFlowMatching(nn.Module):
         xt = (1-t[:, None, None, None])*pre + t[:, None, None, None]*post
         zt = (1-t[:, None])*noise + t[:, None]*z1
         vx, vz = self.unet(xt, t, self.condition_encoder(pre), clinical=clinical, sia_state=zt)
+        if self.subtract_source_velocity:
+            vz = vz - noise
         loss_image = masked_mse(vx, post-pre, mask)
         loss_state = F.mse_loss(vz, z1-noise)
         # One-step endpoint estimate; final evaluation always integrates the ODE.
@@ -112,7 +117,10 @@ class JointFlowMatching(nn.Module):
         cond = self.condition_encoder(pre)
         def field(state, time):
             t = pre.new_full((pre.shape[0],), time)
-            return self.unet(state[0], t, cond, clinical=clinical, sia_state=state[1])
+            vx, vz = self.unet(state[0], t, cond, clinical=clinical, sia_state=state[1])
+            if self.subtract_source_velocity:
+                vz = vz - z0
+            return vx, vz
         state = (pre, z0)
         for k in range(steps):
             state = ode_step(field, state, k/steps, 1/steps, method or self.method)

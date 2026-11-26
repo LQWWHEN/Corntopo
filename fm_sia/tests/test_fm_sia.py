@@ -80,6 +80,23 @@ def test_physical_zero_sia_origin_matches_velocity_target_and_both_ode_endpoints
         torch.testing.assert_close(prediction['pred'], pre+.25)
 
 
+def test_source_velocity_uses_the_same_draw_along_the_entire_joint_path():
+    pre = torch.zeros(2, 1, 8, 8)
+    mean, std = torch.tensor([-.3, .2]), torch.tensor([.4, 1.5])
+    q = torch.tensor([[.2, -.7], [.6, .3]])
+    endpoint = (q-mean)/std
+    oracle = Oracle(torch.tensor(.25), endpoint)
+    model = JointFlowMatching(IdentityCondition(), oracle, mean, std,
+                              subtract_source_velocity=True, sample_steps=7)
+    for draw in (torch.ones_like(q), -torch.ones_like(q)):
+        output = model(pre, pre+.25, q, t=torch.tensor([0., .7]), noise=draw)
+        torch.testing.assert_close(output['sia_velocity_pred'], endpoint-draw)
+        assert output['loss'].item() < 1e-12
+        predicted = model.sample(pre, noise=draw)
+        torch.testing.assert_close(predicted['sia_vector'], q)
+        torch.testing.assert_close(predicted['pred'], pre+.25)
+
+
 def test_zero_norm_gradient_and_auxiliary_backprop():
     class Tiny(nn.Module):
         def __init__(self):

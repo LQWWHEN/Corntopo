@@ -108,6 +108,8 @@ def get_args(argv=None):
                    help='Use laterality for reflection only, masking its standardized clinical token')
     p.add_argument('--zero_induced_source', action='store_true',
                    help='Start the joint SIA flow at zero physical induced astigmatism')
+    p.add_argument('--subtract_source_velocity', action='store_true',
+                   help='Subtract the fixed starting draw from the learned SIA velocity output')
     p.add_argument('--zero_polar_bias', action='store_true',
                    help='Initialize both polar readout biases at zero')
     p.add_argument('--uncentered_aperture', action='store_true',
@@ -266,8 +268,10 @@ def check_args(a):
         raise ValueError('validation_reference is for a frozen test rerun, not validation_only')
     if a.zero_polar_bias and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'):
         raise ValueError('Zero polar bias requires a polar-direct readout')
-    if a.zero_induced_source and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'):
-        raise ValueError('Physical zero SIA source requires joint vector flow matching')
+    if a.subtract_source_velocity and a.zero_induced_source:
+        raise ValueError('Source subtraction requires the original Gaussian SIA source')
+    if (a.zero_induced_source or a.subtract_source_velocity) and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'):
+        raise ValueError('SIA source changes require joint vector flow matching')
     if a.geometry_only_eye and (a.eye_frame != 'right' or a.sia_prediction != 'axial_direct'):
         raise ValueError('Geometry-only laterality requires the right-frame axial direct model')
     if a.eye_frame == 'right':
@@ -603,7 +607,8 @@ def build_model(args, stats=None):
             sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
             lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
             sia_mode=getattr(args, 'sia_mode', 'vector'), lambda_scalar=getattr(args, 'lambda_scalar', 1.0),
-            zero_induced_source=getattr(args, 'zero_induced_source', False))
+            zero_induced_source=getattr(args, 'zero_induced_source', False),
+            subtract_source_velocity=getattr(args, 'subtract_source_velocity', False))
     if args.model == 'fm':
         from model.fm import FlowMatching
         return FlowMatching(encoder, unet, method=args.ode_solver, sample_steps=args.sample_steps)
@@ -675,7 +680,8 @@ def saved_config_value(config, key):
         return 'unet'
     if key == 'strict_determinism' and key not in config:
         return False
-    if key in ('geometry_only_eye', 'zero_induced_source', 'zero_polar_bias', 'uncentered_aperture') and key not in config:
+    if key in ('geometry_only_eye', 'zero_induced_source', 'zero_polar_bias', 'uncentered_aperture',
+               'subtract_source_velocity') and key not in config:
         return False
     if key == 'eye_frame' and key not in config:
         return 'native'
