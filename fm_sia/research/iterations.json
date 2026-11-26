@@ -1356,6 +1356,23 @@
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "cb083dfd8cbb939810c42445d38cb83b0ac0e357"
+    },
+    {
+      "id": "059",
+      "parent": "000",
+      "parent_source_commit": "0bdb632f85d1e37cb099db001e99b4fc6c84f5e3",
+      "proposal_id": "flat_axis_optical_velocity",
+      "proposal": "ITERATION_059.md",
+      "config": "configs/iteration059.json",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -1550,7 +1567,7 @@
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "059",
+    "next_new_proposal": "060",
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "057",

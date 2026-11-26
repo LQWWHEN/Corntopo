@@ -26,7 +26,8 @@ class JointFlowMatching(nn.Module):
     def __init__(self, condition_encoder, unet, sia_mean, sia_std, sample_steps=100,
                  method="euler", lambda_vector=1.0, lambda_sia=0.1,
                  sia_ref=1.0, huber_delta=1.0, sia_mode="vector", lambda_scalar=1.0,
-                 zero_induced_source=False, subtract_source_velocity=False, transported_radius=False):
+                 zero_induced_source=False, subtract_source_velocity=False, transported_radius=False,
+                 image_to_sia_scale=None):
         super().__init__()
         self.condition_encoder, self.unet = condition_encoder, unet
         if sia_mode not in ('vector', 'scalar'):
@@ -41,6 +42,11 @@ class JointFlowMatching(nn.Module):
         if transported_radius and not zero_induced_source:
             raise ValueError("Transported radius uses the physical zero source")
         self.transported_radius = transported_radius
+        self.image_to_sia_scale = image_to_sia_scale
+        if image_to_sia_scale is not None:
+            if sia_mode != 'vector' or transported_radius or not math.isfinite(image_to_sia_scale) or image_to_sia_scale <= 0:
+                raise ValueError("Optical velocity coupling requires two SIA components and a positive image scale")
+            self.uses_preoperative_mask = True
         self.state_dim = 1 if sia_mode == 'scalar' else 2
         mean, std = torch.as_tensor(sia_mean, dtype=torch.float32), torch.as_tensor(sia_std, dtype=torch.float32)
         if mean.shape != (self.state_dim,) or std.shape != (self.state_dim,) or not torch.isfinite(mean).all() or not torch.isfinite(std).all() or (std <= 0).any():
@@ -76,8 +82,15 @@ class JointFlowMatching(nn.Module):
             return (-self.sia_mean / self.sia_std).to(noise).expand_as(noise)
         return noise
 
+    def optical_reader(self, pre_mask):
+        from model.optical_modes import optical_basis
+        reader, _ = optical_basis(pre_mask)
+        # A cos(2θ) + B sin(2θ) describes the steep meridian. The full
+        # flat-axis cylinder vector is (-2A, -2B), reported in diopters.
+        return reader * (-2 * self.image_to_sia_scale)
+
     def forward(self, pre, post, sia_vector=None, clinical=None, mask=None, t=None, noise=None,
-                sia_magnitude=None):
+                sia_magnitude=None, pre_mask=None):
         batch = pre.shape[0]
         if self.sia_mode == 'vector':
             if sia_vector is None or sia_vector.shape != (batch, 2) or not torch.isfinite(sia_vector).all():
@@ -104,6 +117,8 @@ class JointFlowMatching(nn.Module):
         xt = (1-t[:, None, None, None])*pre + t[:, None, None, None]*post
         zt = (1-t[:, None])*noise + t[:, None]*z1
         vx, vz = self.unet(xt, t, self.condition_encoder(pre), clinical=clinical, sia_state=zt)
+        if self.image_to_sia_scale is not None:
+            vz = vz + (self.optical_reader(pre_mask) * vx).sum((-2, -1)) / self.sia_std
         if self.subtract_source_velocity:
             vz = vz - noise
         loss_image = masked_mse(vx, post-pre, mask)
@@ -130,7 +145,7 @@ class JointFlowMatching(nn.Module):
         return result
 
     @torch.no_grad()
-    def sample(self, pre, clinical=None, noise=None, steps=None, method=None):
+    def sample(self, pre, clinical=None, noise=None, steps=None, method=None, pre_mask=None):
         steps = self.sample_steps if steps is None else steps
         if steps < 1:
             raise ValueError("steps must be positive")
@@ -139,9 +154,12 @@ class JointFlowMatching(nn.Module):
             raise ValueError(f"Initial noise must be finite [B,{self.state_dim}]")
         z0 = self.initial_sia_state(z0)
         cond = self.condition_encoder(pre)
+        reader = self.optical_reader(pre_mask) if self.image_to_sia_scale is not None else None
         def field(state, time):
             t = pre.new_full((pre.shape[0],), time)
             vx, vz = self.unet(state[0], t, cond, clinical=clinical, sia_state=state[1])
+            if reader is not None:
+                vz = vz + (reader * vx).sum((-2, -1)) / self.sia_std
             if self.subtract_source_velocity:
                 vz = vz - z0
             return vx, vz
@@ -150,6 +168,9 @@ class JointFlowMatching(nn.Module):
             state = ode_step(field, state, k/steps, 1/steps, method or self.method)
         q, s = self.decode(state[1])
         result = dict(pred=state[0], sia=s, sia_state=state[1])
+        if reader is not None:
+            result['optical_sia_vector'] = (reader * (state[0] - pre)).sum((-2, -1))
+            result['optical_resolved'] = reader.abs().sum((1, 2, 3)) > 0
         if self.sia_mode == 'vector':
             result['sia_vector'] = q
         else:
@@ -157,6 +178,8 @@ class JointFlowMatching(nn.Module):
             result.update(sia=s.clamp_min(0), sia_unclipped=s)
         return result
 
-    def inference(self, x, clinical=None, noise=None):
+    def inference(self, x, clinical=None, noise=None, pre_mask=None):
+        if pre_mask is not None:
+            return self.sample(x, clinical=clinical, noise=noise, pre_mask=pre_mask)
         return self.sample(x, clinical=clinical, noise=noise)
 

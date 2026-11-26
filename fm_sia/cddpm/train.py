@@ -112,6 +112,8 @@ def get_args(argv=None):
                    help='Subtract the fixed starting draw from the learned SIA velocity output')
     p.add_argument('--transported_radius', action='store_true',
                    help='Integrate an additional radial velocity from zero alongside the two SIA components')
+    p.add_argument('--optical_sia_velocity', action='store_true',
+                   help='Add the central flat-axis cylinder change in image velocity to the learned SIA velocity')
     p.add_argument('--zero_polar_bias', action='store_true',
                    help='Initialize both polar readout biases at zero')
     p.add_argument('--polar_component_objective', action='store_true',
@@ -280,6 +282,9 @@ def check_args(a):
         raise ValueError('Source subtraction requires the original Gaussian SIA source')
     if a.transported_radius and (not a.zero_induced_source or a.loss_balance != 'fixed'):
         raise ValueError('Transported radius requires fixed joint losses and the physical zero source')
+    if a.optical_sia_velocity and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'
+            or a.transported_radius or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
+        raise ValueError('Optical SIA velocity requires FRONT-to-FRONT joint two-component flow')
     if (a.zero_induced_source or a.subtract_source_velocity) and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'):
         raise ValueError('SIA source changes require joint vector flow matching')
     if a.geometry_only_eye and (a.eye_frame != 'right' or a.sia_prediction != 'axial_direct'):
@@ -621,7 +626,8 @@ def build_model(args, stats=None):
             sia_mode=getattr(args, 'sia_mode', 'vector'), lambda_scalar=getattr(args, 'lambda_scalar', 1.0),
             zero_induced_source=getattr(args, 'zero_induced_source', False),
             subtract_source_velocity=getattr(args, 'subtract_source_velocity', False),
-            transported_radius=getattr(args, 'transported_radius', False))
+            transported_radius=getattr(args, 'transported_radius', False),
+            image_to_sia_scale=stats['image']['scale'] if getattr(args, 'optical_sia_velocity', False) else None)
     if args.model == 'fm':
         from model.fm import FlowMatching
         return FlowMatching(encoder, unet, method=args.ode_solver, sample_steps=args.sample_steps)
@@ -694,7 +700,8 @@ def saved_config_value(config, key):
     if key == 'strict_determinism' and key not in config:
         return False
     if key in ('geometry_only_eye', 'zero_induced_source', 'zero_polar_bias', 'uncentered_aperture',
-               'subtract_source_velocity', 'polar_component_objective', 'transported_radius') and key not in config:
+               'subtract_source_velocity', 'polar_component_objective', 'transported_radius',
+               'optical_sia_velocity') and key not in config:
         return False
     if key == 'eye_frame' and key not in config:
         return 'native'
@@ -780,9 +787,13 @@ def sample_batch(model, batch, args, device):
         # E[||q||] differs from ||E[q]||. Keep both explicitly for M>1.
         q = torch.stack([o['sia_vector'] for o in outputs])
         s = torch.stack([o['sia'] for o in outputs])
-        return dict(pred=torch.stack([o['pred'] for o in outputs]).mean(0), sia_vector=q.mean(0),
+        result = dict(pred=torch.stack([o['pred'] for o in outputs]).mean(0), sia_vector=q.mean(0),
                     sia=s.mean(0), sia_samples=s, sia_vector_samples=q,
                     sia_sample_std=s.std(0, unbiased=False), sia_from_mean_vector=q.mean(0).norm(dim=-1))
+        if 'optical_sia_vector' in outputs[0]:
+            result['optical_sia_vector'] = torch.stack([o['optical_sia_vector'] for o in outputs]).mean(0)
+            result['optical_resolved'] = outputs[0]['optical_resolved']
+        return result
     pred = model.sample(pre, clinical=clinical) if hasattr(model, 'sample') else model(pre)['pred']
     return dict(pred=pred)
 
@@ -865,6 +876,10 @@ def evaluate(model, loader, device, args, stats, output_dir=None, *, partition='
                             SIA_from_mean_vector_D=out['sia_from_mean_vector'][j].item(),
                             true_axis_deg=float(axes['true'][0]), pred_axis_deg=float(axes['pred'][0]),
                             axis_error_deg=float(axes['error'][0]), axis_gt_ge_0p1D=bool(st >= .1))
+                        if 'optical_sia_vector' in out:
+                            ox, oy = out['optical_sia_vector'][j].tolist()
+                            row.update(optical_delta_X_D=ox, optical_delta_Y_D=oy,
+                                       optical_resolved=bool(out['optical_resolved'][j]))
                     else:
                         row.update(pred_SIA_unclipped_D=out['sia_unclipped'][j].item(),
                             SIA_negative_sample_fraction=float((out['sia_unclipped_samples'][:, j] < 0).float().mean()))

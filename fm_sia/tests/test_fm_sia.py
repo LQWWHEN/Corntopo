@@ -97,6 +97,62 @@ def test_source_velocity_uses_the_same_draw_along_the_entire_joint_path():
         torch.testing.assert_close(predicted['pred'], pre+.25)
 
 
+def test_optical_velocity_couples_flat_axis_cylinder_at_each_integration_step():
+    from train import build_model, sample_batch
+    flags = ['--excel_path','unused','--data_root','unused','--conditions','pre_age_years',
+             '--fusion_method','film','--sample_steps','4']
+    args = get_args([*flags, '--optical_sia_velocity'])
+    stats = {'sia':{'mean':[.2, -.1], 'std':[.5, 1.5]}, 'image':{'scale':20.}}
+    torch.manual_seed(9)
+    parent = build_model(get_args(flags), stats)
+    torch.manual_seed(9)
+    model = build_model(args, stats)
+    assert model.state_dict().keys() == parent.state_dict().keys()
+    for name, value in parent.state_dict().items():
+        torch.testing.assert_close(model.state_dict()[name], value, atol=0, rtol=0)
+    coords = (torch.arange(32) + .5) / 16 - 1
+    y, x = torch.meshgrid(-coords, coords, indexing='ij')
+    angle = torch.atan2(y, x)
+    power = .06 + .02 * torch.cos(2*angle) - .01 * torch.sin(2*angle)
+    mask = torch.stack(((x >= -.15) | (y < 0), x.square() + y.square() > .5))[:, None].float()
+    pre = torch.zeros_like(mask)
+    class Field(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.amplitude = nn.Parameter(torch.ones(()))
+            self.feedback = 0.
+        def forward(self, image, time, condition, clinical=None, sia_state=None):
+            return self.amplitude * power.expand_as(image), self.feedback * sia_state
+    field = Field()
+    model.unet, model.condition_encoder = field, IdentityCondition()
+    noise = torch.tensor([[.2, -.4],[-.5, .6]])
+    norm = torch.tensor(stats['sia']['std'])
+    mean = torch.tensor(stats['sia']['mean'])
+    cylinder = torch.tensor([[-.8, .4],[0., 0.]])
+    target = mean + noise*norm + cylinder
+    out = model(pre, pre+power, target, noise=noise, t=torch.tensor([.2, .6]),
+                mask=mask, pre_mask=mask)
+    torch.testing.assert_close(out['sia_velocity_pred'], cylinder / norm)
+    assert out['loss'].item() < 1e-12
+    # SIA supervision can update image velocity even with the image loss excluded.
+    altered = model(pre, pre+power, target+.2, noise=noise, pre_mask=mask)
+    altered['loss_vector'].backward()
+    assert field.amplitude.grad.abs().item() > 0
+    field.feedback = .5
+    result = model.sample(pre, noise=noise, pre_mask=mask)
+    expected = noise.clone()
+    for _ in range(4):
+        expected += (.5 * expected + cylinder/norm) / 4
+    torch.testing.assert_close(result['sia_vector'], mean + norm*expected)
+    torch.testing.assert_close(result['optical_sia_vector'], cylinder)
+    torch.testing.assert_close(result['pred'], pre+power)
+    assert result['optical_resolved'].tolist() == [True,False]
+    batch = dict(input=pre, condition=torch.ones(2,1), mask_pre=mask, label=[1,2])
+    sampled = sample_batch(model, batch, args, 'cpu')
+    torch.testing.assert_close(sampled['optical_sia_vector'], cylinder)
+    torch.testing.assert_close(sampled['sia_vector'].norm(dim=-1), sampled['sia'])
+
+
 def test_transported_radius_preserves_parent_weights_and_consistent_endpoints():
     from train import build_model, forward_batch, sample_batch
     flags = ['--excel_path','unused','--data_root','unused','--zero_induced_source',
