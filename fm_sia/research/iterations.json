@@ -1198,6 +1198,24 @@
       "proposal_id": "geometry_only_laterality",
       "proposal": "ITERATION_052.md",
       "config": "configs/iteration052.json",
+      "status": "training_validation",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false,
+      "source_commit": "5766852a71b3b946a87b6a1724fc50faded82697"
+    },
+    {
+      "id": "053",
+      "parent": "000",
+      "parent_source_commit": "0bdb632f85d1e37cb099db001e99b4fc6c84f5e3",
+      "proposal_id": "physical_zero_joint_flow",
+      "proposal": "ITERATION_053.md",
+      "config": "configs/iteration053.json",
       "status": "preregistered",
       "outputs": [
         "postoperative_image",
@@ -1394,16 +1412,18 @@
     "completed_through": "050",
     "private_summary_verified": true,
     "public_summary": "STAGE_001_050.md",
-    "active_experiment_jobs": 0,
-    "experiment_checkpoint_files": 0,
+    "active_experiment_jobs": 1,
+    "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "053",
-    "checkpoint_file_count_status": "verified_at_pause",
-    "temporary_checkpoint_trials": []
+    "next_new_proposal": "054",
+    "checkpoint_file_count_status": "training",
+    "temporary_checkpoint_trials": [
+      "052"
+    ]
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",

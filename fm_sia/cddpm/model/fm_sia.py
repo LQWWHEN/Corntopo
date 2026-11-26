@@ -25,12 +25,16 @@ def fixed_sia_noise(labels, seed=42, sample_index=0, state_dim=2):
 class JointFlowMatching(nn.Module):
     def __init__(self, condition_encoder, unet, sia_mean, sia_std, sample_steps=100,
                  method="euler", lambda_vector=1.0, lambda_sia=0.1,
-                 sia_ref=1.0, huber_delta=1.0, sia_mode="vector", lambda_scalar=1.0):
+                 sia_ref=1.0, huber_delta=1.0, sia_mode="vector", lambda_scalar=1.0,
+                 zero_induced_source=False):
         super().__init__()
         self.condition_encoder, self.unet = condition_encoder, unet
         if sia_mode not in ('vector', 'scalar'):
             raise ValueError("sia_mode must be vector or scalar")
         self.sia_mode = sia_mode
+        if zero_induced_source and sia_mode != 'vector':
+            raise ValueError("Physical zero SIA source requires a vector flow")
+        self.zero_induced_source = zero_induced_source
         self.state_dim = 2 if sia_mode == 'vector' else 1
         mean, std = torch.as_tensor(sia_mean, dtype=torch.float32), torch.as_tensor(sia_std, dtype=torch.float32)
         if mean.shape != (self.state_dim,) or std.shape != (self.state_dim,) or not torch.isfinite(mean).all() or not torch.isfinite(std).all() or (std <= 0).any():
@@ -52,6 +56,11 @@ class JointFlowMatching(nn.Module):
             return None, q.squeeze(-1)
         return q, torch.linalg.vector_norm(q, dim=-1)
 
+    def initial_sia_state(self, noise):
+        if self.zero_induced_source:
+            return (-self.sia_mean / self.sia_std).to(noise).expand_as(noise)
+        return noise
+
     def forward(self, pre, post, sia_vector=None, clinical=None, mask=None, t=None, noise=None,
                 sia_magnitude=None):
         batch = pre.shape[0]
@@ -69,6 +78,8 @@ class JointFlowMatching(nn.Module):
         noise = torch.randn_like(physical) if noise is None else noise.to(pre)
         if t.shape != (batch,) or noise.shape != (batch, self.state_dim) or not torch.isfinite(t).all() or not torch.isfinite(noise).all() or ((t < 0) | (t > 1)).any():
             raise ValueError("Invalid time or noise shape")
+        # Keep the parent's RNG schedule when comparing the two source states.
+        noise = self.initial_sia_state(noise)
         z1 = (physical-self.sia_mean)/self.sia_std
         xt = (1-t[:, None, None, None])*pre + t[:, None, None, None]*post
         zt = (1-t[:, None])*noise + t[:, None]*z1
@@ -97,6 +108,7 @@ class JointFlowMatching(nn.Module):
         z0 = torch.randn(pre.shape[0], self.state_dim, device=pre.device, dtype=pre.dtype) if noise is None else noise.to(pre)
         if z0.shape != (pre.shape[0], self.state_dim) or not torch.isfinite(z0).all():
             raise ValueError(f"Initial noise must be finite [B,{self.state_dim}]")
+        z0 = self.initial_sia_state(z0)
         cond = self.condition_encoder(pre)
         def field(state, time):
             t = pre.new_full((pre.shape[0],), time)

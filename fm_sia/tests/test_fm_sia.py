@@ -62,6 +62,24 @@ def test_ode_simultaneous_coupling(method):
     assert state[1].item()==pytest.approx(-np.sin(1),abs=.006)
 
 
+def test_physical_zero_sia_origin_matches_velocity_target_and_both_ode_endpoints():
+    pre = torch.zeros(2, 1, 8, 8)
+    q = torch.tensor([[.6, .8], [-.4, .3]])
+    mean, std = torch.tensor([.2, -.1]), torch.tensor([.5, 2.])
+    oracle = Oracle(torch.tensor(.25), q/std)
+    model = JointFlowMatching(IdentityCondition(), oracle, mean, std,
+                              zero_induced_source=True, sample_steps=5)
+    for noise in (torch.ones_like(q), -torch.ones_like(q)):
+        initial = model.initial_sia_state(noise)
+        torch.testing.assert_close(model.decode(initial)[0], torch.zeros_like(q))
+        result = model(pre, pre+.25, q, t=torch.tensor([0., .8]), noise=noise)
+        assert result['loss'].item() < 1e-12
+        prediction = model.sample(pre, noise=noise)
+        torch.testing.assert_close(prediction['sia_vector'], q)
+        torch.testing.assert_close(prediction['sia'], q.norm(dim=-1))
+        torch.testing.assert_close(prediction['pred'], pre+.25)
+
+
 def test_zero_norm_gradient_and_auxiliary_backprop():
     class Tiny(nn.Module):
         def __init__(self):

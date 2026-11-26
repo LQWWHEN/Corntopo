@@ -106,6 +106,8 @@ def get_args(argv=None):
                    help='Optional right-eye coordinates with explicit preoperative eye condition')
     p.add_argument('--geometry_only_eye', action='store_true',
                    help='Use laterality for reflection only, masking its standardized clinical token')
+    p.add_argument('--zero_induced_source', action='store_true',
+                   help='Start the joint SIA flow at zero physical induced astigmatism')
     p.add_argument('--sia_magnitude_column', default='front_SIA_D')
     p.add_argument('--sia_label_atol', type=float, default=1e-4)
     p.add_argument('--skip_sia_checks', action='store_true',
@@ -256,6 +258,8 @@ def check_args(a):
         raise ValueError("--resume requires explicit --save_checkpoints")
     if a.validation_reference and a.validation_only:
         raise ValueError('validation_reference is for a frozen test rerun, not validation_only')
+    if a.zero_induced_source and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'):
+        raise ValueError('Physical zero SIA source requires joint vector flow matching')
     if a.geometry_only_eye and (a.eye_frame != 'right' or a.sia_prediction != 'axial_direct'):
         raise ValueError('Geometry-only laterality requires the right-frame axial direct model')
     if a.eye_frame == 'right':
@@ -588,7 +592,8 @@ def build_model(args, stats=None):
         return JointFlowMatching(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
             sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
             lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
-            sia_mode=getattr(args, 'sia_mode', 'vector'), lambda_scalar=getattr(args, 'lambda_scalar', 1.0))
+            sia_mode=getattr(args, 'sia_mode', 'vector'), lambda_scalar=getattr(args, 'lambda_scalar', 1.0),
+            zero_induced_source=getattr(args, 'zero_induced_source', False))
     if args.model == 'fm':
         from model.fm import FlowMatching
         return FlowMatching(encoder, unet, method=args.ode_solver, sample_steps=args.sample_steps)
@@ -660,7 +665,7 @@ def saved_config_value(config, key):
         return 'unet'
     if key == 'strict_determinism' and key not in config:
         return False
-    if key == 'geometry_only_eye' and key not in config:
+    if key in ('geometry_only_eye', 'zero_induced_source') and key not in config:
         return False
     if key == 'eye_frame' and key not in config:
         return 'native'
