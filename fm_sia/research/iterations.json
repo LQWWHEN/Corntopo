@@ -1222,7 +1222,7 @@
       "proposal_id": "physical_zero_joint_flow",
       "proposal": "ITERATION_053.md",
       "config": "configs/iteration053.json",
-      "status": "training_validation",
+      "status": "completed_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1232,7 +1232,13 @@
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "7662911cff071a214b7c63c2d485e8f35aa34837",
-      "source_audit": "PASS"
+      "source_audit": "PASS",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "group_closed": true,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "054",
@@ -1241,7 +1247,7 @@
       "proposal_id": "fitted_polar_bias_ablation",
       "proposal": "ITERATION_054.md",
       "config": "configs/iteration054.json",
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1277,7 +1283,7 @@
       "proposal_id": "explicit_gaussian_source_subtraction",
       "proposal": "ITERATION_056.md",
       "config": "configs/iteration056.json",
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1285,7 +1291,8 @@
       ],
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "87b742f0298fd665588e81ae08bd80b0b36aeb28"
     }
   ],
   "artifact_policy": {
@@ -1483,13 +1490,13 @@
     "next_new_proposal": "057",
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
-      "053"
+      "054"
     ],
-    "latest_completed_trial": "052",
-    "active_trial": "053",
+    "latest_completed_trial": "053",
+    "active_trial": "054",
     "queued_trials": [
-      "054",
-      "055"
+      "055",
+      "056"
     ]
   },
   "budget_policy_before_20261116": {
