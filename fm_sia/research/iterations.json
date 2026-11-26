@@ -1242,6 +1242,23 @@
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
       "test_evaluated": false
+    },
+    {
+      "id": "055",
+      "parent": "030",
+      "parent_source_commit": "ea93565bfb8a20a7b1c14293bfee57f9bde7e6d6",
+      "proposal_id": "aperture_centering_ablation",
+      "proposal": "ITERATION_055.md",
+      "config": "configs/iteration055.json",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -1436,7 +1453,7 @@
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "055",
+    "next_new_proposal": "056",
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "052"

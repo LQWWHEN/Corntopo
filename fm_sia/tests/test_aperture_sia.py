@@ -38,6 +38,19 @@ def test_partial_cells_have_area_weighted_mean():
     assert aperture_moments(feature, mask)[0, 0].item() == pytest.approx(4.)
 
 
+def test_uncentered_aperture_preserves_mean_and_only_leaks_constants_on_asymmetric_support():
+    feature = torch.ones(1, 1, 8, 8, dtype=torch.float64)
+    mask = torch.ones_like(feature)
+    torch.testing.assert_close(aperture_moments(feature, mask, center_basis=False),
+                               aperture_moments(feature, mask))
+    mask[..., 3:, :] = 0
+    raw = aperture_moments(feature, mask, center_basis=False)
+    centered = aperture_moments(feature, mask)
+    torch.testing.assert_close(raw[:, 0], centered[:, 0])
+    torch.testing.assert_close(centered[:, 1:], torch.zeros_like(centered[:, 1:]))
+    assert abs(raw[0, 1]) > .1
+
+
 def test_normal_entry_points_and_saved_weight_reload(tmp_path):
     from predict import load_checkpoint
     from train import PIPELINE_VERSION, build_model, forward_batch, get_args, sample_batch, saved_config_value
