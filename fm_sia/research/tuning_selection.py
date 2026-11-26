@@ -44,3 +44,23 @@ def select_group(trials, group_closed=False):
     return dict(selected_trial=ordered[0]['trial'] if ordered else None,
                 ordered_trials=[t['trial'] for t in ordered], ranks=ranks,
                 partition='validation', group_closed=True)
+
+
+def select_post050_group(trials, reference, thresholds, *, group_closed=False):
+    """Apply the 052 test-eligibility tiers to a closed validation group."""
+    if not group_closed:
+        raise ValueError('Finish and freeze the group before test selection')
+    if sorted(t['trial'] for t in trials) != list(range(len(trials))):
+        raise ValueError('Include the initial experiment and all registered tuning trials')
+    screened = []
+    for trial in trials:
+        result = screen(trial['candidate'], reference, thresholds)
+        missed = sum(not passed for passed in result['selection_gate'].values())
+        tier = ('formal' if result['eligible_for_group_selection'] else
+                'one_or_two_missed' if missed in (1, 2) else None)
+        screened.append(dict(trial, tier=tier))
+    chosen_tier = 'formal' if any(t['tier']=='formal' for t in screened) else 'one_or_two_missed'
+    ranking = select_group([dict(t, eligible_for_group_selection=t['tier']==chosen_tier)
+                            for t in screened], group_closed=True)
+    ranking['tiers'] = {t['trial']:t['tier'] for t in screened}
+    return ranking

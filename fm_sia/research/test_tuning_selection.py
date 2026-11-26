@@ -48,3 +48,14 @@ def test_initial_trial_competes_after_five_tuning_trials():
 def test_initial_trial_is_separate_from_tuning_budget(numbers):
     with pytest.raises(ValueError):
         module.select_group([trial(n) for n in numbers], True)
+
+
+def test_post050_group_ranks_fallback_candidates_only_when_no_formal_candidate_exists():
+    candidates = [trial(0, PSNR=31.9), trial(1, PSNR=31.8, SSIM=.95),
+                  trial(2, PSNR=31.8, SSIM=.95, MAE=.02), trial(3, SSIM=.959)]
+    result = module.select_post050_group(candidates, REF, LIMIT, group_closed=True)
+    assert result['tiers'] == {0:'one_or_two_missed',1:'one_or_two_missed',2:None,3:'one_or_two_missed'}
+    assert set(result['ranks']) == {0,1,3}
+    candidates[2] = trial(2, PSNR=32.08)
+    result = module.select_post050_group(candidates, REF, LIMIT, group_closed=True)
+    assert result['selected_trial'] == 2 and result['ordered_trials'] == [2]
