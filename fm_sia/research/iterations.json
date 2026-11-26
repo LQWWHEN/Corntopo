@@ -1364,7 +1364,7 @@
       "proposal_id": "flat_axis_optical_velocity",
       "proposal": "ITERATION_059.md",
       "config": "configs/iteration059.json",
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1372,7 +1372,8 @@
       ],
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "33cffc51b167be7331b83c8c2cd0a80a934a62a0"
     }
   ],
   "artifact_policy": {
@@ -1571,19 +1572,19 @@
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "057",
-      "054_2"
+      "054_3"
     ],
-    "latest_completed_trial": "054_1",
-    "active_trial": "054_2",
+    "latest_completed_trial": "054_2",
+    "active_trial": "054_3",
     "queued_trials": [
-      "054_3",
       "058",
       "055_1",
       "055_2",
       "055_3",
       "057_1",
       "057_2",
-      "057_3"
+      "057_3",
+      "059"
     ]
   },
   "budget_policy_before_20261116": {
@@ -5670,12 +5671,18 @@
       "change": {
         "lr": 8.75e-05
       },
-      "status": "training_validation",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_054_2.md",
       "config": "configs/tuning/054_2.json",
       "test_evaluated": false,
       "source_commit": "72888ef0011c6b8dac1b1286b75bf77a0e30abe6",
-      "recipe_commit": "7d0d3a769241c86e45fef4c28cf1c27bc356b3f2"
+      "recipe_commit": "7d0d3a769241c86e45fef4c28cf1c27bc356b3f2",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": false,
+      "group_closed": false,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "054_3",
@@ -5691,7 +5698,7 @@
       "change": {
         "lambda_axis": 0.875
       },
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "proposal": "TUNING_054_3.md",
       "config": "configs/tuning/054_3.json",
       "test_evaluated": false,
