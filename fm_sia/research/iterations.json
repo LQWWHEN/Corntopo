@@ -1388,7 +1388,7 @@
       "proposal_id": "matched_linearized_polar_decoder",
       "proposal": "ITERATION_060.md",
       "config": "configs/iteration060.json",
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1396,7 +1396,8 @@
       ],
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "e59086846116124bee6069dbb21a0c993249aec8"
     }
   ],
   "artifact_policy": {
@@ -1595,20 +1596,22 @@
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "057",
-      "055_1"
+      "055_1",
+      "055_2"
     ],
-    "latest_completed_trial": "058",
-    "active_trial": "055_1",
+    "latest_completed_trial": "055_1",
+    "active_trial": "055_2",
     "queued_trials": [
-      "055_2",
       "055_3",
       "057_1",
       "057_2",
       "057_3",
       "059",
       "054_4",
-      "054_5"
-    ]
+      "054_5",
+      "060"
+    ],
+    "waiting_for_group": null
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -5756,12 +5759,18 @@
       "change": {
         "lambda_sia": 1.125
       },
-      "status": "training_validation",
+      "status": "validation_audited",
       "proposal": "TUNING_055_1.md",
       "config": "configs/tuning/055_1.json",
       "test_evaluated": false,
       "source_commit": "f040ab97a204ed0fad0ea76b4b0256c82c19b74f",
-      "recipe_commit": "14ef969eeb86bb286d3e9f0316f08054322c801e"
+      "recipe_commit": "14ef969eeb86bb286d3e9f0316f08054322c801e",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": true,
+      "group_closed": false,
+      "checkpoint_state": "temporary_pending_group_selection"
     },
     {
       "id": "055_2",
@@ -5777,7 +5786,7 @@
       "change": {
         "lambda_sia": 0.875
       },
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "proposal": "TUNING_055_2.md",
       "config": "configs/tuning/055_2.json",
       "test_evaluated": false,
