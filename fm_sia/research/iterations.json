@@ -1213,7 +1213,8 @@
       "near_eligible": false,
       "eligible_for_group_selection": false,
       "checkpoint_state": "cleaned",
-      "group_closed": true
+      "group_closed": true,
+      "validation_error_analysis": "laterality_group_bias_and_within_group_error"
     },
     {
       "id": "053",
