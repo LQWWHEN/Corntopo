@@ -1338,7 +1338,8 @@
       "eligible_for_group_selection": true,
       "group_closed": false,
       "checkpoint_state": "temporary_pending_group_selection",
-      "rank_initial_with_tuning": true
+      "rank_initial_with_tuning": true,
+      "validation_error_analysis": "direction_supervision_by_training_fold_magnitude_median"
     },
     {
       "id": "058",
