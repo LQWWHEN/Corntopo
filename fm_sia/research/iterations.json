@@ -1190,6 +1190,23 @@
       "change": "Predict the coarse cell mean and two zero-cell-mean corrections directly at the three 040 decoder resolutions",
       "status": "prepared_on_hold_by_user",
       "source_commit": "18e341d360dbb490a0838a72da1796c524d90766"
+    },
+    {
+      "id": "052",
+      "parent": "010",
+      "parent_source_commit": "44f881b2fcc19ae405ae3134736bafbbe453a651",
+      "proposal_id": "geometry_only_laterality",
+      "proposal": "ITERATION_052.md",
+      "config": "configs/iteration052.json",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -1372,19 +1389,19 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "paused_after_050",
-    "date": "2026-11-25",
+    "status": "active",
+    "date": "2026-11-26",
     "completed_through": "050",
     "private_summary_verified": true,
     "public_summary": "STAGE_001_050.md",
     "active_experiment_jobs": 0,
     "experiment_checkpoint_files": 0,
     "iteration021_started": true,
-    "resume_requires_user_request": true,
-    "stop_after": "050",
+    "resume_requires_user_request": false,
+    "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "051",
+    "next_new_proposal": "053",
     "checkpoint_file_count_status": "verified_at_pause",
     "temporary_checkpoint_trials": []
   },
@@ -5354,8 +5371,8 @@
       "checkpoint_files": 0
     }
   ],
-  "campaign_status": "paused_after_050",
-  "latest_user_scope": "完成 050 全部适用训练、组内调参、冻结测试选择及清理；暂停后续迭代并提交 001–050 阶段报告。后续实验仅提出方向，恢复训练需用户新指令。",
+  "campaign_status": "active",
+  "latest_user_scope": "2026-11-26 恢复长期研究。先对 010、012、030 作模块消融，并从基础 FM-SIA 开独立分支。051 保留停派。验证保护仅一至两项不通过可列入组末冻结测试候选。",
   "supplemental_010_050": {
     "status": "completed",
     "method": "SUPPLEMENTAL_010_050.md",

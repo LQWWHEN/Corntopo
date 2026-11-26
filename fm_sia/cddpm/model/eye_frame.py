@@ -20,9 +20,11 @@ class EyeFrameSIAFlowMatching(AxialSIAFlowMatching):
     image and SIA coordinates are canonical, while all public outputs use the
     original acquisition frame. Postoperative masks are used only by the loss.
     """
-    def __init__(self, *args, eye_index, eye_mean, eye_std, canonical_sia_mean, **kwargs):
+    def __init__(self, *args, eye_index, eye_mean, eye_std, canonical_sia_mean,
+                 geometry_only_eye=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.eye_index = eye_index
+        self.geometry_only_eye = geometry_only_eye
         self.register_buffer('eye_mean', torch.tensor(float(eye_mean)))
         self.register_buffer('eye_std', torch.tensor(float(eye_std)))
         with torch.no_grad():
@@ -33,11 +35,18 @@ class EyeFrameSIAFlowMatching(AxialSIAFlowMatching):
         value = clinical[:, self.eye_index]*self.eye_std+self.eye_mean
         return torch.where(value < 0, -torch.ones_like(value), torch.ones_like(value))
 
+    def learned_conditions(self, clinical):
+        if not self.geometry_only_eye:
+            return clinical
+        conditions = clinical.clone()
+        conditions[:, self.eye_index] = 0
+        return conditions
+
     def forward(self, pre, post, sia_vector=None, clinical=None, mask=None, **kwargs):
         sign = self.eye_sign(clinical)
         result = super().forward(
             reflect_left_image(pre, sign), reflect_left_image(post, sign),
-            reflect_left_vector(sia_vector, sign), clinical=clinical,
+            reflect_left_vector(sia_vector, sign), clinical=self.learned_conditions(clinical),
             mask=reflect_left_image(mask, sign) if mask is not None else None, **kwargs)
         result['velocity_pred'] = reflect_left_image(result['velocity_pred'], sign)
         result['q_clean'] = reflect_left_vector(result['q_clean'], sign)
@@ -46,7 +55,7 @@ class EyeFrameSIAFlowMatching(AxialSIAFlowMatching):
     @torch.no_grad()
     def sample(self, pre, clinical=None, **kwargs):
         sign = self.eye_sign(clinical)
-        result = super().sample(reflect_left_image(pre, sign), clinical=clinical, **kwargs)
+        result = super().sample(reflect_left_image(pre, sign), clinical=self.learned_conditions(clinical), **kwargs)
         result['pred'] = reflect_left_image(result['pred'], sign)
         result['sia_vector'] = reflect_left_vector(result['sia_vector'], sign)
         result['sia_state'] = (result['sia_vector']-self.sia_mean)/self.sia_std

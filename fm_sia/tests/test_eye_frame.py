@@ -61,11 +61,12 @@ def test_reflection_is_involution_and_transforms_periodic_axis_and_mask():
         masked_mse(reflect_left_image(image,sign),reflect_left_image(target,sign),reflect_left_image(mask,sign)))
 
 
-@pytest.mark.parametrize('backbone',['unet','fno'])
-def test_canonical_joint_graph_returns_world_predictions_and_no_postoperative_sia(backbone):
+@pytest.mark.parametrize(('backbone','geometry_only'),[('unet',False),('fno',False),('fno',True)])
+def test_canonical_joint_graph_returns_world_predictions_and_no_postoperative_sia(backbone, geometry_only):
     if backbone == 'fno':
         pytest.importorskip('neuralop')
     args = args_for_frame(backbone)
+    args.geometry_only_eye = geometry_only
     stats = {'sia':{'mean':[.2,.4],'std':[.5,.6],'canonical_mean':[.3,-.1]},
              'clinical':{'mean':[50.,.1],'std':[10.,.9]}}
     torch.manual_seed(7)
@@ -82,11 +83,13 @@ def test_canonical_joint_graph_returns_world_predictions_and_no_postoperative_si
     torch.testing.assert_close(initial['q_clean'],torch.tensor([[.3,-.1],[.3,.1]]))
     with torch.no_grad(): model.sia_readout[-1].weight.normal_(0,.01)
     args.eye_frame = 'native'
+    args.geometry_only_eye = False
     native = build_model(args,stats)
     native.load_state_dict({k:v for k,v in model.state_dict().items() if k not in ('eye_mean','eye_std')})
     world = model(pre,post,q,clinical=clinical,mask=mask,t=t)
+    expected_clinical = clinical * clinical.new_tensor([1., 0.]) if geometry_only else clinical
     canonical = native(reflect_left_image(pre,sign),reflect_left_image(post,sign),reflect_left_vector(q,sign),
-                       clinical=clinical,mask=reflect_left_image(mask,sign),t=t)
+                       clinical=expected_clinical,mask=reflect_left_image(mask,sign),t=t)
     for key in ('loss','loss_image','loss_vector','loss_sia'):
         torch.testing.assert_close(world[key],canonical[key])
     torch.testing.assert_close(world['velocity_pred'],reflect_left_image(canonical['velocity_pred'],sign))
@@ -95,12 +98,14 @@ def test_canonical_joint_graph_returns_world_predictions_and_no_postoperative_si
     torch.testing.assert_close(world['q_clean'],changed['q_clean'])
     gradients = torch.autograd.grad(world['q_clean'].sum(),(pre,clinical,post),retain_graph=True,allow_unused=True)
     assert gradients[2] is None
+    if geometry_only:
+        assert torch.count_nonzero(gradients[1][:, 1]) == 0
     assert all(g is not None and torch.isfinite(g).all() and g.abs().sum()>0 for g in gradients[:2])
     world['loss'].backward()
     assert model.condition_encoder.in_conv.weight.grad.abs().sum()>0
     model.eval();native.eval()
     a = model.sample(pre.detach(),clinical=clinical.detach())
-    b = native.sample(reflect_left_image(pre.detach(),sign),clinical=clinical.detach())
+    b = native.sample(reflect_left_image(pre.detach(),sign),clinical=expected_clinical.detach())
     torch.testing.assert_close(a['pred'],reflect_left_image(b['pred'],sign))
     torch.testing.assert_close(a['sia_vector'],reflect_left_vector(b['sia_vector'],sign))
     torch.testing.assert_close(a['sia'],a['sia_vector'].norm(dim=-1))

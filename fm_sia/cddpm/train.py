@@ -104,6 +104,8 @@ def get_args(argv=None):
                    help='Add central/peripheral feature-moment contrasts to the polar SIA readout')
     p.add_argument('--eye_frame', choices=['native','right'], default='native',
                    help='Optional right-eye coordinates with explicit preoperative eye condition')
+    p.add_argument('--geometry_only_eye', action='store_true',
+                   help='Use laterality for reflection only, masking its standardized clinical token')
     p.add_argument('--sia_magnitude_column', default='front_SIA_D')
     p.add_argument('--sia_label_atol', type=float, default=1e-4)
     p.add_argument('--skip_sia_checks', action='store_true',
@@ -254,6 +256,8 @@ def check_args(a):
         raise ValueError("--resume requires explicit --save_checkpoints")
     if a.validation_reference and a.validation_only:
         raise ValueError('validation_reference is for a frozen test rerun, not validation_only')
+    if a.geometry_only_eye and (a.eye_frame != 'right' or a.sia_prediction != 'axial_direct'):
+        raise ValueError('Geometry-only laterality requires the right-frame axial direct model')
     if a.eye_frame == 'right':
         if a.model != 'fm_sia' or a.sia_prediction not in ('axial_direct','polar_direct') or EYE_SIGN not in a.conditions:
             raise ValueError('Right-eye frame requires axial/polar direct FM-SIA and pre_eye_sign')
@@ -562,7 +566,8 @@ def build_model(args, stats=None):
                 frame_args.update(eye_index=eye_index,
                     eye_mean=stats['clinical']['mean'][eye_index],
                     eye_std=stats['clinical']['std'][eye_index],
-                    canonical_sia_mean=stats['sia']['canonical_mean'])
+                    canonical_sia_mean=stats['sia']['canonical_mean'],
+                    geometry_only_eye=getattr(args, 'geometry_only_eye', False))
             if frame == 'preop_frame':
                 indices = [args.conditions.index(name) for name in PRE_VECTOR]
                 frame_args.update(clinical_vector_indices=indices,
@@ -654,6 +659,8 @@ def saved_config_value(config, key):
     if key == 'image_backbone' and key not in config:
         return 'unet'
     if key == 'strict_determinism' and key not in config:
+        return False
+    if key == 'geometry_only_eye' and key not in config:
         return False
     if key == 'eye_frame' and key not in config:
         return 'native'
