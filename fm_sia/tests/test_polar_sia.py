@@ -92,6 +92,47 @@ def test_component_supervision_matches_cartesian_objective_with_identical_initia
     assert torch.all(ablated.sia_readout[-1].bias.grad.abs()>0)
 
 
+def test_linearized_decoder_matches_parent_value_jacobian_and_initial_loss_gradients():
+    flags = ['--polar_component_objective', '--image_backbone','fno','--fno_modes','4','4',
+             '--fno_hidden_channels','8','--fno_layers','1']
+    args = arguments(flags)
+    _, stats = statistics(args)
+    torch.manual_seed(17)
+    parent = build_model(args, stats)
+    torch.manual_seed(17)
+    model = build_model(arguments([*flags,'--linearized_polar_decoder']), stats)
+    assert dict(model.named_parameters()).keys() == dict(parent.named_parameters()).keys()
+    for name,value in parent.named_parameters():
+        torch.testing.assert_close(model.get_parameter(name), value, atol=0, rtol=0)
+    origin = model.decoder_origin.clone()
+    reference = lambda x: decode_polar(x[None])[0][0]
+    linear = lambda x: model.decode_output(x[None])[0][0]
+    jacobian = torch.autograd.functional.jacobian(reference, origin)
+    torch.testing.assert_close(torch.autograd.functional.jacobian(linear, origin), jacobian)
+    torch.testing.assert_close(linear(origin), reference(origin))
+    image = torch.rand(2,1,32,32)
+    inputs = dict(clinical=torch.rand(2,1),t=torch.tensor([.2,.8]))
+    target = torch.tensor([[.7,-.2],[-.3,.9]])
+    for instance in (model,parent):
+        output = instance(image, image+.2, target, **inputs)
+        output['loss'].backward()
+    for first,second in zip(model.sia_readout[-1].parameters(), parent.sia_readout[-1].parameters()):
+        torch.testing.assert_close(first.grad, second.grad)
+    shift = torch.tensor([.8,1.1])
+    with torch.no_grad():
+        model.sia_readout[-1].bias.add_(shift)
+    torch.testing.assert_close(model.decoder_origin, origin, atol=0, rtol=0)
+    expected = reference(origin) + jacobian @ shift
+    assert not torch.allclose(expected, reference(origin+shift))
+    torch.testing.assert_close(torch.autograd.functional.jacobian(linear, origin+shift), jacobian)
+    trained = model(image, image+.2, target, **inputs)
+    sampled = model.sample(image, clinical=inputs['clinical'])
+    torch.testing.assert_close(trained['q_clean'], expected.expand_as(target))
+    torch.testing.assert_close(sampled['sia_vector'], trained['q_clean'])
+    torch.testing.assert_close(sampled['sia'], trained['q_clean'].norm(dim=-1))
+    assert 'decoder_origin' in model.state_dict()
+
+
 def test_polar_statistics_are_training_only_and_handle_zero_targets():
     args=arguments();df,stats=statistics(args)
     assert stats['sia']['polar_median_magnitude']==1

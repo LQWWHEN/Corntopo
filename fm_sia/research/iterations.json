@@ -1380,6 +1380,23 @@
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "33cffc51b167be7331b83c8c2cd0a80a934a62a0"
+    },
+    {
+      "id": "060",
+      "parent": "057",
+      "parent_source_commit": "4752d326c0c21f8d99f2f468542ed35f4b0e888c",
+      "proposal_id": "matched_linearized_polar_decoder",
+      "proposal": "ITERATION_060.md",
+      "config": "configs/iteration060.json",
+      "status": "preregistered",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trials_used": 0,
+      "tuning_trial_limit": 5,
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -1574,7 +1591,7 @@
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "060",
+    "next_new_proposal": "061",
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "057",

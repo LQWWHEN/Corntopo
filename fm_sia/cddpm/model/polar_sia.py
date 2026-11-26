@@ -45,6 +45,8 @@ def quartile_loss(quartiles, target):
 
 
 class PolarSIAFlowMatching(AxialSIAFlowMatching):
+    decode_output = staticmethod(decode_polar)
+
     def __init__(self, *args, initial_magnitude, initial_phase, lambda_axis=1.,
                  axis_min_magnitude=.1, rank_weight=0., rank_temperature=.2,
                  image_gradient_weight=0., axis_gradient_projection=False,
@@ -88,7 +90,7 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
             self.axis_concentration_head = AxisConcentration()
 
     def predict_polar(self, condition_features, clinical):
-        return decode_polar(self.sia_readout(self.sia_features(condition_features, clinical)))
+        return self.decode_output(self.sia_readout(self.sia_features(condition_features, clinical)))
 
     def predict_sia(self, condition_features, clinical):
         return self.predict_polar(condition_features, clinical)[0]
@@ -107,7 +109,7 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
         cond = self.condition_encoder(pre)
         if self.rank_weight or self.axis_gradient_projection or self.axis_concentration_head is not None or self.quartile_head is not None:
             hidden = self.sia_readout[1](self.sia_readout[0](self.sia_features(cond, clinical)))
-            q, magnitude, phase = decode_polar(self.sia_readout[2](hidden))
+            q, magnitude, phase = self.decode_output(self.sia_readout[2](hidden))
         else:
             q, magnitude, phase = self.predict_polar(cond, clinical, **self.sia_mask_argument(pre_mask))
         target = sia_vector.to(pre)
@@ -159,6 +161,24 @@ class PolarSIAFlowMatching(AxialSIAFlowMatching):
             auxiliary = axial_rank_contrast(hidden, target/self.sia_ref, self.rank_temperature)
             output.update(loss=output['loss']+self.rank_weight*auxiliary, loss_rank_contrast=auxiliary)
         return output
+
+
+class LinearizedPolarSIA(PolarSIAFlowMatching):
+    """Match the initial polar vector and its Jacobian with an affine Cartesian map."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.register_buffer('decoder_origin', self.sia_readout[-1].bias.detach().clone())
+
+    def decode_output(self, raw):
+        u0, phase0 = self.decoder_origin.unbind()
+        radius0 = F.softplus(u0)
+        normal = torch.stack((phase0.cos(), phase0.sin()))
+        tangent = torch.stack((-normal[1], normal[0]))
+        du, dphase = (raw - self.decoder_origin).unbind(-1)
+        radial = radius0 + u0.sigmoid() * du
+        vector = radial[:, None] * normal + (radius0*dphase)[:, None] * tangent
+        return vector, vector.norm(dim=-1), torch.atan2(vector[:, 1], vector[:, 0])
 
 
 class PowerChangePolarSIA(PolarSIAFlowMatching):

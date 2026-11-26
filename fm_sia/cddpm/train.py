@@ -118,6 +118,8 @@ def get_args(argv=None):
                    help='Initialize both polar readout biases at zero')
     p.add_argument('--polar_component_objective', action='store_true',
                    help='Supervise decoded polar vectors with component Huber and radial L1')
+    p.add_argument('--linearized_polar_decoder', action='store_true',
+                   help='Use the affine first-order expansion of the component-supervised polar decoder')
     p.add_argument('--uncentered_aperture', action='store_true',
                    help='Keep measured-aperture weighting and omit angular basis centering')
     p.add_argument('--sia_magnitude_column', default='front_SIA_D')
@@ -274,6 +276,8 @@ def check_args(a):
         raise ValueError('validation_reference is for a frozen test rerun, not validation_only')
     if a.zero_polar_bias and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'):
         raise ValueError('Zero polar bias requires a polar-direct readout')
+    if a.linearized_polar_decoder and not a.polar_component_objective:
+        raise ValueError('Linearized polar decoding requires physical component and magnitude supervision')
     if a.polar_component_objective and (
             a.model != 'fm_sia' or a.sia_prediction != 'polar_direct' or a.sia_axis_gradient_projection
             or a.sia_axis_arc_distance or a.axis_reliability_scale or a.sia_learned_axis_concentration):
@@ -573,6 +577,11 @@ def build_model(args, stats=None):
             if getattr(args, 'sia_split_hidden', False):
                 from model.split_polar import SplitPolarSIAFlowMatching
                 polar_class = SplitPolarSIAFlowMatching
+            if getattr(args, 'linearized_polar_decoder', False):
+                if polar_class is not PolarSIAFlowMatching:
+                    raise ValueError('Linearized polar decoding uses the unsplit native polar readout')
+                from model.polar_sia import LinearizedPolarSIA
+                polar_class = LinearizedPolarSIA
             return polar_class(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
                 sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
                 lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
@@ -701,7 +710,7 @@ def saved_config_value(config, key):
         return False
     if key in ('geometry_only_eye', 'zero_induced_source', 'zero_polar_bias', 'uncentered_aperture',
                'subtract_source_velocity', 'polar_component_objective', 'transported_radius',
-               'optical_sia_velocity') and key not in config:
+               'optical_sia_velocity', 'linearized_polar_decoder') and key not in config:
         return False
     if key == 'eye_frame' and key not in config:
         return 'native'
