@@ -51,7 +51,30 @@ def test_uncentered_aperture_preserves_mean_and_only_leaks_constants_on_asymmetr
     assert abs(raw[0, 1]) > .1
 
 
-def test_normal_entry_points_and_saved_weight_reload(tmp_path):
+def test_half_turn_aperture_removes_only_odd_pooling_response():
+    torch.manual_seed(65)
+    field = torch.randn(2, 4, 8, 10, dtype=torch.float64, requires_grad=True)
+    mask = torch.ones(2, 1, 16, 20, dtype=field.dtype)
+    mask[0, :, 1:9, 2:12] = 0
+    mask[1, :, 5:, :13] = 0
+    rotated = field.flip((-2, -1))
+    even = (field + rotated) / 2
+    odd = (field - rotated) / 2
+    projected = aperture_moments(field, mask, half_turn_average=True)
+    torch.testing.assert_close(projected, aperture_moments(even, mask))
+    lost = aperture_moments(odd, mask)
+    torch.testing.assert_close(aperture_moments(field, mask) - projected, lost)
+    assert lost.reshape(2, 3, 4).abs().sum(dim=-1).min() > .001
+    torch.testing.assert_close(aperture_moments(odd, mask, half_turn_average=True), torch.zeros_like(lost))
+    symmetric_mask = mask * mask.flip((-2, -1))
+    torch.testing.assert_close(aperture_moments(field, symmetric_mask),
+                               aperture_moments(field, symmetric_mask, half_turn_average=True))
+    projected.square().sum().backward()
+    torch.testing.assert_close(field.grad, field.grad.flip((-2, -1)))
+
+
+@pytest.mark.parametrize("half_turn", [False, True], ids=["native", "half_turn"])
+def test_normal_entry_points_and_saved_weight_reload(tmp_path, half_turn):
     from predict import load_checkpoint
     from train import PIPELINE_VERSION, build_model, forward_batch, get_args, sample_batch, saved_config_value
     torch.set_num_threads(1)
@@ -59,14 +82,16 @@ def test_normal_entry_points_and_saved_weight_reload(tmp_path):
              "--conditions", "pre_age_years", "--fusion_method", "film", "--lambda_sia","1",
              "--sample_steps","2","--image_backbone","fno","--fno_modes","4","4",
              "--fno_hidden_channels","8","--fno_layers","1"]
-    a = get_args(flags + ["--sia_aperture_moments"])
+    a = get_args(flags + ["--sia_aperture_moments"] + (["--half_turn_aperture"] if half_turn else []))
     stats = dict(sia=dict(mean=[.2,.3], std=[.5,.6], polar_median_magnitude=.5,
                           polar_initial_phase=.4, polar_axis_training_count=2),image=dict(scale=20.))
     assert saved_config_value({}, "sia_aperture_moments") is False
+    assert saved_config_value({}, "half_turn_aperture") is False
     torch.manual_seed(82)
-    parent = build_model(get_args(flags), stats)
+    parent = build_model(get_args(flags + (["--sia_aperture_moments"] if half_turn else [])), stats).eval()
     torch.manual_seed(82)
     model = build_model(a, stats).eval()
+    assert model.half_turn_average is half_turn
     assert model.state_dict().keys() == parent.state_dict().keys()
     for k,v in parent.state_dict().items():
         torch.testing.assert_close(model.state_dict()[k], v, rtol=0, atol=0)
@@ -78,6 +103,11 @@ def test_normal_entry_points_and_saved_weight_reload(tmp_path):
     batch = dict(input=pre, target=torch.rand_like(pre), condition=torch.zeros(2,1), mask_pre=mask,
                  mask_post=torch.ones_like(pre), sia_vector=torch.tensor([[.6,-.3],[.1,.4]]),label=[1,2])
     before = sample_batch(model, batch, a, "cpu")
+    if half_turn:
+        parent.load_state_dict(model.state_dict())
+        native = sample_batch(parent, batch, a, "cpu")
+        torch.testing.assert_close(native["pred"], before["pred"], rtol=0, atol=0)
+        assert not torch.allclose(native["sia_vector"], before["sia_vector"])
     train = forward_batch(model, batch, "cpu")
     torch.testing.assert_close(train["q_clean"], before["sia_vector"])
     altered = forward_batch(model, dict(batch, target=1-pre, mask_post=pre>.5, sia_vector=-batch["sia_vector"]), "cpu")

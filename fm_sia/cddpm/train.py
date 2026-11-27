@@ -130,6 +130,8 @@ def get_args(argv=None):
                    help='Use the affine first-order expansion of the component-supervised polar decoder')
     p.add_argument('--uncentered_aperture', action='store_true',
                    help='Keep measured-aperture weighting and omit angular basis centering')
+    p.add_argument('--half_turn_aperture', action='store_true',
+                   help='Average each SIA pooling kernel with its 180-degree rotation')
     p.add_argument('--sia_magnitude_column', default='front_SIA_D')
     p.add_argument('--sia_label_atol', type=float, default=1e-4)
     p.add_argument('--skip_sia_checks', action='store_true',
@@ -206,6 +208,8 @@ def check_args(a):
         raise ValueError('Zero-initialized clinical cross-attention requires a polar-direct conditional FNO')
     if a.uncentered_aperture and not a.sia_aperture_moments:
         raise ValueError('Uncentered coverage requires measured-aperture pooling')
+    if a.half_turn_aperture and not a.sia_aperture_moments:
+        raise ValueError('Half-turn aperture averaging requires measured-aperture pooling')
     if a.sia_aperture_moments and (a.model != 'fm_sia' or a.sia_prediction != 'polar_direct'
             or a.image_backbone != 'fno' or a.eye_frame != 'native' or a.sia_feature_fusion != 'lab'
             or a.sia_rank_weight or a.sia_axis_gradient_projection or a.sia_learned_axis_concentration
@@ -575,6 +579,7 @@ def build_model(args, stats=None):
                 from model.aperture_sia import AperturePolarSIAFlowMatching
                 polar_class = AperturePolarSIAFlowMatching
                 coupling_args['center_basis'] = not getattr(args, 'uncentered_aperture', False)
+                coupling_args['half_turn_average'] = getattr(args, 'half_turn_aperture', False)
             if getattr(args, 'eye_frame', 'native') == 'right':
                 from model.eye_polar import EyeFramePolarSIAFlowMatching
                 polar_class = EyeFramePolarSIAFlowMatching
@@ -756,7 +761,7 @@ def saved_config_value(config, key):
     if key in ('geometry_only_eye', 'readout_only_sia_gradients', 'zero_induced_source', 'zero_polar_bias', 'uncentered_aperture',
                'subtract_source_velocity', 'polar_component_objective', 'transported_radius',
                'optical_sia_velocity', 'optical_sia_residual', 'linearized_polar_decoder', 'center_sia_by_eye',
-               'preop_vector_source') and key not in config:
+               'preop_vector_source', 'half_turn_aperture') and key not in config:
         return False
     if key == 'eye_frame' and key not in config:
         return 'native'

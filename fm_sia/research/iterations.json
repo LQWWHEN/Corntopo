@@ -1500,6 +1500,23 @@
       "status": "queued_for_validation",
       "test_evaluated": false,
       "source_commit": "0fba94ead62200e3ac3d6fd7959db4040048b89f"
+    },
+    {
+      "id": "065",
+      "parent": "030",
+      "parent_source_commit": "ea93565bfb8a20a7b1c14293bfee57f9bde7e6d6",
+      "proposal_id": "half_turn_aperture_ablation",
+      "proposal": "ITERATION_065.md",
+      "config": "configs/iteration065.json",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trial_limit": 5,
+      "tuning_trials_used": 0,
+      "status": "preregistered",
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
