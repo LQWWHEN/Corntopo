@@ -21,10 +21,11 @@ class EyeFrameSIAFlowMatching(AxialSIAFlowMatching):
     original acquisition frame. Postoperative masks are used only by the loss.
     """
     def __init__(self, *args, eye_index, eye_mean, eye_std, canonical_sia_mean,
-                 geometry_only_eye=False, **kwargs):
+                 geometry_only_eye=False, readout_only_sia_gradients=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.eye_index = eye_index
         self.geometry_only_eye = geometry_only_eye
+        self.readout_only_sia_gradients = readout_only_sia_gradients
         self.register_buffer('eye_mean', torch.tensor(float(eye_mean)))
         self.register_buffer('eye_std', torch.tensor(float(eye_std)))
         with torch.no_grad():
@@ -41,6 +42,10 @@ class EyeFrameSIAFlowMatching(AxialSIAFlowMatching):
         conditions = clinical.clone()
         conditions[:, self.eye_index] = 0
         return conditions
+
+    def sia_features(self, condition_features, clinical):
+        features = super().sia_features(condition_features, clinical)
+        return features.detach() if self.readout_only_sia_gradients else features
 
     def forward(self, pre, post, sia_vector=None, clinical=None, mask=None, **kwargs):
         sign = self.eye_sign(clinical)

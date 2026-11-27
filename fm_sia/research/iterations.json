@@ -1451,6 +1451,23 @@
       "status": "queued_for_validation",
       "test_evaluated": false,
       "source_commit": "1a145a1156e00aaf347036eecf23ab0ecd089c6c"
+    },
+    {
+      "parent": "010",
+      "parent_source_commit": "44f881b2fcc19ae405ae3134736bafbbe453a651",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trial_limit": 5,
+      "id": "063",
+      "proposal_id": "readout_only_sia_gradient_ablation",
+      "proposal": "ITERATION_063.md",
+      "config": "configs/iteration063.json",
+      "tuning_trials_used": 0,
+      "status": "preregistered",
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -1645,7 +1662,7 @@
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "063",
+    "next_new_proposal": "064",
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "057",

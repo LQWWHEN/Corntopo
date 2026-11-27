@@ -106,6 +106,8 @@ def get_args(argv=None):
                    help='Optional right-eye coordinates with explicit preoperative eye condition')
     p.add_argument('--geometry_only_eye', action='store_true',
                    help='Use laterality for reflection only, masking its standardized clinical token')
+    p.add_argument('--readout_only_sia_gradients', action='store_true',
+                   help='Restrict SIA loss gradients to the readout in the right-eye axial model')
     p.add_argument('--zero_induced_source', action='store_true',
                    help='Start the joint SIA flow at zero physical induced astigmatism')
     p.add_argument('--subtract_source_velocity', action='store_true',
@@ -300,6 +302,8 @@ def check_args(a):
         raise ValueError('Eye-conditioned centering requires a vector flow and a separate preoperative eye field')
     if (a.zero_induced_source or a.subtract_source_velocity) and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'):
         raise ValueError('SIA source changes require joint vector flow matching')
+    if a.readout_only_sia_gradients and (a.eye_frame != 'right' or a.sia_prediction != 'axial_direct'):
+        raise ValueError('Readout-only SIA gradients require the right-eye axial model')
     if a.geometry_only_eye and (a.eye_frame != 'right' or a.sia_prediction != 'axial_direct'):
         raise ValueError('Geometry-only laterality requires the right-frame axial direct model')
     if a.eye_frame == 'right':
@@ -621,7 +625,8 @@ def build_model(args, stats=None):
                     eye_mean=stats['clinical']['mean'][eye_index],
                     eye_std=stats['clinical']['std'][eye_index],
                     canonical_sia_mean=stats['sia']['canonical_mean'],
-                    geometry_only_eye=getattr(args, 'geometry_only_eye', False))
+                    geometry_only_eye=getattr(args, 'geometry_only_eye', False),
+                    readout_only_sia_gradients=getattr(args, 'readout_only_sia_gradients', False))
             if frame == 'preop_frame':
                 indices = [args.conditions.index(name) for name in PRE_VECTOR]
                 frame_args.update(clinical_vector_indices=indices,
@@ -729,7 +734,7 @@ def saved_config_value(config, key):
         return 'unet'
     if key == 'strict_determinism' and key not in config:
         return False
-    if key in ('geometry_only_eye', 'zero_induced_source', 'zero_polar_bias', 'uncentered_aperture',
+    if key in ('geometry_only_eye', 'readout_only_sia_gradients', 'zero_induced_source', 'zero_polar_bias', 'uncentered_aperture',
                'subtract_source_velocity', 'polar_component_objective', 'transported_radius',
                'optical_sia_velocity', 'optical_sia_residual', 'linearized_polar_decoder', 'center_sia_by_eye') and key not in config:
         return False

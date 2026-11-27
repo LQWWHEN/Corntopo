@@ -15,12 +15,12 @@ from train import get_args, build_model, fit_sia_stats, saved_config_value
 torch.set_num_threads(1)
 
 
-def args_for_frame(backbone='unet'):
+def args_for_frame(backbone='unet', *extra):
     return get_args(['--excel_path','unused','--data_root','unused',
                      '--sia_prediction','axial_direct','--eye_frame','right',
                      '--conditions','pre_age_years',EYE_SIGN,'--fusion_method','film',
                      '--lambda_sia','1','--sample_steps','2','--image_backbone',backbone,
-                     '--fno_modes','4','4','--fno_hidden_channels','8','--fno_layers','1'])
+                     '--fno_modes','4','4','--fno_hidden_channels','8','--fno_layers','1',*extra])
 
 
 def test_eye_mapping_and_initialization_use_only_pre_eye_and_training_targets():
@@ -121,3 +121,46 @@ def test_eye_frame_cli_requires_matched_clinical_geometry_and_preserves_old_defa
     with pytest.raises(ValueError,match='scalar clinical'):
         get_args(['--excel_path','x','--data_root','x','--sia_prediction','axial_direct',
                   '--eye_frame','right','--conditions',EYE_SIGN,'pre_front_X'])
+
+
+def test_readout_only_sia_gradients_preserve_both_forward_paths():
+    pytest.importorskip('neuralop')
+    stats = {'sia':{'mean':[.2,.4],'std':[.5,.6],'canonical_mean':[.3,-.1]},
+             'clinical':{'mean':[50.,.1],'std':[10.,.9]}}
+    torch.manual_seed(17)
+    parent = build_model(args_for_frame('fno'),stats).eval()
+    torch.manual_seed(17)
+    child = build_model(args_for_frame('fno','--readout_only_sia_gradients'),stats).eval()
+    assert child.state_dict().keys() == parent.state_dict().keys()
+    for key,a in parent.state_dict().items():
+        torch.testing.assert_close(a,child.state_dict()[key],atol=0,rtol=0)
+    # At epoch zero the final matrix is zero, so both models initially have
+    # zero SIA gradients in their encoders. Test the route with an active head.
+    with torch.no_grad():
+        parent.sia_readout[-1].weight.normal_(0,.03)
+    child.load_state_dict(parent.state_dict())
+    pre = torch.rand(2,1,32,32)
+    post = torch.rand_like(pre)
+    q = torch.tensor([[.4,-.2],[.3,.8]])
+    clinical = torch.tensor([[.2,1.],[-.1,-1.1/.9]])
+    mask = (torch.rand_like(pre)>.2).float()
+    t = torch.tensor([.2,.7])
+    outputs = [m(pre,post,q,clinical=clinical,mask=mask,t=t) for m in (parent,child)]
+    for k in ('velocity_pred','q_clean','loss_image','loss_vector','loss_sia'):
+        torch.testing.assert_close(outputs[0][k],outputs[1][k],rtol=0,atol=0)
+    for model,output in zip((parent,child),outputs):
+        (output['loss_vector']+output['loss_sia']).backward(retain_graph=True)
+    assert parent.condition_encoder.in_conv.weight.grad.abs().sum()>0
+    assert any(p.grad is not None and p.grad.abs().sum()>0 for p in parent.unet.clinical_encoder.parameters())
+    assert all(p.grad is None for module in (child.condition_encoder,child.unet) for p in module.parameters())
+    for a,b in zip(parent.sia_readout.parameters(),child.sia_readout.parameters()):
+        torch.testing.assert_close(a.grad,b.grad)
+    assert child.sia_readout[-1].weight.grad.abs().sum()>0
+    for model,output in zip((parent,child),outputs):
+        model.zero_grad(set_to_none=True)
+        output['loss_image'].backward()
+    assert child.condition_encoder.in_conv.weight.grad.abs().sum()>0
+    torch.testing.assert_close(child.condition_encoder.in_conv.weight.grad,parent.condition_encoder.in_conv.weight.grad)
+    before, after = (m.sample(pre,clinical=clinical) for m in (parent,child))
+    for key in ('pred','sia','sia_vector','sia_state'):
+        torch.testing.assert_close(before[key],after[key],rtol=0,atol=0)
