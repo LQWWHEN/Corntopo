@@ -114,6 +114,8 @@ def get_args(argv=None):
                    help='Integrate an additional radial velocity from zero alongside the two SIA components')
     p.add_argument('--optical_sia_velocity', action='store_true',
                    help='Add the central flat-axis cylinder change in image velocity to the learned SIA velocity')
+    p.add_argument('--optical_sia_residual', action='store_true',
+                   help='Transport the SIA residual after subtracting measured optical change from training labels')
     p.add_argument('--center_sia_by_eye', action='store_true',
                    help='Center physical vector endpoints on a fold-specific OS or OD training mean')
     p.add_argument('--zero_polar_bias', action='store_true',
@@ -288,7 +290,9 @@ def check_args(a):
         raise ValueError('Source subtraction requires the original Gaussian SIA source')
     if a.transported_radius and (not a.zero_induced_source or a.loss_balance != 'fixed'):
         raise ValueError('Transported radius requires fixed joint losses and the physical zero source')
-    if a.optical_sia_velocity and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'
+    if a.optical_sia_residual and (a.optical_sia_velocity or a.zero_induced_source or a.reconstruction_domain != 'valid'):
+        raise ValueError('Optical residual flow requires Gaussian SIA noise and paired valid-pixel supervision')
+    if (a.optical_sia_velocity or a.optical_sia_residual) and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'
             or a.transported_radius or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
         raise ValueError('Optical SIA velocity requires FRONT-to-FRONT joint two-component flow')
     if a.center_sia_by_eye and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'
@@ -642,6 +646,8 @@ def build_model(args, stats=None):
             joint_class = EyeCenteredJointFlow
             centering = dict(eye_index=index,eye_mean=stats['clinical']['mean'][index],
                              eye_std=stats['clinical']['std'][index],centers=stats['sia']['eye_centers'])
+        optical_residual = getattr(args, 'optical_sia_residual', False)
+        uses_optics = optical_residual or getattr(args, 'optical_sia_velocity', False)
         return joint_class(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
             sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
             lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
@@ -649,7 +655,8 @@ def build_model(args, stats=None):
             zero_induced_source=getattr(args, 'zero_induced_source', False),
             subtract_source_velocity=getattr(args, 'subtract_source_velocity', False),
             transported_radius=getattr(args, 'transported_radius', False),
-            image_to_sia_scale=stats['image']['scale'] if getattr(args, 'optical_sia_velocity', False) else None,
+            image_to_sia_scale=stats['image']['scale'] if uses_optics else None,
+            optical_residual=optical_residual,
             **centering)
     if args.model == 'fm':
         from model.fm import FlowMatching
@@ -724,7 +731,7 @@ def saved_config_value(config, key):
         return False
     if key in ('geometry_only_eye', 'zero_induced_source', 'zero_polar_bias', 'uncentered_aperture',
                'subtract_source_velocity', 'polar_component_objective', 'transported_radius',
-               'optical_sia_velocity', 'linearized_polar_decoder', 'center_sia_by_eye') and key not in config:
+               'optical_sia_velocity', 'optical_sia_residual', 'linearized_polar_decoder', 'center_sia_by_eye') and key not in config:
         return False
     if key == 'eye_frame' and key not in config:
         return 'native'

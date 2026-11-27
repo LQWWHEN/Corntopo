@@ -1424,6 +1424,23 @@
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "145241efc3f3bd31e122e4c2ef4d50a38c9c7095"
+    },
+    {
+      "parent": "000",
+      "parent_source_commit": "0bdb632f85d1e37cb099db001e99b4fc6c84f5e3",
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "tuning_trial_limit": 5,
+      "id": "062",
+      "proposal_id": "measured_optical_residual_flow",
+      "proposal": "ITERATION_062.md",
+      "config": "configs/iteration062.json",
+      "tuning_trials_used": 0,
+      "status": "preregistered",
+      "test_evaluated": false
     }
   ],
   "artifact_policy": {
@@ -1618,7 +1635,7 @@
     "stop_after": null,
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "062",
+    "next_new_proposal": "063",
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "057",

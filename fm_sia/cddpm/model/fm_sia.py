@@ -27,7 +27,7 @@ class JointFlowMatching(nn.Module):
                  method="euler", lambda_vector=1.0, lambda_sia=0.1,
                  sia_ref=1.0, huber_delta=1.0, sia_mode="vector", lambda_scalar=1.0,
                  zero_induced_source=False, subtract_source_velocity=False, transported_radius=False,
-                 image_to_sia_scale=None):
+                 image_to_sia_scale=None, optical_residual=False):
         super().__init__()
         self.condition_encoder, self.unet = condition_encoder, unet
         if sia_mode not in ('vector', 'scalar'):
@@ -43,6 +43,9 @@ class JointFlowMatching(nn.Module):
             raise ValueError("Transported radius uses the physical zero source")
         self.transported_radius = transported_radius
         self.image_to_sia_scale = image_to_sia_scale
+        self.optical_residual = optical_residual
+        if optical_residual and (image_to_sia_scale is None or zero_induced_source):
+            raise ValueError("Optical residual flow requires an image scale and a Gaussian vector source")
         if image_to_sia_scale is not None:
             if sia_mode != 'vector' or transported_radius or not math.isfinite(image_to_sia_scale) or image_to_sia_scale <= 0:
                 raise ValueError("Optical velocity coupling requires two SIA components and a positive image scale")
@@ -118,11 +121,15 @@ class JointFlowMatching(nn.Module):
         # Keep the parent's RNG schedule when comparing the two source states.
         clinical, center = self.conditions_and_center(clinical)
         noise = self.initial_sia_state(noise, center)
+        if self.optical_residual:
+            # This target offset is in D. Only the training pair defines it.
+            observed_optics = (self.optical_reader(mask) * (post - pre)).sum((-2, -1))
+            center = center + observed_optics
         z1 = (physical-center)/self.sia_std
         xt = (1-t[:, None, None, None])*pre + t[:, None, None, None]*post
         zt = (1-t[:, None])*noise + t[:, None]*z1
         vx, vz = self.unet(xt, t, self.condition_encoder(pre), clinical=clinical, sia_state=zt)
-        if self.image_to_sia_scale is not None:
+        if self.image_to_sia_scale is not None and not self.optical_residual:
             vz = vz + (self.optical_reader(pre_mask) * vx).sum((-2, -1)) / self.sia_std
         if self.subtract_source_velocity:
             vz = vz - noise
@@ -164,7 +171,7 @@ class JointFlowMatching(nn.Module):
         def field(state, time):
             t = pre.new_full((pre.shape[0],), time)
             vx, vz = self.unet(state[0], t, cond, clinical=clinical, sia_state=state[1])
-            if reader is not None:
+            if reader is not None and not self.optical_residual:
                 vz = vz + (reader * vx).sum((-2, -1)) / self.sia_std
             if self.subtract_source_velocity:
                 vz = vz - z0
@@ -172,11 +179,16 @@ class JointFlowMatching(nn.Module):
         state = (pre, z0)
         for k in range(steps):
             state = ode_step(field, state, k/steps, 1/steps, method or self.method)
-        q, s = self.decode(state[1], center)
-        result = dict(pred=state[0], sia=s, sia_state=state[1])
+        endpoint = state[1]
+        result = dict(pred=state[0])
         if reader is not None:
-            result['optical_sia_vector'] = (reader * (state[0] - pre)).sum((-2, -1))
+            optics = (reader * (state[0] - pre)).sum((-2, -1))
+            result['optical_sia_vector'] = optics
             result['optical_resolved'] = reader.abs().sum((1, 2, 3)) > 0
+            if self.optical_residual:
+                endpoint = endpoint + optics / self.sia_std
+        q, s = self.decode(endpoint, center)
+        result.update(sia=s, sia_state=endpoint)
         if self.sia_mode == 'vector':
             result['sia_vector'] = q
         else:

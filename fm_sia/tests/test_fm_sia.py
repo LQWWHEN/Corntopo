@@ -153,6 +153,71 @@ def test_optical_velocity_couples_flat_axis_cylinder_at_each_integration_step():
     torch.testing.assert_close(sampled['sia_vector'].norm(dim=-1), sampled['sia'])
 
 
+def test_optical_residual_targets_and_sampling_use_their_available_apertures():
+    from train import build_model, forward_batch, sample_batch
+
+    flags = ['--excel_path','unused','--data_root','unused','--conditions','pre_age_years',
+             '--fusion_method','film','--sample_steps','4']
+    args = get_args([*flags, '--optical_sia_residual'])
+    mean = torch.tensor([.2, -.1])
+    std = torch.tensor([.5, 1.5])
+    stats = {'sia': {'mean': mean.tolist(), 'std': std.tolist()}, 'image': {'scale': 20.}}
+    torch.manual_seed(12)
+    parent = build_model(get_args(flags), stats)
+    torch.manual_seed(12)
+    model = build_model(args, stats)
+    assert model.state_dict().keys() == parent.state_dict().keys()
+    for name, value in parent.state_dict().items():
+        torch.testing.assert_close(model.state_dict()[name], value, atol=0, rtol=0)
+
+    coords = (torch.arange(32) + .5) / 16 - 1
+    y, x = torch.meshgrid(-coords, coords, indexing='ij')
+    angle = torch.atan2(y, x)
+    change = .06 + .02 * torch.cos(2*angle) - .01 * torch.sin(2*angle)
+    pre = torch.zeros(2, 1, 32, 32)
+    pre_mask = torch.ones_like(pre)
+    common = torch.stack((x > -.2, x.square()+y.square() > .5))[:, None].float()
+    post = torch.where(common > 0, change, -12.)
+    noise = torch.tensor([[.1, -.3], [-.2, .5]])
+    time = torch.tensor([.25, .75])
+    residual = torch.tensor([[.4, -.2], [-.1, .1]])
+    measured = torch.tensor([[-.8, .4], [0., 0.]])
+    target = measured + mean + residual * std
+
+    class Field(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.image_gain = nn.Parameter(torch.ones(()))
+            self.velocity = nn.Parameter(residual-noise)
+
+        def forward(self, image, t, condition, clinical=None, sia_state=None):
+            self.last_state = sia_state
+            return self.image_gain * change.expand_as(image), self.velocity
+
+    field = Field()
+    model.condition_encoder, model.unet = IdentityCondition(), field
+    out = model(pre, post, target, mask=common, t=time, noise=noise, pre_mask=pre_mask)
+    torch.testing.assert_close(field.last_state, noise + time[:, None]*(residual-noise))
+    torch.testing.assert_close(out['sia_vector_clean'], target)
+    assert out['loss'].item() < 1e-12
+    batch = dict(input=pre, target=post, condition=torch.ones(2, 1), mask_pre=pre_mask,
+                 mask_post=common, sia_vector=target+.2, label=[1, 2])
+    trained = forward_batch(model, batch, 'cpu')
+    (trained['loss_vector'] + trained['loss_sia']).backward()
+    assert field.image_gain.grad is None and field.velocity.grad.norm() > 0
+
+    # Sampling has only the preoperative aperture, including a resolvable second case.
+    out = model.sample(pre, noise=noise, pre_mask=pre_mask)
+    expected_optics = measured[0].expand_as(measured)
+    torch.testing.assert_close(out['optical_sia_vector'], expected_optics)
+    torch.testing.assert_close(out['sia_state'], residual + expected_optics/std)
+    torch.testing.assert_close(out['sia_vector'], mean + std*residual + expected_optics)
+    torch.testing.assert_close(field.last_state, noise + .75*(residual-noise))
+    inference_batch = {k: batch[k] for k in ('input', 'condition', 'mask_pre', 'label')}
+    result = sample_batch(model, inference_batch, args, 'cpu')
+    torch.testing.assert_close(result['sia'], result['sia_vector'].norm(dim=-1))
+
+
 def test_transported_radius_preserves_parent_weights_and_consistent_endpoints():
     from train import build_model, forward_batch, sample_batch
     flags = ['--excel_path','unused','--data_root','unused','--zero_induced_source',
