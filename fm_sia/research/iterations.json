@@ -1705,7 +1705,7 @@
     "completed_through": "050",
     "private_summary_verified": true,
     "public_summary": "STAGE_001_050.md",
-    "active_experiment_jobs": 1,
+    "active_experiment_jobs": 0,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
@@ -1721,14 +1721,14 @@
       "060_4",
       "060_5"
     ],
-    "latest_completed_trial": "060_4",
-    "active_trial": "060_5",
+    "latest_completed_trial": "060_5",
+    "active_trial": null,
     "queued_trials": [
       "063",
       "064",
       "065"
     ],
-    "waiting_for_group": null,
+    "waiting_for_group": "060",
     "last_authorized_new_iteration": "065"
   },
   "budget_policy_before_20261116": {
@@ -6383,12 +6383,18 @@
       "change": {
         "lambda_sia": 1.125
       },
-      "status": "training_validation",
+      "status": "validation_audited",
       "proposal": "TUNING_060_5.md",
       "config": "configs/tuning/060_5.json",
       "test_evaluated": false,
       "source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
-      "recipe_commit": "a1dc224352c29dee537cb25f922c416053947f2c"
+      "recipe_commit": "a1dc224352c29dee537cb25f922c416053947f2c",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": true,
+      "group_closed": false,
+      "checkpoint_state": "temporary_pending_group_selection"
     }
   ],
   "campaign_status": "active",
