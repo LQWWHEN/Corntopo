@@ -1424,7 +1424,7 @@
       "proposal_id": "eye_centered_joint_flow",
       "proposal": "ITERATION_061.md",
       "config": "configs/iteration061.json",
-      "status": "training_validation",
+      "status": "completed_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1433,7 +1433,13 @@
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
-      "source_commit": "145241efc3f3bd31e122e4c2ef4d50a38c9c7095"
+      "source_commit": "145241efc3f3bd31e122e4c2ef4d50a38c9c7095",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "group_closed": true,
+      "checkpoint_state": "cleaned"
     },
     {
       "parent": "000",
@@ -1449,7 +1455,7 @@
       "proposal": "ITERATION_062.md",
       "config": "configs/iteration062.json",
       "tuning_trials_used": 0,
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "test_evaluated": false,
       "source_commit": "1a145a1156e00aaf347036eecf23ab0ecd089c6c"
     },
@@ -1668,12 +1674,11 @@
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "060",
-      "061"
+      "062"
     ],
-    "latest_completed_trial": "057_5",
-    "active_trial": "061",
+    "latest_completed_trial": "061",
+    "active_trial": "062",
     "queued_trials": [
-      "062",
       "060_1",
       "060_2",
       "060_3",
