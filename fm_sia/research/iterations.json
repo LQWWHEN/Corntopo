@@ -1505,9 +1505,15 @@
       ],
       "tuning_trial_limit": 5,
       "tuning_trials_used": 0,
-      "status": "training_validation",
+      "status": "completed_validation_no_test",
       "test_evaluated": false,
-      "source_commit": "0fba94ead62200e3ac3d6fd7959db4040048b89f"
+      "source_commit": "0fba94ead62200e3ac3d6fd7959db4040048b89f",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "group_closed": true,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "065",
@@ -1724,12 +1730,11 @@
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "063",
-      "064"
+      "063_1"
     ],
-    "latest_completed_trial": "063",
-    "active_trial": "064",
+    "latest_completed_trial": "064",
+    "active_trial": "063_1",
     "queued_trials": [
-      "063_1",
       "063_2",
       "063_3",
       "065"
@@ -6450,7 +6455,7 @@
       "change": {
         "lambda_vector": 1.25
       },
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "proposal": "TUNING_063_1.md",
       "config": "configs/tuning/063_1.json",
       "test_evaluated": false,
