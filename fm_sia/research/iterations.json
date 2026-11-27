@@ -1515,8 +1515,9 @@
       ],
       "tuning_trial_limit": 5,
       "tuning_trials_used": 0,
-      "status": "preregistered",
-      "test_evaluated": false
+      "status": "queued_for_validation",
+      "test_evaluated": false,
+      "source_commit": "6444d862949a8cd067240b181778ecba7df58581"
     }
   ],
   "artifact_policy": {
@@ -1715,15 +1716,16 @@
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "060",
-      "060_1"
+      "060_1",
+      "060_2"
     ],
-    "latest_completed_trial": "062",
-    "active_trial": "060_1",
+    "latest_completed_trial": "060_1",
+    "active_trial": "060_2",
     "queued_trials": [
-      "060_2",
       "060_3",
       "063",
-      "064"
+      "064",
+      "065"
     ],
     "waiting_for_group": null
   },
@@ -6263,12 +6265,18 @@
       "change": {
         "lambda_vector": 1.125
       },
-      "status": "training_validation",
+      "status": "validation_audited",
       "proposal": "TUNING_060_1.md",
       "config": "configs/tuning/060_1.json",
       "test_evaluated": false,
       "source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
-      "recipe_commit": "211f0050079c67c4c0f490366a62c252c996ded4"
+      "recipe_commit": "211f0050079c67c4c0f490366a62c252c996ded4",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": true,
+      "group_closed": false,
+      "checkpoint_state": "temporary_pending_group_selection"
     },
     {
       "id": "060_2",
@@ -6284,7 +6292,7 @@
       "change": {
         "lambda_sia": 0.875
       },
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "proposal": "TUNING_060_2.md",
       "config": "configs/tuning/060_2.json",
       "test_evaluated": false,
