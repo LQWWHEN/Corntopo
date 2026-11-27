@@ -1405,7 +1405,7 @@
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 3,
+      "tuning_trials_used": 5,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
       "source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
@@ -2679,8 +2679,16 @@
           "lr": 8.75e-05
         }
       ],
-      "hyperparameter_trials_used": 3,
-      "status": "registered"
+      "hyperparameter_trials_used": 5,
+      "status": "registered",
+      "planned_final_two": [
+        {
+          "lambda_vector": 0.875
+        },
+        {
+          "lambda_sia": 1.125
+        }
+      ]
     }
   },
   "pre026_tuning_review": {
@@ -6325,6 +6333,44 @@
       "test_evaluated": false,
       "source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
       "recipe_commit": "211f0050079c67c4c0f490366a62c252c996ded4"
+    },
+    {
+      "id": "060_4",
+      "parent": "060",
+      "parent_source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
+      "group": "tuning_from_060",
+      "trial": 4,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "change": {
+        "lambda_vector": 0.875
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_060_4.md",
+      "config": "configs/tuning/060_4.json",
+      "test_evaluated": false
+    },
+    {
+      "id": "060_5",
+      "parent": "060",
+      "parent_source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
+      "group": "tuning_from_060",
+      "trial": 5,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "change": {
+        "lambda_sia": 1.125
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_060_5.md",
+      "config": "configs/tuning/060_5.json",
+      "test_evaluated": false
     }
   ],
   "campaign_status": "active",
