@@ -1480,10 +1480,16 @@
       "proposal": "ITERATION_063.md",
       "config": "configs/iteration063.json",
       "tuning_trials_used": 3,
-      "status": "training_validation",
+      "status": "validation_audited",
       "test_evaluated": false,
       "source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4",
-      "rank_initial_with_tuning": true
+      "rank_initial_with_tuning": true,
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": true,
+      "group_closed": false,
+      "checkpoint_state": "temporary_pending_group_selection"
     },
     {
       "id": "064",
@@ -1499,7 +1505,7 @@
       ],
       "tuning_trial_limit": 5,
       "tuning_trials_used": 0,
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "test_evaluated": false,
       "source_commit": "0fba94ead62200e3ac3d6fd7959db4040048b89f"
     },
@@ -1717,12 +1723,15 @@
     "next_new_proposal": null,
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
-      "063"
+      "063",
+      "064"
     ],
-    "latest_completed_trial": "060_5",
-    "active_trial": "063",
+    "latest_completed_trial": "063",
+    "active_trial": "064",
     "queued_trials": [
-      "064",
+      "063_1",
+      "063_2",
+      "063_3",
       "065"
     ],
     "waiting_for_group": null,
@@ -6441,10 +6450,12 @@
       "change": {
         "lambda_vector": 1.25
       },
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "proposal": "TUNING_063_1.md",
       "config": "configs/tuning/063_1.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4",
+      "recipe_commit": "0469abf3574696237af9e9257555b950806b4842"
     },
     {
       "id": "063_2",
@@ -6460,10 +6471,12 @@
       "change": {
         "lambda_sia": 0.875
       },
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "proposal": "TUNING_063_2.md",
       "config": "configs/tuning/063_2.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4",
+      "recipe_commit": "0469abf3574696237af9e9257555b950806b4842"
     },
     {
       "id": "063_3",
@@ -6479,10 +6492,12 @@
       "change": {
         "lr": 8.75e-05
       },
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "proposal": "TUNING_063_3.md",
       "config": "configs/tuning/063_3.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4",
+      "recipe_commit": "0469abf3574696237af9e9257555b950806b4842"
     }
   ],
   "campaign_status": "active",
