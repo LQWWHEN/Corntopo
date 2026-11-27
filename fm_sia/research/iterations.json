@@ -1479,10 +1479,11 @@
       "proposal_id": "readout_only_sia_gradient_ablation",
       "proposal": "ITERATION_063.md",
       "config": "configs/iteration063.json",
-      "tuning_trials_used": 0,
+      "tuning_trials_used": 3,
       "status": "training_validation",
       "test_evaluated": false,
-      "source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4"
+      "source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4",
+      "rank_initial_with_tuning": true
     },
     {
       "id": "064",
@@ -1710,10 +1711,10 @@
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
-    "stop_after": null,
+    "stop_after": "065",
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
-    "next_new_proposal": "065",
+    "next_new_proposal": null,
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "063"
@@ -2690,6 +2691,32 @@
       "selected_id": "060",
       "test_evaluated": true,
       "checkpoint_files": 0
+    },
+    "tuning_from_063": {
+      "parent_id": "063",
+      "parent_source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4",
+      "reserved_trials": [
+        "063_1",
+        "063_2",
+        "063_3",
+        "063_4",
+        "063_5"
+      ],
+      "maximum": 5,
+      "group_closed": false,
+      "planned_first_three": [
+        {
+          "lambda_vector": 1.25
+        },
+        {
+          "lambda_sia": 0.875
+        },
+        {
+          "lr": 8.75e-05
+        }
+      ],
+      "hyperparameter_trials_used": 3,
+      "status": "registered"
     }
   },
   "pre026_tuning_review": {
@@ -6399,6 +6426,63 @@
       "group_closed": true,
       "checkpoint_state": "cleaned",
       "checkpoint_files": 0
+    },
+    {
+      "id": "063_1",
+      "parent": "063",
+      "parent_source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4",
+      "group": "tuning_from_063",
+      "trial": 1,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "change": {
+        "lambda_vector": 1.25
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_063_1.md",
+      "config": "configs/tuning/063_1.json",
+      "test_evaluated": false
+    },
+    {
+      "id": "063_2",
+      "parent": "063",
+      "parent_source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4",
+      "group": "tuning_from_063",
+      "trial": 2,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "change": {
+        "lambda_sia": 0.875
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_063_2.md",
+      "config": "configs/tuning/063_2.json",
+      "test_evaluated": false
+    },
+    {
+      "id": "063_3",
+      "parent": "063",
+      "parent_source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4",
+      "group": "tuning_from_063",
+      "trial": 3,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "change": {
+        "lr": 8.75e-05
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_063_3.md",
+      "config": "configs/tuning/063_3.json",
+      "test_evaluated": false
     }
   ],
   "campaign_status": "active",
