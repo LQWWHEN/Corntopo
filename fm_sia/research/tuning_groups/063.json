@@ -12,7 +12,8 @@
   ],
   "selection_partition": "validation",
   "decision_sha256": "9a6ca7b128720a0194bf30ea561c4542b91043094de2a0d57c6e794d8c531d41",
-  "test_status": "NOT_STARTED",
+  "test_status": "COMPLETED",
   "policy": "ITERATION_052.md",
-  "method": "select_post050_group"
+  "method": "select_post050_group",
+  "checkpoint_files": 0
 }

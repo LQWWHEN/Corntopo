@@ -1480,7 +1480,7 @@
       "proposal": "ITERATION_063.md",
       "config": "configs/iteration063.json",
       "tuning_trials_used": 5,
-      "status": "validation_audited",
+      "status": "completed_group_not_selected",
       "test_evaluated": false,
       "source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4",
       "rank_initial_with_tuning": true,
@@ -1488,8 +1488,9 @@
       "validation_gate_passed": false,
       "near_eligible": true,
       "eligible_for_group_selection": true,
-      "group_closed": false,
-      "checkpoint_state": "temporary_pending_group_selection"
+      "group_closed": true,
+      "checkpoint_state": "cleaned",
+      "checkpoint_files": 0
     },
     {
       "id": "064",
@@ -1529,7 +1530,7 @@
       ],
       "tuning_trial_limit": 5,
       "tuning_trials_used": 0,
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "test_evaluated": false,
       "source_commit": "6444d862949a8cd067240b181778ecba7df58581"
     }
@@ -1719,7 +1720,7 @@
     "completed_through": "050",
     "private_summary_verified": true,
     "public_summary": "STAGE_001_050.md",
-    "active_experiment_jobs": 0,
+    "active_experiment_jobs": 1,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
@@ -1729,18 +1730,12 @@
     "next_new_proposal": null,
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
-      "063",
-      "063_2",
-      "063_3",
-      "063_4",
-      "063_5"
-    ],
-    "latest_completed_trial": "063_5",
-    "active_trial": null,
-    "queued_trials": [
       "065"
     ],
-    "waiting_for_group": "063",
+    "latest_completed_trial": "063_5",
+    "active_trial": "065",
+    "queued_trials": [],
+    "waiting_for_group": null,
     "last_authorized_new_iteration": "065"
   },
   "budget_policy_before_20261116": {
@@ -2718,7 +2713,7 @@
         "063_5"
       ],
       "maximum": 5,
-      "group_closed": false,
+      "group_closed": true,
       "planned_first_three": [
         {
           "lambda_vector": 1.25
@@ -2731,7 +2726,7 @@
         }
       ],
       "hyperparameter_trials_used": 5,
-      "status": "registered",
+      "status": "completed",
       "planned_final_two": [
         {
           "lambda_vector": 0.875
@@ -2739,7 +2734,10 @@
         {
           "lambda_sia": 0.9375
         }
-      ]
+      ],
+      "selected_id": "063_4",
+      "test_evaluated": true,
+      "checkpoint_files": 0
     }
   },
   "pre026_tuning_review": {
@@ -6474,8 +6472,9 @@
       "validation_gate_passed": false,
       "near_eligible": false,
       "eligible_for_group_selection": false,
-      "group_closed": false,
-      "checkpoint_state": "cleaned"
+      "group_closed": true,
+      "checkpoint_state": "cleaned",
+      "checkpoint_files": 0
     },
     {
       "id": "063_2",
@@ -6491,7 +6490,7 @@
       "change": {
         "lambda_sia": 0.875
       },
-      "status": "validation_audited",
+      "status": "completed_group_not_selected",
       "proposal": "TUNING_063_2.md",
       "config": "configs/tuning/063_2.json",
       "test_evaluated": false,
@@ -6501,8 +6500,9 @@
       "validation_gate_passed": false,
       "near_eligible": true,
       "eligible_for_group_selection": true,
-      "group_closed": false,
-      "checkpoint_state": "temporary_pending_group_selection"
+      "group_closed": true,
+      "checkpoint_state": "cleaned",
+      "checkpoint_files": 0
     },
     {
       "id": "063_3",
@@ -6518,7 +6518,7 @@
       "change": {
         "lr": 8.75e-05
       },
-      "status": "validation_audited",
+      "status": "completed_group_not_selected",
       "proposal": "TUNING_063_3.md",
       "config": "configs/tuning/063_3.json",
       "test_evaluated": false,
@@ -6528,8 +6528,9 @@
       "validation_gate_passed": false,
       "near_eligible": true,
       "eligible_for_group_selection": true,
-      "group_closed": false,
-      "checkpoint_state": "temporary_pending_group_selection"
+      "group_closed": true,
+      "checkpoint_state": "cleaned",
+      "checkpoint_files": 0
     },
     {
       "id": "063_4",
@@ -6545,18 +6546,19 @@
       "change": {
         "lambda_vector": 0.875
       },
-      "status": "validation_audited",
+      "status": "completed_test_once",
       "proposal": "TUNING_063_4.md",
       "config": "configs/tuning/063_4.json",
-      "test_evaluated": false,
+      "test_evaluated": true,
       "source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4",
       "recipe_commit": "b8afb9a86fc6461f8c10530d67d694e950d3384a",
       "audit": "PASS",
       "validation_gate_passed": false,
       "near_eligible": true,
       "eligible_for_group_selection": true,
-      "group_closed": false,
-      "checkpoint_state": "temporary_pending_group_selection"
+      "group_closed": true,
+      "checkpoint_state": "cleaned",
+      "checkpoint_files": 0
     },
     {
       "id": "063_5",
@@ -6572,7 +6574,7 @@
       "change": {
         "lambda_sia": 0.9375
       },
-      "status": "validation_audited",
+      "status": "completed_group_not_selected",
       "proposal": "TUNING_063_5.md",
       "config": "configs/tuning/063_5.json",
       "test_evaluated": false,
@@ -6582,8 +6584,9 @@
       "validation_gate_passed": false,
       "near_eligible": false,
       "eligible_for_group_selection": true,
-      "group_closed": false,
-      "checkpoint_state": "temporary_pending_group_selection"
+      "group_closed": true,
+      "checkpoint_state": "cleaned",
+      "checkpoint_files": 0
     }
   ],
   "campaign_status": "active",
