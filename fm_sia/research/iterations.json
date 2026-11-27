@@ -1372,7 +1372,7 @@
       "proposal_id": "flat_axis_optical_velocity",
       "proposal": "ITERATION_059.md",
       "config": "configs/iteration059.json",
-      "status": "training_validation",
+      "status": "completed_validation_no_test",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1381,7 +1381,13 @@
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
-      "source_commit": "33cffc51b167be7331b83c8c2cd0a80a934a62a0"
+      "source_commit": "33cffc51b167be7331b83c8c2cd0a80a934a62a0",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "group_closed": true,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "060",
@@ -1408,7 +1414,7 @@
       "proposal_id": "eye_centered_joint_flow",
       "proposal": "ITERATION_061.md",
       "config": "configs/iteration061.json",
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
@@ -1416,7 +1422,8 @@
       ],
       "tuning_trials_used": 0,
       "tuning_trial_limit": 5,
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "145241efc3f3bd31e122e4c2ef4d50a38c9c7095"
     }
   ],
   "artifact_policy": {
@@ -1618,16 +1625,18 @@
       "055_1",
       "055_2",
       "057_2",
-      "059"
+      "054_4"
     ],
-    "latest_completed_trial": "057_3",
-    "active_trial": "059",
+    "latest_completed_trial": "059",
+    "active_trial": "054_4",
     "queued_trials": [
-      "054_4",
       "054_5",
       "060",
       "055_4",
-      "055_5"
+      "055_5",
+      "057_4",
+      "057_5",
+      "061"
     ],
     "waiting_for_group": null
   },
@@ -5955,7 +5964,7 @@
       "change": {
         "lr": 7.5e-05
       },
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "proposal": "TUNING_054_4.md",
       "config": "configs/tuning/054_4.json",
       "test_evaluated": false,
@@ -6039,10 +6048,12 @@
       "change": {
         "lambda_vector": 1.125
       },
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "proposal": "TUNING_057_4.md",
       "config": "configs/tuning/057_4.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "4752d326c0c21f8d99f2f468542ed35f4b0e888c",
+      "recipe_commit": "36627dbfe67bef95bf060c8fb34b3b3c1fb8f7c6"
     },
     {
       "id": "057_5",
@@ -6058,10 +6069,12 @@
       "change": {
         "lambda_vector": 1.375
       },
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "proposal": "TUNING_057_5.md",
       "config": "configs/tuning/057_5.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "4752d326c0c21f8d99f2f468542ed35f4b0e888c",
+      "recipe_commit": "36627dbfe67bef95bf060c8fb34b3b3c1fb8f7c6"
     }
   ],
   "campaign_status": "active",
