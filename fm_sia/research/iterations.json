@@ -1288,9 +1288,10 @@
       "validation_gate_passed": false,
       "near_eligible": true,
       "eligible_for_group_selection": false,
-      "group_closed": false,
+      "group_closed": true,
       "checkpoint_state": "cleaned",
-      "rank_initial_with_tuning": true
+      "rank_initial_with_tuning": true,
+      "checkpoint_files": 0
     },
     {
       "id": "056",
@@ -1637,7 +1638,7 @@
     "completed_through": "050",
     "private_summary_verified": true,
     "public_summary": "STAGE_001_050.md",
-    "active_experiment_jobs": 0,
+    "active_experiment_jobs": 1,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
@@ -1649,15 +1650,12 @@
     "temporary_checkpoint_trials": [
       "057",
       "060",
-      "055_1",
-      "055_2",
       "057_2",
-      "055_4"
+      "057_4"
     ],
     "latest_completed_trial": "055_5",
-    "active_trial": null,
+    "active_trial": "057_4",
     "queued_trials": [
-      "057_4",
       "057_5",
       "061",
       "062",
@@ -1665,7 +1663,7 @@
       "060_2",
       "060_3"
     ],
-    "waiting_for_group": "055"
+    "waiting_for_group": null
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -2531,7 +2529,7 @@
         "055_5"
       ],
       "maximum": 5,
-      "group_closed": false,
+      "group_closed": true,
       "planned_first_three": [
         {
           "lambda_sia": 1.125
@@ -2544,7 +2542,7 @@
         }
       ],
       "hyperparameter_trials_used": 5,
-      "status": "registered",
+      "status": "completed",
       "planned_final_two": [
         {
           "lambda_sia": 0.9375
@@ -2552,7 +2550,10 @@
         {
           "lambda_axis": 1.125
         }
-      ]
+      ],
+      "selected_id": "055_4",
+      "test_evaluated": true,
+      "checkpoint_files": 0
     },
     "tuning_from_057": {
       "parent_id": "057",
@@ -5861,7 +5862,7 @@
       "change": {
         "lambda_sia": 1.125
       },
-      "status": "validation_audited",
+      "status": "completed_group_not_selected",
       "proposal": "TUNING_055_1.md",
       "config": "configs/tuning/055_1.json",
       "test_evaluated": false,
@@ -5871,8 +5872,9 @@
       "validation_gate_passed": false,
       "near_eligible": false,
       "eligible_for_group_selection": true,
-      "group_closed": false,
-      "checkpoint_state": "temporary_pending_group_selection"
+      "group_closed": true,
+      "checkpoint_state": "cleaned",
+      "checkpoint_files": 0
     },
     {
       "id": "055_2",
@@ -5888,7 +5890,7 @@
       "change": {
         "lambda_sia": 0.875
       },
-      "status": "validation_audited",
+      "status": "completed_group_not_selected",
       "proposal": "TUNING_055_2.md",
       "config": "configs/tuning/055_2.json",
       "test_evaluated": false,
@@ -5898,8 +5900,9 @@
       "validation_gate_passed": false,
       "near_eligible": true,
       "eligible_for_group_selection": true,
-      "group_closed": false,
-      "checkpoint_state": "temporary_pending_group_selection"
+      "group_closed": true,
+      "checkpoint_state": "cleaned",
+      "checkpoint_files": 0
     },
     {
       "id": "055_3",
@@ -5925,8 +5928,9 @@
       "validation_gate_passed": false,
       "near_eligible": false,
       "eligible_for_group_selection": false,
-      "group_closed": false,
-      "checkpoint_state": "cleaned"
+      "group_closed": true,
+      "checkpoint_state": "cleaned",
+      "checkpoint_files": 0
     },
     {
       "id": "057_1",
@@ -6079,18 +6083,19 @@
       "change": {
         "lambda_sia": 0.9375
       },
-      "status": "validation_audited",
+      "status": "completed_test_once",
       "proposal": "TUNING_055_4.md",
       "config": "configs/tuning/055_4.json",
-      "test_evaluated": false,
+      "test_evaluated": true,
       "source_commit": "f040ab97a204ed0fad0ea76b4b0256c82c19b74f",
       "recipe_commit": "7d9edc940fc9cf723d5097e166049d362821c8b3",
       "audit": "PASS",
       "validation_gate_passed": false,
       "near_eligible": true,
       "eligible_for_group_selection": true,
-      "group_closed": false,
-      "checkpoint_state": "temporary_pending_group_selection"
+      "group_closed": true,
+      "checkpoint_state": "cleaned",
+      "checkpoint_files": 0
     },
     {
       "id": "055_5",
@@ -6116,8 +6121,9 @@
       "validation_gate_passed": false,
       "near_eligible": false,
       "eligible_for_group_selection": false,
-      "group_closed": false,
-      "checkpoint_state": "cleaned"
+      "group_closed": true,
+      "checkpoint_state": "cleaned",
+      "checkpoint_files": 0
     },
     {
       "id": "057_4",
@@ -6133,7 +6139,7 @@
       "change": {
         "lambda_vector": 1.125
       },
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "proposal": "TUNING_057_4.md",
       "config": "configs/tuning/057_4.json",
       "test_evaluated": false,
