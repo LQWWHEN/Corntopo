@@ -1397,16 +1397,23 @@
       "proposal_id": "matched_linearized_polar_decoder",
       "proposal": "ITERATION_060.md",
       "config": "configs/iteration060.json",
-      "status": "training_validation",
+      "status": "validation_audited",
       "outputs": [
         "postoperative_image",
         "SIA_magnitude",
         "SIA_axis"
       ],
-      "tuning_trials_used": 0,
+      "tuning_trials_used": 3,
       "tuning_trial_limit": 5,
       "test_evaluated": false,
-      "source_commit": "e59086846116124bee6069dbb21a0c993249aec8"
+      "source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": true,
+      "group_closed": false,
+      "checkpoint_state": "temporary_pending_group_selection",
+      "rank_initial_with_tuning": true
     },
     {
       "id": "061",
@@ -1641,15 +1648,15 @@
     "checkpoint_file_count_status": "training",
     "temporary_checkpoint_trials": [
       "057",
+      "060",
       "055_1",
       "055_2",
       "057_2",
-      "060"
+      "055_4"
     ],
-    "latest_completed_trial": "054_5",
-    "active_trial": "060",
+    "latest_completed_trial": "060",
+    "active_trial": "055_4",
     "queued_trials": [
-      "055_4",
       "055_5",
       "057_4",
       "057_5",
@@ -2578,6 +2585,32 @@
           "lambda_vector": 1.375
         }
       ]
+    },
+    "tuning_from_060": {
+      "parent_id": "060",
+      "parent_source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
+      "reserved_trials": [
+        "060_1",
+        "060_2",
+        "060_3",
+        "060_4",
+        "060_5"
+      ],
+      "maximum": 5,
+      "group_closed": false,
+      "planned_first_three": [
+        {
+          "lambda_vector": 1.125
+        },
+        {
+          "lambda_sia": 0.875
+        },
+        {
+          "lr": 8.75e-05
+        }
+      ],
+      "hyperparameter_trials_used": 3,
+      "status": "registered"
     }
   },
   "pre026_tuning_review": {
@@ -6044,7 +6077,7 @@
       "change": {
         "lambda_sia": 0.9375
       },
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "proposal": "TUNING_055_4.md",
       "config": "configs/tuning/055_4.json",
       "test_evaluated": false,
@@ -6113,6 +6146,63 @@
       "test_evaluated": false,
       "source_commit": "4752d326c0c21f8d99f2f468542ed35f4b0e888c",
       "recipe_commit": "36627dbfe67bef95bf060c8fb34b3b3c1fb8f7c6"
+    },
+    {
+      "id": "060_1",
+      "parent": "060",
+      "parent_source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
+      "group": "tuning_from_060",
+      "trial": 1,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "change": {
+        "lambda_vector": 1.125
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_060_1.md",
+      "config": "configs/tuning/060_1.json",
+      "test_evaluated": false
+    },
+    {
+      "id": "060_2",
+      "parent": "060",
+      "parent_source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
+      "group": "tuning_from_060",
+      "trial": 2,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "change": {
+        "lambda_sia": 0.875
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_060_2.md",
+      "config": "configs/tuning/060_2.json",
+      "test_evaluated": false
+    },
+    {
+      "id": "060_3",
+      "parent": "060",
+      "parent_source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
+      "group": "tuning_from_060",
+      "trial": 3,
+      "outputs": [
+        "postoperative_image",
+        "SIA_magnitude",
+        "SIA_axis"
+      ],
+      "change": {
+        "lr": 8.75e-05
+      },
+      "status": "preregistered",
+      "proposal": "TUNING_060_3.md",
+      "config": "configs/tuning/060_3.json",
+      "test_evaluated": false
     }
   ],
   "campaign_status": "active",
