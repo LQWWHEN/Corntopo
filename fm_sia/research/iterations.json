@@ -1637,7 +1637,7 @@
     "completed_through": "050",
     "private_summary_verified": true,
     "public_summary": "STAGE_001_050.md",
-    "active_experiment_jobs": 1,
+    "active_experiment_jobs": 0,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
@@ -1652,11 +1652,10 @@
       "055_1",
       "055_2",
       "057_2",
-      "055_4",
-      "055_5"
+      "055_4"
     ],
-    "latest_completed_trial": "055_4",
-    "active_trial": "055_5",
+    "latest_completed_trial": "055_5",
+    "active_trial": null,
     "queued_trials": [
       "057_4",
       "057_5",
@@ -1666,7 +1665,7 @@
       "060_2",
       "060_3"
     ],
-    "waiting_for_group": null
+    "waiting_for_group": "055"
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -6107,12 +6106,18 @@
       "change": {
         "lambda_axis": 1.125
       },
-      "status": "training_validation",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_055_5.md",
       "config": "configs/tuning/055_5.json",
       "test_evaluated": false,
       "source_commit": "f040ab97a204ed0fad0ea76b4b0256c82c19b74f",
-      "recipe_commit": "7d9edc940fc9cf723d5097e166049d362821c8b3"
+      "recipe_commit": "7d9edc940fc9cf723d5097e166049d362821c8b3",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "group_closed": false,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "057_4",
