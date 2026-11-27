@@ -1,0 +1,16 @@
+{
+  "group": "tuning_from_055",
+  "group_closed": true,
+  "trial_count": 5,
+  "selected_id": "055_4",
+  "eligible_trials": [
+    "055_1",
+    "055_2",
+    "055_4"
+  ],
+  "selection_partition": "validation",
+  "decision_sha256": "a624253767493bc97cbd6be675d2bf4839e2953fa4a64f8c102e6d46e7590623",
+  "test_status": "NOT_STARTED",
+  "policy": "ITERATION_052.md",
+  "method": "select_post050_group"
+}
