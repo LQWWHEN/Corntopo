@@ -1652,16 +1652,19 @@
       "055_1",
       "055_2",
       "057_2",
-      "055_4"
+      "055_4",
+      "055_5"
     ],
-    "latest_completed_trial": "060",
-    "active_trial": "055_4",
+    "latest_completed_trial": "055_4",
+    "active_trial": "055_5",
     "queued_trials": [
-      "055_5",
       "057_4",
       "057_5",
       "061",
-      "062"
+      "062",
+      "060_1",
+      "060_2",
+      "060_3"
     ],
     "waiting_for_group": null
   },
@@ -6077,12 +6080,18 @@
       "change": {
         "lambda_sia": 0.9375
       },
-      "status": "training_validation",
+      "status": "validation_audited",
       "proposal": "TUNING_055_4.md",
       "config": "configs/tuning/055_4.json",
       "test_evaluated": false,
       "source_commit": "f040ab97a204ed0fad0ea76b4b0256c82c19b74f",
-      "recipe_commit": "7d9edc940fc9cf723d5097e166049d362821c8b3"
+      "recipe_commit": "7d9edc940fc9cf723d5097e166049d362821c8b3",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": true,
+      "group_closed": false,
+      "checkpoint_state": "temporary_pending_group_selection"
     },
     {
       "id": "055_5",
@@ -6098,7 +6107,7 @@
       "change": {
         "lambda_axis": 1.125
       },
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "proposal": "TUNING_055_5.md",
       "config": "configs/tuning/055_5.json",
       "test_evaluated": false,
@@ -6161,10 +6170,12 @@
       "change": {
         "lambda_vector": 1.125
       },
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "proposal": "TUNING_060_1.md",
       "config": "configs/tuning/060_1.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
+      "recipe_commit": "211f0050079c67c4c0f490366a62c252c996ded4"
     },
     {
       "id": "060_2",
@@ -6180,10 +6191,12 @@
       "change": {
         "lambda_sia": 0.875
       },
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "proposal": "TUNING_060_2.md",
       "config": "configs/tuning/060_2.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
+      "recipe_commit": "211f0050079c67c4c0f490366a62c252c996ded4"
     },
     {
       "id": "060_3",
@@ -6199,10 +6212,12 @@
       "change": {
         "lr": 8.75e-05
       },
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "proposal": "TUNING_060_3.md",
       "config": "configs/tuning/060_3.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
+      "recipe_commit": "211f0050079c67c4c0f490366a62c252c996ded4"
     }
   ],
   "campaign_status": "active",
