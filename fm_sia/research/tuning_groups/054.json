@@ -1,0 +1,12 @@
+{
+  "group": "tuning_from_054",
+  "group_closed": true,
+  "trial_count": 5,
+  "selected_id": null,
+  "eligible_trials": [],
+  "selection_partition": "validation",
+  "decision_sha256": "bfe4912d409cb8f5746e3e9582b180f2b081751c57648741a8358fef2de62292",
+  "test_status": "NOT_STARTED",
+  "policy": "ITERATION_052.md",
+  "method": "select_post050_group"
+}
