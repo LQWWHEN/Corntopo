@@ -1466,8 +1466,9 @@
       "proposal": "ITERATION_063.md",
       "config": "configs/iteration063.json",
       "tuning_trials_used": 0,
-      "status": "preregistered",
-      "test_evaluated": false
+      "status": "queued_for_validation",
+      "test_evaluated": false,
+      "source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4"
     }
   ],
   "artifact_policy": {
@@ -1655,7 +1656,7 @@
     "completed_through": "050",
     "private_summary_verified": true,
     "public_summary": "STAGE_001_050.md",
-    "active_experiment_jobs": 1,
+    "active_experiment_jobs": 0,
     "experiment_checkpoint_files": null,
     "iteration021_started": true,
     "resume_requires_user_request": false,
@@ -1667,19 +1668,19 @@
     "temporary_checkpoint_trials": [
       "057",
       "060",
-      "057_2",
-      "057_5"
+      "057_2"
     ],
-    "latest_completed_trial": "057_4",
-    "active_trial": "057_5",
+    "latest_completed_trial": "057_5",
+    "active_trial": null,
     "queued_trials": [
       "061",
       "062",
       "060_1",
       "060_2",
-      "060_3"
+      "060_3",
+      "063"
     ],
-    "waiting_for_group": null
+    "waiting_for_group": "057"
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -6182,12 +6183,18 @@
       "change": {
         "lambda_vector": 1.375
       },
-      "status": "training_validation",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_057_5.md",
       "config": "configs/tuning/057_5.json",
       "test_evaluated": false,
       "source_commit": "4752d326c0c21f8d99f2f468542ed35f4b0e888c",
-      "recipe_commit": "36627dbfe67bef95bf060c8fb34b3b3c1fb8f7c6"
+      "recipe_commit": "36627dbfe67bef95bf060c8fb34b3b3c1fb8f7c6",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "group_closed": false,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "060_1",
