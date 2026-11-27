@@ -1726,7 +1726,8 @@
       "064",
       "065"
     ],
-    "waiting_for_group": null
+    "waiting_for_group": null,
+    "last_authorized_new_iteration": "065"
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -6327,7 +6328,7 @@
     }
   ],
   "campaign_status": "active",
-  "latest_user_scope": "2026-11-26 恢复长期研究。先对 010、012、030 作模块消融，并从基础 FM-SIA 开独立分支。051 保留停派。验证保护仅一至两项不通过可列入组末冻结测试候选。",
+  "latest_user_scope": "2026-11-27 用户更新：065 为最后一个新方案。完成截至 065 已适用的调参、组末冻结测试和清理后结束迭代。交付单一最终模型、MICCAI 风格论文初稿及必要的消融补充。论文和定量结果保留私有。",
   "supplemental_010_050": {
     "status": "completed",
     "method": "SUPPLEMENTAL_010_050.md",
