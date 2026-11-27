@@ -1717,11 +1717,13 @@
     "temporary_checkpoint_trials": [
       "060",
       "060_1",
-      "060_3"
+      "060_3",
+      "060_4"
     ],
-    "latest_completed_trial": "060_2",
-    "active_trial": "060_3",
+    "latest_completed_trial": "060_3",
+    "active_trial": "060_4",
     "queued_trials": [
+      "060_5",
       "063",
       "064",
       "065"
@@ -6327,12 +6329,18 @@
       "change": {
         "lr": 8.75e-05
       },
-      "status": "training_validation",
+      "status": "validation_audited",
       "proposal": "TUNING_060_3.md",
       "config": "configs/tuning/060_3.json",
       "test_evaluated": false,
       "source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
-      "recipe_commit": "211f0050079c67c4c0f490366a62c252c996ded4"
+      "recipe_commit": "211f0050079c67c4c0f490366a62c252c996ded4",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": true,
+      "group_closed": false,
+      "checkpoint_state": "temporary_pending_group_selection"
     },
     {
       "id": "060_4",
@@ -6348,10 +6356,12 @@
       "change": {
         "lambda_vector": 0.875
       },
-      "status": "preregistered",
+      "status": "training_validation",
       "proposal": "TUNING_060_4.md",
       "config": "configs/tuning/060_4.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
+      "recipe_commit": "a1dc224352c29dee537cb25f922c416053947f2c"
     },
     {
       "id": "060_5",
@@ -6367,10 +6377,12 @@
       "change": {
         "lambda_sia": 1.125
       },
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "proposal": "TUNING_060_5.md",
       "config": "configs/tuning/060_5.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
+      "recipe_commit": "a1dc224352c29dee537cb25f922c416053947f2c"
     }
   ],
   "campaign_status": "active",
