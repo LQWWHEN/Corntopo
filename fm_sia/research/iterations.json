@@ -1717,12 +1717,11 @@
     "temporary_checkpoint_trials": [
       "060",
       "060_1",
-      "060_2"
+      "060_3"
     ],
-    "latest_completed_trial": "060_1",
-    "active_trial": "060_2",
+    "latest_completed_trial": "060_2",
+    "active_trial": "060_3",
     "queued_trials": [
-      "060_3",
       "063",
       "064",
       "065"
@@ -6292,12 +6291,18 @@
       "change": {
         "lambda_sia": 0.875
       },
-      "status": "training_validation",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_060_2.md",
       "config": "configs/tuning/060_2.json",
       "test_evaluated": false,
       "source_commit": "e59086846116124bee6069dbb21a0c993249aec8",
-      "recipe_commit": "211f0050079c67c4c0f490366a62c252c996ded4"
+      "recipe_commit": "211f0050079c67c4c0f490366a62c252c996ded4",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "group_closed": false,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "060_3",
@@ -6313,7 +6318,7 @@
       "change": {
         "lr": 8.75e-05
       },
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "proposal": "TUNING_060_3.md",
       "config": "configs/tuning/060_3.json",
       "test_evaluated": false,
