@@ -42,7 +42,8 @@ def predict_case(model, args, stats, device, pre_path, clinical_values, sample_i
     values = np.asarray(clinical_values, np.float32)
     if values.shape != (len(args.conditions),) or not np.isfinite(values).all():
         raise ValueError(f'Provide finite clinical values in this order: {args.conditions}')
-    if getattr(args, 'center_sia_by_eye', False) and values[args.conditions.index(EYE_SIGN)] not in (-1.,1.):
+    uses_eye = getattr(args, 'center_sia_by_eye', False) or getattr(args, 'preop_vector_source', False)
+    if uses_eye and values[args.conditions.index(EYE_SIGN)] not in (-1.,1.):
         raise ValueError('Provide the preoperative eye as +1 for OD or -1 for OS')
     if stats['clinical']:
         values = (values-np.asarray(stats['clinical']['mean'],np.float32))/np.asarray(stats['clinical']['std'],np.float32)

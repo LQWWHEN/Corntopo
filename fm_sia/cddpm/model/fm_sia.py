@@ -97,7 +97,7 @@ class JointFlowMatching(nn.Module):
         return reader * (-2 * self.image_to_sia_scale)
 
     def forward(self, pre, post, sia_vector=None, clinical=None, mask=None, t=None, noise=None,
-                sia_magnitude=None, pre_mask=None):
+                sia_magnitude=None, pre_mask=None, training_reference=None):
         batch = pre.shape[0]
         if self.sia_mode == 'vector':
             if sia_vector is None or sia_vector.shape != (batch, 2) or not torch.isfinite(sia_vector).all():
@@ -120,6 +120,8 @@ class JointFlowMatching(nn.Module):
             raise ValueError("Invalid time or noise shape")
         # Keep the parent's RNG schedule when comparing the two source states.
         clinical, center = self.conditions_and_center(clinical)
+        if training_reference is not None:
+            center = training_reference
         noise = self.initial_sia_state(noise, center)
         if self.optical_residual:
             # This target offset is in D. Only the training pair defines it.

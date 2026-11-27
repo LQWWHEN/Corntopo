@@ -118,6 +118,8 @@ def get_args(argv=None):
                    help='Add the central flat-axis cylinder change in image velocity to the learned SIA velocity')
     p.add_argument('--optical_sia_residual', action='store_true',
                    help='Transport the SIA residual after subtracting measured optical change from training labels')
+    p.add_argument('--preop_vector_source', action='store_true',
+                   help='Start joint SIA transport at a patient-specific preoperative vector reference')
     p.add_argument('--center_sia_by_eye', action='store_true',
                    help='Center physical vector endpoints on a fold-specific OS or OD training mean')
     p.add_argument('--zero_polar_bias', action='store_true',
@@ -300,6 +302,12 @@ def check_args(a):
     if a.center_sia_by_eye and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'
             or a.transported_radius or EYE_SIGN not in a.conditions or (len(a.conditions)==1 and a.fusion_method!='none')):
         raise ValueError('Eye-conditioned centering requires a vector flow and a separate preoperative eye field')
+    if a.preop_vector_source and (
+            a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector' or a.image_backbone != 'unet'
+            or a.augmentation != 'none' or a.conditions[-3:] != [EYE_SIGN,*PRE_VECTOR]
+            or a.zero_induced_source or a.subtract_source_velocity or a.center_sia_by_eye or a.transported_radius
+            or a.optical_sia_velocity or a.optical_sia_residual):
+        raise ValueError('The clinical vector source requires native joint U-Net flow and final eye, pre-X, pre-Y fields')
     if (a.zero_induced_source or a.subtract_source_velocity) and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'):
         raise ValueError('SIA source changes require joint vector flow matching')
     if a.readout_only_sia_gradients and (a.eye_frame != 'right' or a.sia_prediction != 'axial_direct'):
@@ -530,6 +538,8 @@ def build_model(args, stats=None):
                {'pyramid_readout': True} if image_backbone == 'pyramid_readout_unet' else {}))
     else:
         clinical_width = len(args.conditions) - int(getattr(args, 'center_sia_by_eye', False))
+        if getattr(args, 'preop_vector_source', False):
+            clinical_width -= 3
         unet = ConditionalUNet(discrete=args.model not in ('fm','fm_sia'), clinical_dim=clinical_width,
             clinical_embed_dim=args.clinical_embed_dim, fusion_method=args.fusion_method,
             sia_embed_dim=args.sia_embed_dim if args.model == 'fm_sia' and not direct_sia else None,
@@ -645,7 +655,11 @@ def build_model(args, stats=None):
                 initial_sia=stats['sia']['median'][0], sample_steps=args.sample_steps,
                 method=args.ode_solver, lambda_scalar=args.lambda_scalar, sia_ref=args.sia_ref)
         joint_class, centering = JointFlowMatching, {}
-        if getattr(args, 'center_sia_by_eye', False):
+        if getattr(args, 'preop_vector_source', False):
+            from model.preop_vector_source import PreopVectorSourceFlow
+            joint_class = PreopVectorSourceFlow
+            centering = dict(clinical_stats=stats['clinical'], reference=stats['sia']['preop_reference'])
+        elif getattr(args, 'center_sia_by_eye', False):
             from model.fm_sia import EyeCenteredJointFlow
             index = args.conditions.index(EYE_SIGN)
             joint_class = EyeCenteredJointFlow
@@ -676,6 +690,10 @@ def build_model(args, stats=None):
 
 def make_dataset(args, dataframe, labels, stats, training=False):
     clinical = stats.get('clinical')
+    references = None
+    if training and getattr(args, 'preop_vector_source', False):
+        from model.preop_vector_source import crossfit_references
+        references = crossfit_references(dataframe[dataframe.label_index.isin(labels)], args.sia_columns)
     paired = None
     if training and args.augmentation == 'spherical_shift':
         index = args.conditions.index(PRE_KMAX)
@@ -684,7 +702,8 @@ def make_dataset(args, dataframe, labels, stats, training=False):
         dataframe=dataframe, labels=labels, input_maps=args.input_maps, output_maps=args.output_maps,
         image_stats=stats['image'], clinical_mean=clinical['mean'] if clinical else None,
         clinical_std=clinical['std'] if clinical else None,
-        transforms=DataTransform() if training and args.augmentation == 'd4' else None, paired_transform=paired)
+        transforms=DataTransform() if training and args.augmentation == 'd4' else None, paired_transform=paired,
+        training_references=references)
 
 
 def make_loader(dataset, args, device, shuffle=False, generator=None):
@@ -736,7 +755,8 @@ def saved_config_value(config, key):
         return False
     if key in ('geometry_only_eye', 'readout_only_sia_gradients', 'zero_induced_source', 'zero_polar_bias', 'uncentered_aperture',
                'subtract_source_velocity', 'polar_component_objective', 'transported_radius',
-               'optical_sia_velocity', 'optical_sia_residual', 'linearized_polar_decoder', 'center_sia_by_eye') and key not in config:
+               'optical_sia_velocity', 'optical_sia_residual', 'linearized_polar_decoder', 'center_sia_by_eye',
+               'preop_vector_source') and key not in config:
         return False
     if key == 'eye_frame' and key not in config:
         return 'native'
@@ -762,6 +782,8 @@ def forward_batch(model, batch, device, reconstruction_domain='valid'):
             return model(pre, post, clinical=clinical, mask=mask,
                          sia_magnitude=batch['sia_magnitude'].to(device))
         pre_info = {'pre_mask':batch['mask_pre'].to(device)} if getattr(model, 'uses_preoperative_mask', False) else {}
+        if 'training_reference' in batch:
+            pre_info['training_reference'] = batch['training_reference'].to(device)
         return model(pre, post, batch['sia_vector'].to(device), clinical=clinical, mask=mask, **pre_info)
     from model.fm import FlowMatching
     if isinstance(model, FlowMatching):
@@ -1026,6 +1048,10 @@ def fit_sia_stats(args, df, labels):
         return None
     columns = sia_target_columns(args)
     stats = feature_stats(df, labels, columns)
+    if getattr(args, 'preop_vector_source', False):
+        from model.preop_vector_source import fit_reference, training_arrays
+        training = df[df.label_index.isin(labels)]
+        stats['preop_reference'] = fit_reference(*training_arrays(training, columns))
     if getattr(args, 'center_sia_by_eye', False):
         training = df[df.label_index.isin(labels)]
         groups = [training.loc[training[EYE_SIGN]==sign,columns] for sign in (-1.,1.)]
