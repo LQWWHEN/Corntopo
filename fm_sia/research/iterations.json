@@ -1731,11 +1731,13 @@
     "temporary_checkpoint_trials": [
       "063",
       "063_2",
-      "063_3"
+      "063_3",
+      "063_4"
     ],
-    "latest_completed_trial": "063_2",
-    "active_trial": "063_3",
+    "latest_completed_trial": "063_3",
+    "active_trial": "063_4",
     "queued_trials": [
+      "063_5",
       "065"
     ],
     "waiting_for_group": null,
@@ -6516,12 +6518,18 @@
       "change": {
         "lr": 8.75e-05
       },
-      "status": "training_validation",
+      "status": "validation_audited",
       "proposal": "TUNING_063_3.md",
       "config": "configs/tuning/063_3.json",
       "test_evaluated": false,
       "source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4",
-      "recipe_commit": "0469abf3574696237af9e9257555b950806b4842"
+      "recipe_commit": "0469abf3574696237af9e9257555b950806b4842",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": true,
+      "eligible_for_group_selection": true,
+      "group_closed": false,
+      "checkpoint_state": "temporary_pending_group_selection"
     },
     {
       "id": "063_4",
@@ -6537,10 +6545,12 @@
       "change": {
         "lambda_vector": 0.875
       },
-      "status": "preregistered",
+      "status": "training_validation",
       "proposal": "TUNING_063_4.md",
       "config": "configs/tuning/063_4.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4",
+      "recipe_commit": "b8afb9a86fc6461f8c10530d67d694e950d3384a"
     },
     {
       "id": "063_5",
@@ -6556,10 +6566,12 @@
       "change": {
         "lambda_sia": 0.9375
       },
-      "status": "preregistered",
+      "status": "queued_for_validation",
       "proposal": "TUNING_063_5.md",
       "config": "configs/tuning/063_5.json",
-      "test_evaluated": false
+      "test_evaluated": false,
+      "source_commit": "86aed02c1cb178d60ee980f044f1e39f30213fd4",
+      "recipe_commit": "b8afb9a86fc6461f8c10530d67d694e950d3384a"
     }
   ],
   "campaign_status": "active",
