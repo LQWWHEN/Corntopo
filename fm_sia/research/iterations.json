@@ -1651,12 +1651,11 @@
       "057",
       "060",
       "057_2",
-      "057_4"
+      "057_5"
     ],
-    "latest_completed_trial": "055_5",
-    "active_trial": "057_4",
+    "latest_completed_trial": "057_4",
+    "active_trial": "057_5",
     "queued_trials": [
-      "057_5",
       "061",
       "062",
       "060_1",
@@ -6139,12 +6138,18 @@
       "change": {
         "lambda_vector": 1.125
       },
-      "status": "training_validation",
+      "status": "completed_validation_no_test",
       "proposal": "TUNING_057_4.md",
       "config": "configs/tuning/057_4.json",
       "test_evaluated": false,
       "source_commit": "4752d326c0c21f8d99f2f468542ed35f4b0e888c",
-      "recipe_commit": "36627dbfe67bef95bf060c8fb34b3b3c1fb8f7c6"
+      "recipe_commit": "36627dbfe67bef95bf060c8fb34b3b3c1fb8f7c6",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "group_closed": false,
+      "checkpoint_state": "cleaned"
     },
     {
       "id": "057_5",
@@ -6160,7 +6165,7 @@
       "change": {
         "lambda_vector": 1.375
       },
-      "status": "queued_for_validation",
+      "status": "training_validation",
       "proposal": "TUNING_057_5.md",
       "config": "configs/tuning/057_5.json",
       "test_evaluated": false,
