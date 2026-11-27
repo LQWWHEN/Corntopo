@@ -189,6 +189,62 @@ def test_transported_radius_preserves_parent_weights_and_consistent_endpoints():
     torch.testing.assert_close(augmented.sample(pre)['sia_vector'],2*q)
 
 
+def test_eye_centered_flow_fits_training_eyes_and_keeps_the_original_learned_conditions(tmp_path):
+    from clinical_features import EYE_SIGN, PRE_EYE, prepare_clinical_features
+    from dataloader import feature_stats
+    from predict import predict_case
+    from train import build_model, fit_sia_stats
+    flags = ['--excel_path','unused','--data_root','unused','--fusion_method','film',
+             '--sample_steps','2','--image_size','32','--conditions','pre_age_years']
+    parent_args = get_args(flags)
+    args = get_args([*flags,EYE_SIGN,'--center_sia_by_eye'])
+    frame = prepare_clinical_features(pd.DataFrame({
+        'label_index':[1,2,3,4],PRE_EYE:['OS','OS','OD','OD'],'pre_age_years':[30.,40.,50.,40.],
+        'delta_front_X':[-.7,-.3,1.2,99.],'delta_front_Y':[.3,.1,-.2,-99.]}),args.conditions)
+    train_ids = [1,2,3]
+    sia = fit_sia_stats(args,frame,train_ids)
+    np.testing.assert_allclose(sia['eye_centers'],[[-.5,.2],[1.2,-.2]])
+    assert sia['eye_counts']==[2,1]
+    frame.loc[3,['delta_front_X','delta_front_Y']]=[-999.,999.]
+    assert fit_sia_stats(args,frame,train_ids)==sia
+    one_eye = fit_sia_stats(args,frame,[1,2])
+    assert one_eye['eye_counts']==[2,0] and one_eye['eye_centers'][1]==one_eye['mean']
+    stats=dict(sia=sia,clinical=feature_stats(frame,train_ids,args.conditions),image=dict(minimum=0.,scale=1.))
+    torch.manual_seed(17)
+    parent = build_model(parent_args,stats)
+    torch.manual_seed(17)
+    model = build_model(args,stats).eval()
+    assert dict(parent.named_parameters()).keys()==dict(model.named_parameters()).keys()
+    for name,w in parent.named_parameters():
+        torch.testing.assert_close(model.get_parameter(name),w,rtol=0,atol=0)
+    pre = torch.ones(2,1,32,32)
+    raw_clinical = torch.tensor([[40.,-1.],[40.,1.]])
+    clinical = (raw_clinical-torch.tensor(stats['clinical']['mean']))/torch.tensor(stats['clinical']['std'])
+    learned,centers = model.conditions_and_center(clinical)
+    torch.testing.assert_close(learned,clinical[:,:1])
+    torch.testing.assert_close(centers,torch.tensor(sia['eye_centers']))
+    noise = torch.tensor([[.2,-.7],[.2,-.7]])
+    result = model.sample(pre,clinical=clinical,noise=noise)
+    torch.testing.assert_close(result['pred'][0],result['pred'][1])
+    torch.testing.assert_close(result['sia_vector'][1]-result['sia_vector'][0],centers[1]-centers[0])
+    speed = torch.tensor([.3,-.2])
+    model.unet = Oracle(torch.tensor(.125),speed)
+    target = centers+model.sia_std*(noise+speed)
+    loss = model(pre,pre+.125,target,clinical=clinical,t=torch.tensor([.2,.75]),noise=noise)
+    assert loss['loss'].item()<1e-12
+    torch.testing.assert_close(loss['sia_vector_clean'],target)
+    pred = model.sample(pre,clinical=clinical,noise=noise)
+    torch.testing.assert_close(pred['sia_vector'],target)
+    torch.testing.assert_close(pred['sia'],target.norm(dim=-1))
+    map_path=tmp_path/'pre.npy'
+    np.save(map_path,pre[0,0].numpy())
+    info,_=predict_case(model,args,stats,'cpu',map_path,[40.,1.],sample_id='synthetic')
+    draw=fixed_sia_noise(['synthetic'],args.eval_seed)[0]
+    expected=centers[1]+model.sia_std*(draw+speed)
+    torch.testing.assert_close(torch.tensor([info['pred_delta_X'],info['pred_delta_Y']]),expected)
+    assert info['pred_SIA_D']==pytest.approx(float(expected.norm()))
+
+
 def test_zero_norm_gradient_and_auxiliary_backprop():
     class Tiny(nn.Module):
         def __init__(self):

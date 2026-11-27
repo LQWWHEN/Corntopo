@@ -114,6 +114,8 @@ def get_args(argv=None):
                    help='Integrate an additional radial velocity from zero alongside the two SIA components')
     p.add_argument('--optical_sia_velocity', action='store_true',
                    help='Add the central flat-axis cylinder change in image velocity to the learned SIA velocity')
+    p.add_argument('--center_sia_by_eye', action='store_true',
+                   help='Center physical vector endpoints on a fold-specific OS or OD training mean')
     p.add_argument('--zero_polar_bias', action='store_true',
                    help='Initialize both polar readout biases at zero')
     p.add_argument('--polar_component_objective', action='store_true',
@@ -289,6 +291,9 @@ def check_args(a):
     if a.optical_sia_velocity and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'
             or a.transported_radius or a.input_maps != ['FRONT'] or a.output_maps != ['FRONT']):
         raise ValueError('Optical SIA velocity requires FRONT-to-FRONT joint two-component flow')
+    if a.center_sia_by_eye and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'
+            or a.transported_radius or EYE_SIGN not in a.conditions or (len(a.conditions)==1 and a.fusion_method!='none')):
+        raise ValueError('Eye-conditioned centering requires a vector flow and a separate preoperative eye field')
     if (a.zero_induced_source or a.subtract_source_velocity) and (a.model != 'fm_sia' or a.sia_prediction != 'flow' or a.sia_mode != 'vector'):
         raise ValueError('SIA source changes require joint vector flow matching')
     if a.geometry_only_eye and (a.eye_frame != 'right' or a.sia_prediction != 'axial_direct'):
@@ -516,7 +521,8 @@ def build_model(args, stats=None):
             **({'haar_details': True} if image_backbone == 'haar_detail_unet' else
                {'pyramid_readout': True} if image_backbone == 'pyramid_readout_unet' else {}))
     else:
-        unet = ConditionalUNet(discrete=args.model not in ('fm','fm_sia'), clinical_dim=len(args.conditions),
+        clinical_width = len(args.conditions) - int(getattr(args, 'center_sia_by_eye', False))
+        unet = ConditionalUNet(discrete=args.model not in ('fm','fm_sia'), clinical_dim=clinical_width,
             clinical_embed_dim=args.clinical_embed_dim, fusion_method=args.fusion_method,
             sia_embed_dim=args.sia_embed_dim if args.model == 'fm_sia' and not direct_sia else None,
             sia_num_heads=args.sia_num_heads,
@@ -629,14 +635,22 @@ def build_model(args, stats=None):
             return DirectSIAFlowMatching(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
                 initial_sia=stats['sia']['median'][0], sample_steps=args.sample_steps,
                 method=args.ode_solver, lambda_scalar=args.lambda_scalar, sia_ref=args.sia_ref)
-        return JointFlowMatching(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
+        joint_class, centering = JointFlowMatching, {}
+        if getattr(args, 'center_sia_by_eye', False):
+            from model.fm_sia import EyeCenteredJointFlow
+            index = args.conditions.index(EYE_SIGN)
+            joint_class = EyeCenteredJointFlow
+            centering = dict(eye_index=index,eye_mean=stats['clinical']['mean'][index],
+                             eye_std=stats['clinical']['std'][index],centers=stats['sia']['eye_centers'])
+        return joint_class(encoder, unet, stats['sia']['mean'], stats['sia']['std'],
             sample_steps=args.sample_steps, method=args.ode_solver, lambda_vector=args.lambda_vector,
             lambda_sia=args.lambda_sia, sia_ref=args.sia_ref, huber_delta=args.huber_delta,
             sia_mode=getattr(args, 'sia_mode', 'vector'), lambda_scalar=getattr(args, 'lambda_scalar', 1.0),
             zero_induced_source=getattr(args, 'zero_induced_source', False),
             subtract_source_velocity=getattr(args, 'subtract_source_velocity', False),
             transported_radius=getattr(args, 'transported_radius', False),
-            image_to_sia_scale=stats['image']['scale'] if getattr(args, 'optical_sia_velocity', False) else None)
+            image_to_sia_scale=stats['image']['scale'] if getattr(args, 'optical_sia_velocity', False) else None,
+            **centering)
     if args.model == 'fm':
         from model.fm import FlowMatching
         return FlowMatching(encoder, unet, method=args.ode_solver, sample_steps=args.sample_steps)
@@ -710,7 +724,7 @@ def saved_config_value(config, key):
         return False
     if key in ('geometry_only_eye', 'zero_induced_source', 'zero_polar_bias', 'uncentered_aperture',
                'subtract_source_velocity', 'polar_component_objective', 'transported_radius',
-               'optical_sia_velocity', 'linearized_polar_decoder') and key not in config:
+               'optical_sia_velocity', 'linearized_polar_decoder', 'center_sia_by_eye') and key not in config:
         return False
     if key == 'eye_frame' and key not in config:
         return 'native'
@@ -1000,6 +1014,11 @@ def fit_sia_stats(args, df, labels):
         return None
     columns = sia_target_columns(args)
     stats = feature_stats(df, labels, columns)
+    if getattr(args, 'center_sia_by_eye', False):
+        training = df[df.label_index.isin(labels)]
+        groups = [training.loc[training[EYE_SIGN]==sign,columns] for sign in (-1.,1.)]
+        stats['eye_counts'] = [len(group) for group in groups]
+        stats['eye_centers'] = [group.mean().tolist() if len(group) else stats['mean'] for group in groups]
     if getattr(args, 'sia_prediction', 'flow') == 'polar_direct':
         training = df[df.label_index.isin(labels)]
         vector = training[columns].to_numpy(copy=True)

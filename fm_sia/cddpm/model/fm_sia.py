@@ -65,8 +65,11 @@ class JointFlowMatching(nn.Module):
         self.lambda_scalar = lambda_scalar
         self.sia_ref, self.huber_delta = sia_ref, huber_delta
 
-    def decode(self, z):
-        q = self.sia_mean + self.sia_std*z
+    def conditions_and_center(self, clinical):
+        return clinical, self.sia_mean
+
+    def decode(self, z, center=None):
+        q = (self.sia_mean if center is None else center) + self.sia_std*z
         if self.sia_mode == 'scalar':
             # Training uses this unprojected endpoint to retain gradients below 0 D.
             return None, q.squeeze(-1)
@@ -77,9 +80,10 @@ class JointFlowMatching(nn.Module):
             return xy * (radius / length.clamp_min(1e-8))[:, None], radius
         return q, torch.linalg.vector_norm(q, dim=-1)
 
-    def initial_sia_state(self, noise):
+    def initial_sia_state(self, noise, center=None):
         if self.zero_induced_source:
-            return (-self.sia_mean / self.sia_std).to(noise).expand_as(noise)
+            center = self.sia_mean if center is None else center
+            return (-center / self.sia_std).to(noise).expand_as(noise)
         return noise
 
     def optical_reader(self, pre_mask):
@@ -112,8 +116,9 @@ class JointFlowMatching(nn.Module):
         if t.shape != (batch,) or noise.shape != (batch, self.state_dim) or not torch.isfinite(t).all() or not torch.isfinite(noise).all() or ((t < 0) | (t > 1)).any():
             raise ValueError("Invalid time or noise shape")
         # Keep the parent's RNG schedule when comparing the two source states.
-        noise = self.initial_sia_state(noise)
-        z1 = (physical-self.sia_mean)/self.sia_std
+        clinical, center = self.conditions_and_center(clinical)
+        noise = self.initial_sia_state(noise, center)
+        z1 = (physical-center)/self.sia_std
         xt = (1-t[:, None, None, None])*pre + t[:, None, None, None]*post
         zt = (1-t[:, None])*noise + t[:, None]*z1
         vx, vz = self.unet(xt, t, self.condition_encoder(pre), clinical=clinical, sia_state=zt)
@@ -130,7 +135,7 @@ class JointFlowMatching(nn.Module):
             loss_state = F.mse_loss(vz, target_velocity)
         # One-step endpoint estimate; final evaluation always integrates the ODE.
         z_clean = zt + (1-t[:, None])*vz
-        q_clean, s_clean = self.decode(z_clean)
+        q_clean, s_clean = self.decode(z_clean, center)
         loss_sia = F.huber_loss((s_clean-s_true)/self.sia_ref,
                                torch.zeros_like(s_true), delta=self.huber_delta)
         weight = self.lambda_vector if self.sia_mode == 'vector' else self.lambda_scalar
@@ -152,7 +157,8 @@ class JointFlowMatching(nn.Module):
         z0 = torch.randn(pre.shape[0], self.state_dim, device=pre.device, dtype=pre.dtype) if noise is None else noise.to(pre)
         if z0.shape != (pre.shape[0], self.state_dim) or not torch.isfinite(z0).all():
             raise ValueError(f"Initial noise must be finite [B,{self.state_dim}]")
-        z0 = self.initial_sia_state(z0)
+        clinical, center = self.conditions_and_center(clinical)
+        z0 = self.initial_sia_state(z0, center)
         cond = self.condition_encoder(pre)
         reader = self.optical_reader(pre_mask) if self.image_to_sia_scale is not None else None
         def field(state, time):
@@ -166,7 +172,7 @@ class JointFlowMatching(nn.Module):
         state = (pre, z0)
         for k in range(steps):
             state = ode_step(field, state, k/steps, 1/steps, method or self.method)
-        q, s = self.decode(state[1])
+        q, s = self.decode(state[1], center)
         result = dict(pred=state[0], sia=s, sia_state=state[1])
         if reader is not None:
             result['optical_sia_vector'] = (reader * (state[0] - pre)).sum((-2, -1))
@@ -182,4 +188,23 @@ class JointFlowMatching(nn.Module):
         if pre_mask is not None:
             return self.sample(x, clinical=clinical, noise=noise, pre_mask=pre_mask)
         return self.sample(x, clinical=clinical, noise=noise)
+
+
+class EyeCenteredJointFlow(JointFlowMatching):
+    """Model physical SIA residuals around a training-fold eye mean."""
+
+    def __init__(self, *args, eye_index, eye_mean, eye_std, centers, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.eye_index = eye_index
+        self.register_buffer('eye_mean', torch.tensor(float(eye_mean)))
+        self.register_buffer('eye_std', torch.tensor(float(eye_std)))
+        self.register_buffer('eye_centers', torch.as_tensor(centers, dtype=torch.float32))
+        if self.eye_centers.shape != (2, 2) or not torch.isfinite(self.eye_centers).all():
+            raise ValueError('Expected training-fold OS and OD vector means in diopters')
+
+    def conditions_and_center(self, clinical):
+        index = self.eye_index
+        eye = clinical[:, index] * self.eye_std + self.eye_mean
+        center = self.eye_centers[(eye > 0).long()]
+        return torch.cat((clinical[:, :index], clinical[:, index+1:]), dim=-1), center
 

@@ -7,6 +7,7 @@ import torch
 from dataloader import center_crop
 from train import build_model, resolve_device, json_save, PIPELINE_VERSION, saved_config_value, seed_everything
 from model.fm_sia import JointFlowMatching, fixed_sia_noise
+from clinical_features import EYE_SIGN
 from metrics import axis_details
 
 
@@ -41,6 +42,8 @@ def predict_case(model, args, stats, device, pre_path, clinical_values, sample_i
     values = np.asarray(clinical_values, np.float32)
     if values.shape != (len(args.conditions),) or not np.isfinite(values).all():
         raise ValueError(f'Provide finite clinical values in this order: {args.conditions}')
+    if getattr(args, 'center_sia_by_eye', False) and values[args.conditions.index(EYE_SIGN)] not in (-1.,1.):
+        raise ValueError('Provide the preoperative eye as +1 for OD or -1 for OS')
     if stats['clinical']:
         values = (values-np.asarray(stats['clinical']['mean'],np.float32))/np.asarray(stats['clinical']['std'],np.float32)
     clinical = torch.from_numpy(values)[None].to(device)
