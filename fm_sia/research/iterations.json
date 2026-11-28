@@ -1530,9 +1530,15 @@
       ],
       "tuning_trial_limit": 5,
       "tuning_trials_used": 0,
-      "status": "training_validation",
+      "status": "completed_validation_no_test",
       "test_evaluated": false,
-      "source_commit": "6444d862949a8cd067240b181778ecba7df58581"
+      "source_commit": "6444d862949a8cd067240b181778ecba7df58581",
+      "audit": "PASS",
+      "validation_gate_passed": false,
+      "near_eligible": false,
+      "eligible_for_group_selection": false,
+      "group_closed": true,
+      "checkpoint_state": "cleaned"
     }
   ],
   "artifact_policy": {
@@ -1715,28 +1721,27 @@
     "data_augmentation": 2
   },
   "campaign_state": {
-    "status": "active",
-    "date": "2026-11-26",
-    "completed_through": "050",
+    "status": "completed_at_065",
+    "date": "2026-11-28",
+    "completed_through": "065",
     "private_summary_verified": true,
-    "public_summary": "STAGE_001_050.md",
-    "active_experiment_jobs": 1,
-    "experiment_checkpoint_files": null,
+    "public_summary": "STAGE_052_065.md",
+    "active_experiment_jobs": 0,
+    "experiment_checkpoint_files": 0,
     "iteration021_started": true,
-    "resume_requires_user_request": false,
+    "resume_requires_user_request": true,
     "stop_after": "065",
     "private_iteration021_report_verified": true,
     "iteration022_started": true,
     "next_new_proposal": null,
-    "checkpoint_file_count_status": "training",
-    "temporary_checkpoint_trials": [
-      "065"
-    ],
-    "latest_completed_trial": "063_5",
-    "active_trial": "065",
+    "checkpoint_file_count_status": "verified_zero",
+    "temporary_checkpoint_trials": [],
+    "latest_completed_trial": "065",
+    "active_trial": null,
     "queued_trials": [],
     "waiting_for_group": null,
-    "last_authorized_new_iteration": "065"
+    "last_authorized_new_iteration": "065",
+    "final_report_model": "012"
   },
   "budget_policy_before_20261116": {
     "scope": "concrete_improvement_proposal",
@@ -6589,7 +6594,7 @@
       "checkpoint_files": 0
     }
   ],
-  "campaign_status": "active",
+  "campaign_status": "completed_at_065",
   "latest_user_scope": "2026-11-27 用户更新：065 为最后一个新方案。完成截至 065 已适用的调参、组末冻结测试和清理后结束迭代。交付单一最终模型、MICCAI 风格论文初稿及必要的消融补充。论文和定量结果保留私有。",
   "supplemental_010_050": {
     "status": "completed",
